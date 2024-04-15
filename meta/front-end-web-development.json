@@ -1,0 +1,686 @@
+{
+  "title": "front end web development",
+  "published": false,
+  "modules": [
+    {
+      "title": "introduction",
+      "sub-modules": [
+        {
+          "title": "overview of frontend web development",
+          "lessons": [
+            {
+              "title": "definition and role of frontend development in web development."
+            },
+            {
+              "title": "importance of frontend development"
+            },
+            {
+              "title": "key skills and technologies"
+            }
+          ]
+        },
+        {
+          "title": "history of frontend development",
+          "lessons": [
+            {
+              "title": "evolution of frontend technologies"
+            },
+            {
+              "title": "milstones in frontend development (intro. to CSS and Javascript)"
+            }
+          ]
+        },
+        {
+          "title": "introduction to web standards",
+          "lessons": [
+            {
+              "title": "definition of web standards and their importance"
+            },
+            {
+              "title": "overview of key web standards organizations"
+            },
+            {
+              "title": "Common web standards"
+            }
+          ]
+        },
+        {
+          "title": "job opportunities in frontend web development",
+          "lessons": [
+            {
+              "title": "overview of frontend development career paths and job roles"
+            },
+            {
+              "title": "skills and qualifications"
+            },
+            {
+              "title": "job outlook and trends in the frontend development industry"
+            }
+          ]
+        },
+        {
+          "title": "checkpoint"
+        }
+      ]
+    },
+    {
+      "title": "The Internet",
+      "sub-modules": [
+        {
+          "title": "how the internet works",
+          "lessons": [
+            {
+              "title": "introduction to internet"
+            },
+            {
+              "title": "overview of how the internet works"
+            },
+            {
+              "title": "basic concepts and terminologies"
+            },
+            {
+              "title": "the role of protocols in internet"
+            },
+            {
+              "title": "understanding IP addresses and domain names"
+            },
+            {
+              "title": "introduction to HTTP and HTTPS"
+            },
+            {
+              "title": "building applications with TCP/IP"
+            },
+            {
+              "title": "securing internet communication with SSL/TLS"
+            },
+            {
+              "title": "emerging trends and technologies"
+            }
+          ]
+        },
+        {
+          "title": "HTTP(S)",
+          "lessons": [
+            {
+              "title": "an overview of HTTP"
+            },
+            {
+              "title": "HTTP/0.9"
+            },
+            {
+              "title": "HTTP/1.0"
+            },
+            {
+              "title": "HTTP/1.1"
+            },
+            {
+              "title": "SPDY"
+            },
+            {
+              "title": "HTTP/2"
+            },
+            {
+              "title": "HTTP/3"
+            }
+          ]
+        },
+        {
+          "title": "Domain name",
+          "lessons": [
+            {
+              "title": "what is a domain name"
+            },
+            {
+              "title": "difference between a domain name and a URL"
+            },
+            {
+              "title": "how a domain name works"
+            }
+          ]
+        },
+        {
+          "title": "Web hosting",
+          "lessons": [
+            {
+              "title": "an overview of web hosting"
+            },
+            {
+              "title": "types of web hosting"
+            },
+            {
+              "title": "key features of web hosting"
+            },
+            {
+              "title": "choosing a web hosting provider"
+            },
+            {
+              "title": "setting up web hosting"
+            },
+            {
+              "title": "managing web hosting"
+            },
+            {
+              "title": "common web hosting issues"
+            }
+          ]
+        },
+        {
+          "title": "Domain name system",
+          "lessons": [
+            {
+              "title": "an overview of DNS"
+            },
+            {
+              "title": "how does DNS work?"
+            },
+            {
+              "title": "DNS records"
+            }
+          ]
+        },
+        {
+          "title": "Browsers",
+          "lessons": [
+            {
+              "title": "an overview of web browsers"
+            },
+            {
+              "title": "rendering engines"
+            },
+            {
+              "title": "HTML parser"
+            },
+            {
+              "title": "CSS parsing"
+            },
+            {
+              "title": "processing order for scripts and stylesheets"
+            },
+            {
+              "title": "rendering tree construction"
+            },
+            {
+              "title": "layout"
+            },
+            {
+              "title": "painting"
+            },
+            {
+              "title": "CSS2 visual model"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "HTML",
+      "sub-modules": [
+        {
+          "title": "introduction to HTML",
+          "lessons": [
+            {
+              "title": "an overview of HTML"
+            },
+            {
+              "title": "meaning and uses of HTML"
+            },
+            {
+              "title": "history of HTML"
+            },
+            {
+              "title": "HTML versions and standard"
+            }
+          ]
+        },
+        {
+          "title": "metadata",
+          "lessons": [
+            {
+              "title": "meta tags"
+            },
+            {
+              "title": "officially defined meta tags"
+            },
+            {
+              "title": "open graph"
+            },
+            {
+              "title": "other meta information"
+            }
+          ]
+        },
+        {
+          "title": "semantic HTML",
+          "lessons": [
+            {
+              "title": "overview"
+            },
+            {
+              "title": "accessibility object model"
+            },
+            {
+              "title": "the role attribute"
+            },
+            {
+              "title": "semantic elements"
+            }
+          ]
+        },
+        {
+          "title": "headings and sections",
+          "lessons": [
+            {
+              "title": "overview"
+            },
+            {
+              "title": "header"
+            },
+            {
+              "title": "footer"
+            },
+            {
+              "title": "document structure"
+            },
+            {
+              "title": "headings"
+            },
+            {
+              "title": "outlining the body"
+            }
+          ]
+        },
+        {
+          "title": "attributes",
+          "lessons": [
+            {
+              "title": "overview"
+            },
+            {
+              "title": "boolean attributes"
+            },
+            {
+              "title": "enumerated attributes"
+            },
+            {
+              "title": "global attributes"
+            },
+            {
+              "title": "custom attributes"
+            }
+          ]
+        },
+        {
+          "title": "text basics",
+          "lessons": [
+            {
+              "title": "overview"
+            },
+            {
+              "title": "headings"
+            },
+            {
+              "title": "quotes and citations"
+            }
+          ]
+        },
+        {
+          "title": "links",
+          "lessons": [
+            {
+              "title": "overview"
+            },
+            {
+              "title": "href attribute"
+            },
+            {
+              "title": "downloadable resources"
+            },
+            {
+              "title": "browsing context"
+            },
+            {
+              "title": "tracking link clicks"
+            },
+            {
+              "title": "links and javascript"
+            }
+          ]
+        },
+        {
+          "title": "lists",
+          "lessons": [
+            {
+              "title": "overview"
+            },
+            {
+              "title": "unordered lists"
+            },
+            {
+              "title": "ordered lists"
+            },
+            {
+              "title": "list items"
+            },
+            {
+              "title": "description lists"
+            }
+          ]
+        },
+        {
+          "title": "navigation",
+          "lessons": [
+            {
+              "title": "overview"
+            },
+            {
+              "title": "'skip to content' link"
+            },
+            {
+              "title": "table of contents"
+            },
+            {
+              "title": "page breadcrumbs"
+            },
+            {
+              "title": "local navigation"
+            },
+            {
+              "title": "global navigation"
+            }
+          ]
+        },
+        {
+          "title": "tables",
+          "lessons": [
+            {
+              "title": "overview"
+            },
+            {
+              "title": "table elements"
+            },
+            {
+              "title": "merging cells"
+            },
+            {
+              "title": "styling tables"
+            },
+            {
+              "title": "presenting data"
+            }
+          ]
+        },
+        {
+          "title": "forms",
+          "lessons": [
+            {
+              "title": "submitting forms"
+            },
+            {
+              "title": "after form submission"
+            },
+            {
+              "title": "radio buttons"
+            },
+            {
+              "title": "check boxes"
+            },
+            {
+              "title": "labels and fieldsets"
+            },
+            {
+              "title": "input types and dynamic keyboard"
+            },
+            {
+              "title": "accessing the microphone and camera"
+            },
+            {
+              "title": "built-in validation"
+            }
+          ]
+        },
+        {
+          "title": "images",
+          "lessons": [
+            {
+              "title": "overview"
+            },
+            {
+              "title": "image alt descriptions"
+            },
+            {
+              "title": "responsive images"
+            },
+            {
+              "title": "performance"
+            },
+            {
+              "title": "other features"
+            }
+          ]
+        },
+        {
+          "title": "audio and video",
+          "lessons": [
+            {
+              "title": "overview"
+            },
+            {
+              "title": "tracks"
+            },
+            {
+              "title": "background video considerations"
+            },
+            {
+              "title": "custom media controls"
+            }
+          ]
+        },
+        {
+          "title": "template, slot, and shadow",
+          "lessons": [
+            {
+              "title": "overview"
+            },
+            {
+              "title": "'template' element"
+            },
+            {
+              "title": "'slot' element"
+            },
+            {
+              "title": "undefined elements"
+            },
+            {
+              "title": "shadow DOM"
+            },
+            {
+              "title": "styling outside of the current scope"
+            }
+          ]
+        },
+        {
+          "title": "HTML APIs",
+          "lessons": [
+            {
+              "title": "overview"
+            },
+            {
+              "title": "The DOM and AOM"
+            },
+            {
+              "title": "Element APIs"
+            },
+            {
+              "title": "Available element interfaces"
+            },
+            {
+              "title": "other interfaces"
+            }
+          ]
+        },
+        {
+          "title": "focus",
+          "lessons": [
+            {
+              "title": "overview"
+            },
+            {
+              "title": "making inert elements interactive"
+            },
+            {
+              "title": "giving focus to interactive elements"
+            },
+            {
+              "title": "making interactive elements inert"
+            }
+          ]
+        },
+        {
+          "title": "inline text elements",
+          "lessons": [
+            {
+              "title": "overview"
+            },
+            {
+              "title": "code examples and technical writing"
+            },
+            {
+              "title": "definitions and language support"
+            },
+            {
+              "title": "emphasizing text"
+            },
+            {
+              "title": "white space"
+            }
+          ]
+        },
+        {
+          "title": "details and summary",
+          "lessons": [
+            {
+              "title": "overview"
+            },
+            {
+              "title": "toggling visibility: open attribute"
+            },
+            {
+              "title": "toggling the summary marker"
+            },
+            {
+              "title": "handling errors"
+            },
+            {
+              "title": "The HTMLDetailsElement interface"
+            }
+          ]
+        },
+        {
+          "title": "dialog",
+          "lessons": [
+            {
+              "title": "overview"
+            },
+            {
+              "title": "modal dialogs"
+            },
+            {
+              "title": "non-modal dialogs"
+            },
+            {
+              "title": "closing a dialog"
+            },
+            {
+              "title": "additional details"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "CSS",
+      "sub-modules": []
+    },
+    {
+      "title": "javascript",
+      "sub-modules": []
+    },
+    {
+      "title": "version control systems",
+      "sub-modules": []
+    },
+
+    {
+      "title": "writing CSS",
+      "sub-modules": []
+    },
+    {
+      "title": "CSS architecture",
+      "sub-modules": []
+    },
+    {
+      "title": "CSS preprocessors",
+      "sub-modules": []
+    },
+    {
+      "title": "package managers",
+      "sub-modules": []
+    },
+    {
+      "title": "frameworks (ReactJs)",
+      "sub-modules": []
+    },
+    {
+      "title": "module bundlers",
+      "sub-modules": []
+    },
+    {
+      "title": "task runners",
+      "sub-modules": []
+    },
+    {
+      "title": "linters and formatters",
+      "sub-modules": []
+    },
+    {
+      "title": "testing",
+      "sub-modules": []
+    },
+    {
+      "title": "authentication strategies",
+      "sub-modules": []
+    },
+    {
+      "title": "web security",
+      "sub-modules": []
+    },
+    {
+      "title": "web components",
+      "sub-modules": []
+    },
+    {
+      "title": "typescript",
+      "sub-modules": []
+    },
+    {
+      "title": "server side rendering (SSR)",
+      "sub-modules": []
+    },
+    {
+      "title": "GraphQL",
+      "sub-modules": []
+    },
+    {
+      "title": "static site generators",
+      "sub-modules": []
+    },
+    {
+      "title": "progressive web apps",
+      "sub-modules": []
+    },
+    {
+      "title": "mobile and desktop applications overview",
+      "sub-modules": []
+    }
+  ]
+}

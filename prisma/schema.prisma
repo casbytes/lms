@@ -1,0 +1,110 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+//||||||||||||||||##########||||||||||||||||//
+//                   USER                   
+//||||||||||||||||##########||||||||||||||||//
+model User {
+  id                  String   @id @default(uuid())
+  googleId            String?  @unique
+  githubId            Int?     @unique
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  completedOnboarding Boolean  @default(false)
+}
+
+//||||||||||||||||##########||||||||||||||||//
+//                   CONTENT                //
+//||||||||||||||||##########||||||||||||||||//
+model Course {
+  id        String    @id @default(uuid())
+  title     String
+  slug      String    @unique
+  published Boolean
+  modules   Module[]
+  project   Project[]
+}
+
+model Project {
+  id       String @id @default(uuid())
+  title    String
+  slug     String @unique
+  course   Course @relation(fields: [courseId], references: [id])
+  courseId String
+}
+
+model Module {
+  id         String             @id @default(uuid())
+  title      String
+  slug       String             @unique
+  published  Boolean
+  course     Course             @relation(fields: [courseId], references: [id])
+  courseId   String
+  subModules SubModule[]
+  checkPoint ModuleCheckPoint[]
+}
+
+model ModuleCheckPoint {
+  id       String                 @id @default(uuid())
+  title    String
+  slug     String                 @unique
+  module   Module                 @relation(fields: [moduleId], references: [id])
+  moduleId String
+  test     ModuleCheckPointTest[]
+}
+
+model ModuleCheckPointTest {
+  id                 String           @id @default(uuid())
+  title              String
+  slug               String           @unique
+  moduleCheckPoint   ModuleCheckPoint @relation(fields: [moduleCheckPointId], references: [id])
+  moduleCheckPointId String
+}
+
+model SubModule {
+  id         String                @id @default(uuid())
+  title      String
+  slug       String                @unique
+  module     Module                @relation(fields: [moduleId], references: [id])
+  moduleId   String
+  lessons    Lesson[]
+  checkPoint SubModuleCheckPoint[]
+}
+
+model SubModuleCheckPoint {
+  id          String                    @id @default(uuid())
+  title       String
+  slug        String                    @unique
+  subModule   SubModule                 @relation(fields: [subModuleId], references: [id])
+  subModuleId String
+  test        SubModuleCheckPointTest[]
+}
+
+model SubModuleCheckPointTest {
+  id                    String              @id @default(uuid())
+  title                 String
+  slug                  String              @unique
+  subModuleCheckPoint   SubModuleCheckPoint @relation(fields: [subModuleCheckPointId], references: [id])
+  subModuleCheckPointId String
+}
+
+model Lesson {
+  id          String    @id @default(uuid())
+  title       String
+  slug        String    @unique
+  subModule   SubModule @relation(fields: [subModuleId], references: [id])
+  subModuleId String
+}
+
+//||||||||||||||||##########||||||||||||||||//
+//                 PROGRESS                //
+//||||||||||||||||##########||||||||||||||||//
