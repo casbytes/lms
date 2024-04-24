@@ -8,6 +8,7 @@ Dockerfile
 .dockerignore
 .git
 .DS_Store
+.env-prod
 
 
 # Sentry Config File
