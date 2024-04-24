@@ -1,5 +1,4 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
-import dark from "highlight.js/styles/night-owl.css?url";
 import { AuthAppLayout } from "~/components/layouts";
 import { getUser } from "~/utils/session.server";
 
@@ -12,9 +11,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return null;
 };
 
-export function meta() {
-  return [{ rel: "stylesheet", href: dark }];
-}
+export function meta() {}
 export default function AuthApp() {
   return <AuthAppLayout />;
 }

@@ -1,3 +1,4 @@
+import React from "react";
 import {
   CheckCircle,
   CircleDotDashed,
@@ -6,25 +7,80 @@ import {
 } from "lucide-react";
 import { Badge } from "./ui/badge";
 
-export function Status() {
+export function Status({ status }: any) {
+  const memoizedModuleStatus = React.useMemo(() => {
+    if (!status) return { completed: 0, inProgress: 0, locked: 0, total: 0 };
+
+    return status.reduce(
+      (acc: any, module: any) => {
+        switch (module.status) {
+          case "COMPLETED":
+            acc.completed++;
+            break;
+          case "IN_PROGRESS":
+            acc.inProgress++;
+            break;
+          case "LOCKED":
+            acc.locked++;
+            break;
+        }
+        acc.total++;
+        return acc;
+      },
+      { completed: 0, inProgress: 0, locked: 0, total: 0 }
+    );
+  }, [status]);
+  // const memoizedModuleStatus = React.useMemo(() => {
+  //   const completed = status?.filter(
+  //     (module: any) => module.status === "COMPLETED"
+  //   ).length;
+  //   const inProgress = status?.filter(
+  //     (module: any) => module.status === "IN_PROGRESS"
+  //   ).length;
+  //   const locked = status?.filter(
+  //     (module: any) => module.status === "LOCKED"
+  //   ).length;
+  //   const total = status?.length;
+  //   return { completed, inProgress, locked, total };
+  // }, [status]);
+
   return (
-    <ul className="gap-4 grid grid-cols-1 sm:grid-cols-2 border-l-4 border-blue-600 p-2 text-md my-4 text-md">
+    <ul className="gap-4 grid grid-cols-1 sm:grid-cols-2 border-l-4 border-blue-600 p-2 text-md my-4">
       <li className="flex items-center">
         <CheckCircle className="mr-2 text-blue-600" /> Completed:{" "}
-        <Badge className="rounded-full ml-2">2</Badge>
+        <Badge className="rounded-md ml-2 text-md">
+          {memoizedModuleStatus?.completed}
+        </Badge>
       </li>
       <li className="flex items-center">
         <CircleDotDashed className="mr-2 text-blue-600" /> In progress:{" "}
-        <Badge className="rounded-full ml-2">1</Badge>
+        <Badge className="rounded-md ml-2 text-md">
+          {memoizedModuleStatus?.inProgress}
+        </Badge>
       </li>
       <li className="flex items-center">
         <LockKeyhole className="mr-2 text-slate-400" /> Locked:{" "}
-        <Badge className="rounded-full ml-2">17</Badge>
+        <Badge className="rounded-md ml-2 text-md">
+          {memoizedModuleStatus?.locked}
+        </Badge>
       </li>
       <li className="flex items-center">
         <SigmaSquare className="mr-2" /> Total:{" "}
-        <Badge className="rounded-full ml-2">20</Badge>
+        <Badge className="rounded-md ml-2 text-md">
+          {memoizedModuleStatus?.total}
+        </Badge>
       </li>
     </ul>
+  );
+}
+
+export function PendingStatus() {
+  return (
+    <div className="grid grid-cols-2 gap-4 bg-gray-200 w-full p-2 my-4">
+      <div className="h-8 bg-gray-300 rounded-md animate-pulse"></div>
+      <div className="h-8 bg-gray-300 rounded-md animate-pulse"></div>
+      <div className="h-8 bg-gray-300 rounded-md animate-pulse"></div>
+      <div className="h-8 bg-gray-300 rounded-md animate-pulse"></div>
+    </div>
   );
 }

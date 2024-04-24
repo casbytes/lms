@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for casbytes-solitary-grass-7090 on 2024-04-14T12:34:26+01:00
+# fly.toml app configuration file generated for casbytes on 2024-04-24T00:21:48+01:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'casbytes-solitary-grass-7090'
+app = 'casbytes'
 primary_region = 'lhr'
 
 [build]

@@ -1,212 +1,271 @@
 {
   "title": "front end web development",
-  "published": false,
+  "published": true,
+  "jsonId": "course-front-end-web-development",
   "modules": [
     {
       "title": "introduction",
-      "sub-modules": [
+      "jsonId": "course-front-end-web-development-module-introduction",
+      "subModules": [
         {
-          "title": "overview of frontend web development",
+          "title": "overview",
+          "jsonId": "course-front-end-web-development-module-introduction-submodule-overview",
           "lessons": [
             {
-              "title": "definition and role of frontend development in web development."
+              "jsonId": "course-front-end-web-development-module-introduction-submodule-overview-lesson-definition-and-role",
+              "title": "definition and role"
             },
             {
-              "title": "importance of frontend development"
+              "jsonId": "course-front-end-web-development-module-introduction-submodule-overview-lesson-importance",
+              "title": "importance"
             },
             {
+              "jsonId": "course-front-end-web-development-module-introduction-submodule-overview-lesson-key-skills-and-technologies",
               "title": "key skills and technologies"
             }
           ]
         },
         {
-          "title": "history of frontend development",
+          "title": "history",
+          "jsonId": "course-front-end-web-development-module-introduction-submodule-history",
           "lessons": [
             {
+              "jsonId": "course-front-end-web-development-module-introduction-submodule-history-lesson-evolution-of-frontend-technologies",
               "title": "evolution of frontend technologies"
             },
             {
-              "title": "milstones in frontend development (intro. to CSS and Javascript)"
+              "jsonId": "course-front-end-web-development-module-introduction-submodule-history-lesson-milstones-in-frontend-development",
+              "title": "milstones in frontend development"
             }
           ]
         },
         {
           "title": "introduction to web standards",
+          "jsonId": "course-front-end-web-development-module-introduction-submodule-introduction-to-web-standards",
           "lessons": [
             {
+              "jsonId": "course-front-end-web-development-module-introduction-submodule-introduction-to-web-standards-lesson-definition-of-web-standards-and-their-importance",
               "title": "definition of web standards and their importance"
             },
             {
+              "jsonId": "course-front-end-web-development-module-introduction-submodule-introduction-to-web-standards-lesson-overview-of-key-web-standards-organizations",
               "title": "overview of key web standards organizations"
             },
             {
+              "jsonId": "course-front-end-web-development-module-introduction-submodule-introduction-to-web-standards-lesson-common-web-standards",
               "title": "Common web standards"
             }
           ]
         },
         {
-          "title": "job opportunities in frontend web development",
+          "title": "job opportunities",
+          "jsonId": "course-front-end-web-development-module-introduction-submodule-job-opportunities",
           "lessons": [
             {
-              "title": "overview of frontend development career paths and job roles"
+              "jsonId": "course-front-end-web-development-module-introduction-submodule-job-opportunities-lesson-career-paths-and-job-roles",
+              "title": "career paths and job roles"
             },
             {
+              "jsonId": "course-front-end-web-development-module-introduction-submodule-job-opportunities-lesson-skills-and-qualifications",
               "title": "skills and qualifications"
             },
             {
-              "title": "job outlook and trends in the frontend development industry"
+              "jsonId": "course-front-end-web-development-module-introduction-submodule-job-opportunities-lesson-job-outlook-and-trends",
+              "title": "job outlook and trends"
             }
           ]
-        },
-        {
-          "title": "checkpoint"
         }
       ]
     },
     {
       "title": "The Internet",
-      "sub-modules": [
+      "jsonId": "course-front-end-web-development-module-the-internet",
+      "subModules": [
         {
           "title": "how the internet works",
+          "jsonId": "course-front-end-web-development-module-the-internet-submodule-how-the-internet-works",
           "lessons": [
             {
-              "title": "introduction to internet"
+              "title": "introduction to internet",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-how-the-internet-works-lesson-introduction-to-internet"
             },
             {
-              "title": "overview of how the internet works"
+              "title": "overview of how the internet works",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-how-the-internet-works-lesson-overview-of-how-the-internet-works"
             },
             {
-              "title": "basic concepts and terminologies"
+              "title": "basic concepts and terminologies",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-how-the-internet-works-lesson-basic-concepts-and-terminologies"
             },
             {
-              "title": "the role of protocols in internet"
+              "title": "the role of protocols in internet",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-how-the-internet-works-lesson-the-role-of-protocols-in-internet"
             },
             {
-              "title": "understanding IP addresses and domain names"
+              "title": "IP addresses and domain names",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-how-the-internet-works-lesson-ip-addresses-and-domain-names"
             },
             {
-              "title": "introduction to HTTP and HTTPS"
+              "title": "introduction to HTTP and HTTPS",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-how-the-internet-works-lesson-introduction-to-http-and-https"
             },
             {
-              "title": "building applications with TCP/IP"
+              "title": "building applications with TCP/IP",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-how-the-internet-works-lesson-building-applications-with-tcp-ip"
             },
             {
-              "title": "securing internet communication with SSL/TLS"
+              "title": "securing internet communication with SSL/TLS",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-how-the-internet-works-lesson-securing-internet-communication-with-ssl-tls"
             },
             {
-              "title": "emerging trends and technologies"
+              "title": "emerging trends and technologies",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-how-the-internet-works-lesson-emerging-trends-and-technologies"
             }
           ]
         },
         {
           "title": "HTTP(S)",
+          "jsonId": "course-front-end-web-development-module-the-internet-submodule-https",
           "lessons": [
             {
-              "title": "an overview of HTTP"
+              "title": "an overview of HTTP",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-https-lesson-an-overview-of-http"
             },
             {
-              "title": "HTTP/0.9"
+              "title": "HTTP/0.9",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-https-lesson-http-09"
             },
             {
-              "title": "HTTP/1.0"
+              "title": "HTTP/1.0",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-https-lesson-http-10"
             },
             {
-              "title": "HTTP/1.1"
+              "title": "HTTP/1.1",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-https-lesson-http-11"
             },
             {
-              "title": "SPDY"
+              "title": "SPDY",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-https-lesson-spdy"
             },
             {
-              "title": "HTTP/2"
+              "title": "HTTP/2",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-https-lesson-http-2"
             },
             {
-              "title": "HTTP/3"
+              "title": "HTTP/3",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-https-lesson-http-3"
             }
           ]
         },
         {
-          "title": "Domain name",
+          "title": "Domain names",
+          "jsonId": "course-front-end-web-development-module-the-internet-submodule-domain-name",
           "lessons": [
             {
-              "title": "what is a domain name"
+              "title": "what is a domain name",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-domain-name-lesson-what-is-a-domain-name"
             },
             {
-              "title": "difference between a domain name and a URL"
+              "title": "difference between a domain name and a URL",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-domain-name-lesson-difference-between-a-domain-name-and-a-url"
             },
             {
-              "title": "how a domain name works"
+              "title": "how a domain name works",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-domain-name-lesson-how-a-domain-name-works"
             }
           ]
         },
         {
           "title": "Web hosting",
+          "jsonId": "course-front-end-web-development-module-the-internet-submodule-web-hosting",
           "lessons": [
             {
-              "title": "an overview of web hosting"
+              "title": "an overview of web hosting",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-web-hosting-lesson-an-overview-of-web-hosting"
             },
             {
-              "title": "types of web hosting"
+              "title": "types of web hosting",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-web-hosting-lesson-types-of-web-hosting"
             },
             {
-              "title": "key features of web hosting"
+              "title": "key features of web hosting",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-web-hosting-lesson-key-features-of-web-hosting"
             },
             {
-              "title": "choosing a web hosting provider"
+              "title": "choosing a web hosting provider",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-web-hosting-lesson-choosing-a-web-hosting-provider"
             },
             {
-              "title": "setting up web hosting"
+              "title": "setting up web hosting",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-web-hosting-lesson-setting-up-web-hosting"
             },
             {
-              "title": "managing web hosting"
+              "title": "managing web hosting",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-web-hosting-lesson-managing-web-hosting"
             },
             {
-              "title": "common web hosting issues"
+              "title": "common web hosting issues",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-web-hosting-lesson-common-web-hosting-issues"
             }
           ]
         },
         {
           "title": "Domain name system",
+          "jsonId": "course-front-end-web-development-module-the-internet-submodule-domain-name-system",
           "lessons": [
             {
-              "title": "an overview of DNS"
+              "title": "an overview of DNS",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-domain-name-system-lesson-an-overview-of-dns"
             },
             {
-              "title": "how does DNS work?"
+              "title": "how does DNS work?",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-domain-name-system-lesson-how-does-dns-work"
             },
             {
-              "title": "DNS records"
+              "title": "DNS records",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-domain-name-system-lesson-dns-records"
             }
           ]
         },
         {
           "title": "Browsers",
+          "jsonId": "course-front-end-web-development-module-the-internet-submodule-browsers",
           "lessons": [
             {
-              "title": "an overview of web browsers"
+              "title": "an overview of web browsers",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-browsers-lesson-an-overview-of-web-browsers"
             },
             {
-              "title": "rendering engines"
+              "title": "rendering engines",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-browsers-lesson-rendering-engines"
             },
             {
-              "title": "HTML parser"
+              "title": "HTML parser",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-browsers-lesson-html-parser"
             },
             {
-              "title": "CSS parsing"
+              "title": "CSS parsing",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-browsers-lesson-css-parsing"
             },
             {
-              "title": "processing order for scripts and stylesheets"
+              "title": "processing order for scripts and stylesheets",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-browsers-lesson-processing-order-for-scripts-and-stylesheets"
             },
             {
-              "title": "rendering tree construction"
+              "title": "rendering tree construction",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-browsers-lesson-rendering-tree-construction"
             },
             {
-              "title": "layout"
+              "title": "layout",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-browsers-lesson-layout"
             },
             {
-              "title": "painting"
+              "title": "painting",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-browsers-lesson-painting"
             },
             {
-              "title": "CSS2 visual model"
+              "title": "CSS2 visual model",
+              "jsonId": "course-front-end-web-development-module-the-internet-submodule-browsers-lesson-css2-visual-model"
             }
           ]
         }
@@ -214,384 +273,499 @@
     },
     {
       "title": "HTML",
-      "sub-modules": [
+      "jsonId": "course-front-end-web-development-module-html",
+      "subModules": [
         {
           "title": "introduction to HTML",
+          "jsonId": "course-front-end-web-development-module-html-submodule-introduction-to-html",
           "lessons": [
             {
-              "title": "an overview of HTML"
+              "title": "an overview of HTML",
+              "jsonId": "course-front-end-web-development-module-html-submodule-introduction-to-html-lesson-an-overview-of-html"
             },
             {
-              "title": "meaning and uses of HTML"
+              "title": "uses of HTML",
+              "jsonId": "course-front-end-web-development-module-html-submodule-introduction-to-html-lesson-uses-of-html"
             },
             {
-              "title": "history of HTML"
+              "title": "history of HTML",
+              "jsonId": "course-front-end-web-development-module-html-submodule-introduction-to-html-lesson-history-of-html"
             },
             {
-              "title": "HTML versions and standard"
+              "title": "HTML versions and standard",
+              "jsonId": "course-front-end-web-development-module-html-submodule-introduction-to-html-lesson-html-versions-and-standard"
             }
           ]
         },
         {
           "title": "metadata",
+          "jsonId": "course-front-end-web-development-module-html-submodule-metadata",
           "lessons": [
             {
-              "title": "meta tags"
+              "title": "meta tags",
+              "jsonId": "course-front-end-web-development-module-html-submodule-metadata-lesson-meta-tags"
             },
             {
-              "title": "officially defined meta tags"
+              "title": "officially defined meta tags",
+              "jsonId": "course-front-end-web-development-module-html-submodule-metadata-lesson-officially-defined-meta-tags"
             },
             {
-              "title": "open graph"
+              "title": "open graph",
+              "jsonId": "course-front-end-web-development-module-html-submodule-metadata-lesson-open-graph"
             },
             {
-              "title": "other meta information"
+              "title": "other meta information",
+              "jsonId": "course-front-end-web-development-module-html-submodule-metadata-lesson-other-meta-information"
             }
           ]
         },
         {
           "title": "semantic HTML",
+          "jsonId": "course-front-end-web-development-module-html-submodule-semantic-html",
           "lessons": [
             {
-              "title": "overview"
+              "title": "overview",
+              "jsonId": "course-front-end-web-development-module-html-submodule-semantic-html-lesson-overview"
             },
             {
-              "title": "accessibility object model"
+              "title": "accessibility object model",
+              "jsonId": "course-front-end-web-development-module-html-submodule-semantic-html-lesson-accessibility-object-model"
             },
             {
-              "title": "the role attribute"
+              "title": "the role attribute",
+              "jsonId": "course-front-end-web-development-module-html-submodule-semantic-html-lesson-the-role-attribute"
             },
             {
-              "title": "semantic elements"
+              "title": "semantic elements",
+              "jsonId": "course-front-end-web-development-module-html-submodule-semantic-html-lesson-semantic-elements"
             }
           ]
         },
         {
           "title": "headings and sections",
+          "jsonId": "course-front-end-web-development-module-html-submodule-headings-and-sections",
           "lessons": [
             {
-              "title": "overview"
+              "title": "overview",
+              "jsonId": "course-front-end-web-development-module-html-submodule-headings-and-sections-lesson-overview"
             },
             {
-              "title": "header"
+              "title": "header",
+              "jsonId": "course-front-end-web-development-module-html-submodule-headings-and-sections-lesson-header"
             },
             {
-              "title": "footer"
+              "title": "footer",
+              "jsonId": "course-front-end-web-development-module-html-submodule-headings-and-sections-lesson-footer"
             },
             {
-              "title": "document structure"
+              "title": "document structure",
+              "jsonId": "course-front-end-web-development-module-html-submodule-headings-and-sections-lesson-document-structure"
             },
             {
-              "title": "headings"
+              "title": "headings",
+              "jsonId": "course-front-end-web-development-module-html-submodule-headings-and-sections-lesson-headings"
             },
             {
-              "title": "outlining the body"
+              "title": "outlining the body",
+              "jsonId": "course-front-end-web-development-module-html-submodule-headings-and-sections-lesson-outlining-the-body"
             }
           ]
         },
         {
           "title": "attributes",
+          "jsonId": "course-front-end-web-development-module-html-submodule-attributes",
           "lessons": [
             {
-              "title": "overview"
+              "title": "overview",
+              "jsonId": "course-front-end-web-development-module-html-submodule-attributes-lesson-overview"
             },
             {
-              "title": "boolean attributes"
+              "title": "boolean attributes",
+              "jsonId": "course-front-end-web-development-module-html-submodule-attributes-lesson-boolean-attributes"
             },
             {
-              "title": "enumerated attributes"
+              "title": "enumerated attributes",
+              "jsonId": "course-front-end-web-development-module-html-submodule-attributes-lesson-enumerated-attributes"
             },
             {
-              "title": "global attributes"
+              "title": "global attributes",
+              "jsonId": "course-front-end-web-development-module-html-submodule-attributes-lesson-global-attributes"
             },
             {
-              "title": "custom attributes"
+              "title": "custom attributes",
+              "jsonId": "course-front-end-web-development-module-html-submodule-attributes-lesson-custom-attributes"
             }
           ]
         },
         {
           "title": "text basics",
+          "jsonId": "course-front-end-web-development-module-html-submodule-text-basics",
           "lessons": [
             {
-              "title": "overview"
+              "title": "overview",
+              "jsonId": "course-front-end-web-development-module-html-submodule-text-basics-lesson-overview"
             },
             {
-              "title": "headings"
+              "title": "headings",
+              "jsonId": "course-front-end-web-development-module-html-submodule-text-basics-lesson-headings"
             },
             {
-              "title": "quotes and citations"
+              "title": "quotes and citations",
+              "jsonId": "course-front-end-web-development-module-html-submodule-text-basics-lesson-quotes-and-citations"
             }
           ]
         },
         {
           "title": "links",
+          "jsonId": "course-front-end-web-development-module-html-submodule-links",
           "lessons": [
             {
-              "title": "overview"
+              "title": "overview",
+              "jsonId": "course-front-end-web-development-module-html-submodule-links-lesson-overview"
             },
             {
-              "title": "href attribute"
+              "title": "href attribute",
+              "jsonId": "course-front-end-web-development-module-html-submodule-links-lesson-href-attribute"
             },
             {
-              "title": "downloadable resources"
+              "title": "downloadable resources",
+              "jsonId": "course-front-end-web-development-module-html-submodule-links-lesson-downloadable-resources"
             },
             {
-              "title": "browsing context"
+              "title": "browsing context",
+              "jsonId": "course-front-end-web-development-module-html-submodule-links-lesson-browsing-context"
             },
             {
-              "title": "tracking link clicks"
+              "title": "tracking link clicks",
+              "jsonId": "course-front-end-web-development-module-html-submodule-links-lesson-tracking-link-clicks"
             },
             {
-              "title": "links and javascript"
+              "title": "links and javascript",
+              "jsonId": "course-front-end-web-development-module-html-submodule-links-lesson-links-and-javascript"
             }
           ]
         },
         {
           "title": "lists",
+          "jsonId": "course-front-end-web-development-module-html-submodule-lists",
           "lessons": [
             {
-              "title": "overview"
+              "title": "overview",
+              "jsonId": "course-front-end-web-development-module-html-submodule-lists-lesson-overview"
             },
             {
-              "title": "unordered lists"
+              "title": "unordered lists",
+              "jsonId": "course-front-end-web-development-module-html-submodule-lists-lesson-unordered-lists"
             },
             {
-              "title": "ordered lists"
+              "title": "ordered lists",
+              "jsonId": "course-front-end-web-development-module-html-submodule-lists-lesson-ordered-lists"
             },
             {
-              "title": "list items"
+              "title": "list items",
+              "jsonId": "course-front-end-web-development-module-html-submodule-lists-lesson-list-items"
             },
             {
-              "title": "description lists"
+              "title": "description lists",
+              "jsonId": "course-front-end-web-development-module-html-submodule-lists-lesson-description-lists"
             }
           ]
         },
         {
           "title": "navigation",
+          "jsonId": "course-front-end-web-development-module-html-submodule-navigation",
           "lessons": [
             {
-              "title": "overview"
+              "title": "overview",
+              "jsonId": "course-front-end-web-development-module-html-submodule-navigation-lesson-overview"
             },
             {
-              "title": "'skip to content' link"
+              "title": "'skip to content' link",
+              "jsonId": "course-front-end-web-development-module-html-submodule-navigation-lesson-skip-to-content-link"
             },
             {
-              "title": "table of contents"
+              "title": "table of contents",
+              "jsonId": "course-front-end-web-development-module-html-submodule-navigation-lesson-table-of-contents"
             },
             {
-              "title": "page breadcrumbs"
+              "title": "page breadcrumbs",
+              "jsonId": "course-front-end-web-development-module-html-submodule-navigation-lesson-page-breadcrumbs"
             },
             {
-              "title": "local navigation"
+              "title": "local navigation",
+              "jsonId": "course-front-end-web-development-module-html-submodule-navigation-lesson-local-navigation"
             },
             {
-              "title": "global navigation"
+              "title": "global navigation",
+              "jsonId": "course-front-end-web-development-module-html-submodule-navigation-lesson-global-navigation"
             }
           ]
         },
         {
           "title": "tables",
+          "jsonId": "course-front-end-web-development-module-html-submodule-tables",
           "lessons": [
             {
-              "title": "overview"
+              "title": "overview",
+              "jsonId": "course-front-end-web-development-module-html-submodule-tables-lesson-overview"
             },
             {
-              "title": "table elements"
+              "title": "table elements",
+              "jsonId": "course-front-end-web-development-module-html-submodule-tables-lesson-table-elements"
             },
             {
-              "title": "merging cells"
+              "title": "merging cells",
+              "jsonId": "course-front-end-web-development-module-html-submodule-tables-lesson-merging-cells"
             },
             {
-              "title": "styling tables"
+              "title": "styling tables",
+              "jsonId": "course-front-end-web-development-module-html-submodule-tables-lesson-styling-tables"
             },
             {
-              "title": "presenting data"
+              "title": "presenting data",
+              "jsonId": "course-front-end-web-development-module-html-submodule-tables-lesson-presenting-data"
             }
           ]
         },
         {
           "title": "forms",
+          "jsonId": "course-front-end-web-development-module-html-submodule-forms",
           "lessons": [
             {
-              "title": "submitting forms"
+              "title": "submitting forms",
+              "jsonId": "course-front-end-web-development-module-html-submodule-forms-lesson-submitting-forms"
             },
             {
-              "title": "after form submission"
+              "title": "after form submission",
+              "jsonId": "course-front-end-web-development-module-html-submodule-forms-lesson-after-form-submission"
             },
             {
-              "title": "radio buttons"
+              "title": "radio buttons",
+              "jsonId": "course-front-end-web-development-module-html-submodule-forms-lesson-radio-buttons"
             },
             {
-              "title": "check boxes"
+              "title": "check boxes",
+              "jsonId": "course-front-end-web-development-module-html-submodule-forms-lesson-check-boxes"
             },
             {
-              "title": "labels and fieldsets"
+              "title": "labels and fieldsets",
+              "jsonId": "course-front-end-web-development-module-html-submodule-forms-lesson-labels-and-fieldsets"
             },
             {
-              "title": "input types and dynamic keyboard"
+              "title": "input types and dynamic keyboard",
+              "jsonId": "course-front-end-web-development-module-html-submodule-forms-lesson-input-types-and-dynamic-keyboard"
             },
             {
-              "title": "accessing the microphone and camera"
+              "title": "accessing the microphone and camera",
+              "jsonId": "course-front-end-web-development-module-html-submodule-forms-lesson-accessing-the-microphone-and-camera"
             },
             {
-              "title": "built-in validation"
+              "title": "built-in validation",
+              "jsonId": "course-front-end-web-development-module-html-submodule-forms-lesson-built-in-validation"
             }
           ]
         },
         {
           "title": "images",
+          "jsonId": "course-front-end-web-development-module-html-submodule-images",
           "lessons": [
             {
-              "title": "overview"
+              "title": "overview",
+              "jsonId": "course-front-end-web-development-module-html-submodule-images-lesson-overview"
             },
             {
-              "title": "image alt descriptions"
+              "title": "image alt descriptions",
+              "jsonId": "course-front-end-web-development-module-html-submodule-images-lesson-image-alt-descriptions"
             },
             {
-              "title": "responsive images"
+              "title": "responsive images",
+              "jsonId": "course-front-end-web-development-module-html-submodule-images-lesson-responsive-images"
             },
             {
-              "title": "performance"
+              "title": "performance",
+              "jsonId": "course-front-end-web-development-module-html-submodule-images-lesson-performance"
             },
             {
-              "title": "other features"
+              "title": "other features",
+              "jsonId": "course-front-end-web-development-module-html-submodule-images-lesson-other-features"
             }
           ]
         },
         {
           "title": "audio and video",
+          "jsonId": "course-front-end-web-development-module-html-submodule-audio-and-video",
           "lessons": [
             {
-              "title": "overview"
+              "title": "overview",
+              "jsonId": "course-front-end-web-development-module-html-submodule-audio-and-video-lesson-overview"
             },
             {
-              "title": "tracks"
+              "title": "tracks",
+              "jsonId": "course-front-end-web-development-module-html-submodule-audio-and-video-lesson-tracks"
             },
             {
-              "title": "background video considerations"
+              "title": "background video considerations",
+              "jsonId": "course-front-end-web-development-module-html-submodule-audio-and-video-lesson-background-video-considerations"
             },
             {
-              "title": "custom media controls"
+              "title": "custom media controls",
+              "jsonId": "course-front-end-web-development-module-html-submodule-audio-and-video-lesson-custom-media-controls"
             }
           ]
         },
         {
           "title": "template, slot, and shadow",
+          "jsonId": "course-front-end-web-development-module-html-submodule-template-slot-and-shadow",
           "lessons": [
             {
-              "title": "overview"
+              "title": "overview",
+              "jsonId": "course-front-end-web-development-module-html-submodule-template-slot-and-shadow-lesson-overview"
             },
             {
-              "title": "'template' element"
+              "title": "'template' element",
+              "jsonId": "course-front-end-web-development-module-html-submodule-template-slot-and-shadow-lesson-template-element"
             },
             {
-              "title": "'slot' element"
+              "title": "'slot' element",
+              "jsonId": "course-front-end-web-development-module-html-submodule-template-slot-and-shadow-lesson-slot-element"
             },
             {
-              "title": "undefined elements"
+              "title": "undefined elements",
+              "jsonId": "course-front-end-web-development-module-html-submodule-template-slot-and-shadow-lesson-undefined-elements"
             },
             {
-              "title": "shadow DOM"
+              "title": "shadow DOM",
+              "jsonId": "course-front-end-web-development-module-html-submodule-template-slot-and-shadow-lesson-shadow-dom"
             },
             {
-              "title": "styling outside of the current scope"
+              "title": "styling outside of the current scope",
+              "jsonId": "course-front-end-web-development-module-html-submodule-template-slot-and-shadow-lesson-styling-outside-of-the-current-scope"
             }
           ]
         },
         {
           "title": "HTML APIs",
+          "jsonId": "course-front-end-web-development-module-html-submodule-html-apis",
           "lessons": [
             {
-              "title": "overview"
+              "title": "overview",
+              "jsonId": "course-front-end-web-development-module-html-submodule-html-apis-lesson-overview"
             },
             {
-              "title": "The DOM and AOM"
+              "title": "The DOM and AOM",
+              "jsonId": "course-front-end-web-development-module-html-submodule-html-apis-lesson-the-dom-and-aom"
             },
             {
-              "title": "Element APIs"
+              "title": "Element APIs",
+              "jsonId": "course-front-end-web-development-module-html-submodule-html-apis-lesson-element-apis"
             },
             {
-              "title": "Available element interfaces"
+              "title": "Available element interfaces",
+              "jsonId": "course-front-end-web-development-module-html-submodule-html-apis-lesson-available-element-interfaces"
             },
             {
-              "title": "other interfaces"
+              "title": "other interfaces",
+              "jsonId": "course-front-end-web-development-module-html-submodule-html-apis-lesson-other-interfaces"
             }
           ]
         },
         {
           "title": "focus",
+          "jsonId": "course-front-end-web-development-module-html-submodule-focus",
           "lessons": [
             {
-              "title": "overview"
+              "title": "overview",
+              "jsonId": "course-front-end-web-development-module-html-submodule-focus-lesson-overview"
             },
             {
-              "title": "making inert elements interactive"
+              "title": "making inert elements interactive",
+              "jsonId": "course-front-end-web-development-module-html-submodule-focus-lesson-making-inert-elements-interactive"
             },
             {
-              "title": "giving focus to interactive elements"
+              "title": "giving focus to interactive elements",
+              "jsonId": "course-front-end-web-development-module-html-submodule-focus-lesson-giving-focus-to-interactive-elements"
             },
             {
-              "title": "making interactive elements inert"
+              "title": "making interactive elements inert",
+              "jsonId": "course-front-end-web-development-module-html-submodule-focus-lesson-making-interactive-elements-inert"
             }
           ]
         },
         {
           "title": "inline text elements",
+          "jsonId": "course-front-end-web-development-module-html-submodule-inline-text-elements",
           "lessons": [
             {
-              "title": "overview"
+              "title": "overview",
+              "jsonId": "course-front-end-web-development-module-html-submodule-inline-text-elements-lesson-overview"
             },
             {
-              "title": "code examples and technical writing"
+              "title": "code examples and technical writing",
+              "jsonId": "course-front-end-web-development-module-html-submodule-inline-text-elements-lesson-code-examples-and-technical-writing"
             },
             {
-              "title": "definitions and language support"
+              "title": "definitions and language support",
+              "jsonId": "course-front-end-web-development-module-html-submodule-inline-text-elements-lesson-definitions-and-language-support"
             },
             {
-              "title": "emphasizing text"
+              "title": "emphasizing text",
+              "jsonId": "course-front-end-web-development-module-html-submodule-inline-text-elements-lesson-emphasizing-text"
             },
             {
-              "title": "white space"
+              "title": "white space",
+              "jsonId": "course-front-end-web-development-module-html-submodule-inline-text-elements-lesson-white-space"
             }
           ]
         },
         {
           "title": "details and summary",
+          "jsonId": "course-front-end-web-development-module-html-submodule-details-and-summary",
           "lessons": [
             {
-              "title": "overview"
+              "title": "overview",
+              "jsonId": "course-front-end-web-development-module-html-submodule-details-and-summary-lesson-overview"
             },
             {
-              "title": "toggling visibility: open attribute"
+              "title": "toggling visibility: open attribute",
+              "jsonId": "course-front-end-web-development-module-html-submodule-details-and-summary-lesson-toggling-visibility-open-attribute"
             },
             {
-              "title": "toggling the summary marker"
+              "title": "toggling the summary marker",
+              "jsonId": "course-front-end-web-development-module-html-submodule-details-and-summary-lesson-toggling-the-summary-marker"
             },
             {
-              "title": "handling errors"
+              "title": "handling errors",
+              "jsonId": "course-front-end-web-development-module-html-submodule-details-and-summary-lesson-handling-errors"
             },
             {
-              "title": "The HTMLDetailsElement interface"
+              "title": "The HTMLDetailsElement interface",
+              "jsonId": "course-front-end-web-development-module-html-submodule-details-and-summary-lesson-the-htmldetailselement-interface"
             }
           ]
         },
         {
           "title": "dialog",
+          "jsonId": "course-front-end-web-development-module-html-submodule-dialog",
           "lessons": [
             {
-              "title": "overview"
+              "title": "overview",
+              "jsonId": "course-front-end-web-development-module-html-submodule-dialog-lesson-overview"
             },
             {
-              "title": "modal dialogs"
+              "title": "modal dialogs",
+              "jsonId": "course-front-end-web-development-module-html-submodule-dialog-lesson-modal-dialogs"
             },
             {
-              "title": "non-modal dialogs"
+              "title": "non-modal dialogs",
+              "jsonId": "course-front-end-web-development-module-html-submodule-dialog-lesson-non-modal-dialogs"
             },
             {
-              "title": "closing a dialog"
+              "title": "closing a dialog",
+              "jsonId": "course-front-end-web-development-module-html-submodule-dialog-lesson-closing-a-dialog"
             },
             {
-              "title": "additional details"
+              "title": "additional details",
+              "jsonId": "course-front-end-web-development-module-html-submodule-dialog-lesson-additional-details"
             }
           ]
         }
@@ -599,88 +773,109 @@
     },
     {
       "title": "CSS",
-      "sub-modules": []
+      "jsonId": "course-front-end-web-development-module-css",
+      "subModules": []
     },
     {
       "title": "javascript",
-      "sub-modules": []
+      "jsonId": "course-front-end-web-development-module-javascript",
+      "subModules": []
     },
     {
       "title": "version control systems",
-      "sub-modules": []
+      "jsonId": "course-front-end-web-development-module-version-control-systems",
+      "subModules": []
     },
 
     {
       "title": "writing CSS",
-      "sub-modules": []
+      "jsonId": "course-front-end-web-development-module-writing-css",
+      "subModules": []
     },
     {
       "title": "CSS architecture",
-      "sub-modules": []
+      "jsonId": "course-front-end-web-development-module-css-architecture",
+      "subModules": []
     },
     {
       "title": "CSS preprocessors",
-      "sub-modules": []
+      "jsonId": "course-front-end-web-development-module-css-preprocessors",
+      "subModules": []
     },
     {
       "title": "package managers",
-      "sub-modules": []
+      "jsonId": "course-front-end-web-development-module-package-managers",
+      "subModules": []
     },
     {
-      "title": "frameworks (ReactJs)",
-      "sub-modules": []
+      "title": "frameworks",
+      "jsonId": "course-front-end-web-development-module-frameworks",
+      "subModules": []
     },
     {
       "title": "module bundlers",
-      "sub-modules": []
+      "jsonId": "course-front-end-web-development-module-module-bundlers",
+      "subModules": []
     },
     {
       "title": "task runners",
-      "sub-modules": []
+      "jsonId": "course-front-end-web-development-module-task-runners",
+      "subModules": []
     },
     {
       "title": "linters and formatters",
-      "sub-modules": []
+      "jsonId": "course-front-end-web-development-module-linters-and-formatters",
+      "subModules": []
     },
     {
       "title": "testing",
-      "sub-modules": []
+      "jsonId": "course-front-end-web-development-module-testing",
+      "subModules": []
     },
     {
       "title": "authentication strategies",
-      "sub-modules": []
+      "jsonId": "course-front-end-web-development-module-authentication-strategies",
+      "subModules": []
     },
     {
       "title": "web security",
-      "sub-modules": []
+      "jsonId": "course-front-end-web-development-module-web-security",
+      "subModules": []
     },
     {
       "title": "web components",
-      "sub-modules": []
+      "jsonId": "course-front-end-web-development-module-web-components",
+      "subModules": []
     },
     {
       "title": "typescript",
-      "sub-modules": []
+      "jsonId": "course-front-end-web-development-module-typescript",
+      "subModules": []
     },
     {
-      "title": "server side rendering (SSR)",
-      "sub-modules": []
+      "title": "server side rendering",
+      "jsonId": "course-front-end-web-development-module-server-side-rendering",
+      "subModules": []
     },
     {
       "title": "GraphQL",
-      "sub-modules": []
+      "jsonId": "course-front-end-web-development-module-graphql",
+      "subModules": []
     },
     {
       "title": "static site generators",
-      "sub-modules": []
+      "jsonId": "course-front-end-web-development-module-static-site-generators",
+      "subModules": []
     },
     {
       "title": "progressive web apps",
-      "sub-modules": []
+      "jsonId": "course-front-end-web-development-module-progressive-web-apps",
+      "subModules": []
     },
     {
       "title": "mobile and desktop applications overview",
-      "sub-modules": []
+      "jsonId": "course-front-end-web-development-module-mobile-and-desktop-applications",
+      "subModules": []
     }
   ]
 }

@@ -4,6 +4,7 @@ import { prisma } from "~/libs/prisma";
 import { oauth2Client } from "~/services/google";
 import { getUserSession } from "~/utils/session.server";
 import { commitSession } from "./sessions";
+import { sendWelcomeEmail } from "~/services/mailtrap";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
@@ -37,17 +38,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     let user: { id: string; completedOnboarding: boolean } | null = null;
 
+    /**
+     * If there is no existing user, create one and welcome them
+     * with an email
+     */
     if (!existingUser) {
       user = await prisma.user.create({
         data: { googleId },
       });
+      // await sendWelcomeEmail({ email, name });
     }
 
     const payload = {
       email,
       name,
       avatar_url,
-      authType: "github",
+      authType: "google",
       userId: existingUser?.id ?? user!.id,
       completedOnboarding:
         existingUser?.completedOnboarding ?? user!.completedOnboarding,
@@ -55,14 +61,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     const session = await getUserSession(request);
     session.set("currentUser", payload);
-    /**
-     * ! Send welcome email
-     */
 
     const commitSessionOptions = {
       headers: {
         "Set-Cookie": await commitSession(session, {
-          expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
+          expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
         }),
       },
     };

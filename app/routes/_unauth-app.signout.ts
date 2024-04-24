@@ -1,9 +1,16 @@
-import { ActionFunctionArgs } from "@remix-run/node";
-import { signOut } from "~/utils/session.server";
+import { ActionFunctionArgs, redirect } from "@remix-run/node";
+import { getUserSession, signOut } from "~/utils/session.server";
+import { destroySession } from "./sessions";
 
 export async function action({ request }: ActionFunctionArgs) {
   try {
-    await signOut(request);
+    return redirect("/", {
+      headers: {
+        "Set-Cookie": await destroySession(await getUserSession(request), {
+          maxAge: 0,
+        }),
+      },
+    });
   } catch (error) {
     throw error;
   }

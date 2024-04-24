@@ -51,7 +51,7 @@ export default function TestIndexRoute() {
           </div>
           <div className="self-start">
             <img
-              src="/test.png"
+              src="https://cdn.casbytes.com/assets/test.png"
               className="hidden md:block"
               width={450}
               height={450}

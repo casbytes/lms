@@ -1,12 +1,9 @@
-import {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  redirect,
-} from "@remix-run/node";
+import { LoaderFunctionArgs, redirect } from "@remix-run/node";
 import axios from "axios";
 import { prisma } from "~/libs/prisma";
 import { commitSession } from "./sessions";
 import { getUserSession } from "~/utils/session.server";
+import { sendWelcomeEmail } from "~/services/mailtrap";
 
 const { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } = process.env;
 
@@ -50,10 +47,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     let user: { id: string; completedOnboarding: boolean } | null = null;
 
+    /**
+     * If there is no existing user, create one and welcome them
+     * with an email
+     */
     if (!existingUser) {
       user = await prisma.user.create({
         data: { githubId },
       });
+      // await sendWelcomeEmail({ email, name });
     }
 
     const payload = {
@@ -68,14 +70,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     const session = await getUserSession(request);
     session.set("currentUser", payload);
-    /**
-     * ! Send welcome email
-     */
 
     const commitSessionOptions = {
       headers: {
         "Set-Cookie": await commitSession(session, {
-          expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
+          expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
         }),
       },
     };

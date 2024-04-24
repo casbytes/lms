@@ -1,10 +1,11 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
 // import codeTitles from "remark-code-titles";
-import remarkOembed from "remark-oembed";
-import remarkFlexibleContainers from "remark-flexible-containers";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+import remarkEmoji from "remark-emoji";
+import remarkFlexibleContainers from "remark-flexible-containers";
+
 import {
   B,
   BlockQuote,
@@ -28,7 +29,11 @@ export function Markdown({ source }: { source: string }) {
   const Component = React.useMemo(
     () => (
       <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkFlexibleContainers as any]}
+        remarkPlugins={[
+          remarkGfm,
+          remarkFlexibleContainers as any,
+          remarkEmoji,
+        ]}
         rehypePlugins={[rehypeRaw]}
         components={{
           h1: H1,

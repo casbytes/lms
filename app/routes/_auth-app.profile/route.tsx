@@ -17,7 +17,12 @@ import { prisma } from "~/libs/prisma";
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     const user = await getUser(request);
-    return json({ user });
+
+    const userCourses = await prisma.courseProgress.findMany({
+      where: { userId: user.userId },
+      include: { moduleProgress: true },
+    });
+    return json({ user, userCourses });
   } catch (error) {
     throw error;
   }
@@ -31,6 +36,9 @@ export async function action({ request }: ActionFunctionArgs) {
     if (intent === "delete-account" && userId) {
       /**
        * !Cancel subscription
+       */
+      /**
+       * ! Delete all user courses and progress
        */
       await prisma.user.delete({
         where: { id: userId },
@@ -48,9 +56,9 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function Profile() {
-  const { user } = useLoaderData<typeof loader>();
+  const { user, userCourses } = useLoaderData<typeof loader>();
   return (
-    <Container className="bg-header-2 bg-no-repeat">
+    <Container className="bg-2 bg-no-repeat">
       <div className="mx-auto max-w-5xl">
         <PageTitle title="profile" />
         <UserOverview user={user} />
@@ -62,7 +70,7 @@ export default function Profile() {
           </Dialog>
           <MembershipCard />
           <DiscordCard />
-          <CourseCatalogCard />
+          <CourseCatalogCard userCourses={userCourses} />
         </div>
       </div>
     </Container>

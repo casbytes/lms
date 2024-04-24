@@ -1,6 +1,6 @@
-import wcb from "~/assets/welcome-back.webp";
+import { ICurrentUser } from "~/constants/types";
 
-export function UserCard({ user }: any) {
+export function UserCard({ user }: { user: ICurrentUser }) {
   return (
     <article className="bg-sky-300/50 rounded-md p-8 flex flex-col justify-center relative w-full">
       <div className="flex items-center justify-between">

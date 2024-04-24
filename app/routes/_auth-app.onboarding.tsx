@@ -25,8 +25,10 @@ import { getUser } from "~/utils/session.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   try {
-    const user = await getUser(request);
-    const content = await readContent("onboarding.mdx");
+    const [user, content] = await Promise.all([
+      getUser(request),
+      readContent("onboarding.mdx"),
+    ]);
     return json({ content, user });
   } catch (error) {
     throw error;
@@ -62,7 +64,7 @@ export default function Onboarding() {
       <div className="mx-auto max-w-4xl">
         <PageTitle title="Onboarding" className="text-lg mb-6" />
         <Markdown source={content} />
-        {user.completedOnboarding === true ? (
+        {user.completedOnboarding ? (
           <Button asChild className="flex items-center mt-8 text-lg">
             <Link to="/dashboard">
               Dashboard <FaArrowRightLong className="ml-4" />

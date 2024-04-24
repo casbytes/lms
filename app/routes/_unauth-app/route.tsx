@@ -1,9 +1,11 @@
 import React from "react";
-import { Outlet } from "@remix-run/react";
+import { ActionFunctionArgs, json } from "@remix-run/node";
+import { Outlet, useActionData } from "@remix-run/react";
+import JWT from "jsonwebtoken";
 import { NavBar } from "~/components/navigation";
 import { Footer } from "~/components/footer";
 import { Dialog } from "~/components/ui/dialog";
-import { AuthModal } from "./components/auth-dialog";
+import { AuthDialog } from "./components/auth-dialog";
 
 export default function UnAuthApp() {
   const [isNavOpen, setIsNavOpen] = React.useState(false);
@@ -14,7 +16,7 @@ export default function UnAuthApp() {
         isNavOpen={isNavOpen}
         setIsNavOpen={setIsNavOpen}
       />
-      <AuthModal />
+      <AuthDialog />
       <Outlet />
       <Footer />
     </Dialog>

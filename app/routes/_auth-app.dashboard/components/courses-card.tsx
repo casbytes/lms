@@ -1,3 +1,7 @@
+import { useFetcher, useNavigation } from "@remix-run/react";
+import { FaPlus, FaSpinner } from "react-icons/fa6";
+import { capitalizeFirstLetter } from "~/utils/cs";
+import { ICourse } from "~/constants/types";
 import { Input } from "~/components/ui/input";
 import {
   Table,
@@ -8,9 +12,17 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { Button } from "~/components/ui/button";
-import { FaPlus, FaSpinner } from "react-icons/fa6";
 
-export function CoursesCard() {
+export function CoursesCard({
+  data,
+}: {
+  data: { courses: ICourse[]; inCatalog: boolean };
+}) {
+  const { inCatalog, courses } = data;
+  const fetcher = useFetcher();
+  const navigation = useNavigation();
+  const isLoading = navigation.formData?.get("intent") === "addCourseToCatalog";
+
   return (
     <div>
       <h1 className="text-xl mb-4">Courses</h1>
@@ -30,45 +42,38 @@ export function CoursesCard() {
             </TableRow>
           </TableHeader>
           <TableBody className="text-slate-600 font-black">
-            <TableRow>
-              <TableCell>Frontend development with javascript</TableCell>
-              <TableCell className="flex gap-6 items-center justify-end">
-                <Button
-                  className="bg-indigo-500 hover:bg-indigo-400 py-1 font-black"
-                  size="sm"
-                >
-                  <FaPlus className="mr-2" />
-                  {/* <FaSpinner className="mr-2 animate-spin" /> */}
-                  Add to catalog
-                </Button>
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Backend development with javascript</TableCell>
-              <TableCell className="flex gap-6 items-center justify-end">
-                <Button
-                  className="bg-indigo-500 hover:bg-indigo-400 py-1 font-black text-xs"
-                  size="sm"
-                >
-                  <FaPlus className="mr-2" />
-                  Add to catalog
-                </Button>
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Fullstack development with javascript</TableCell>
-              <TableCell className="flex gap-6 items-center justify-end">
-                <Button
-                  className="bg-indigo-500 hover:bg-indigo-400 py-1 font-black text-xs"
-                  size="sm"
-                  disabled
-                >
-                  <FaPlus className="mr-2" />
-                  {/* <FaSpinner className="mr-2 animate-spin" /> */}
-                  Add to catalog
-                </Button>
-              </TableCell>
-            </TableRow>
+            {courses && courses?.length > 0 ? (
+              courses.map((course, index) => (
+                <TableRow key={`${course.title}-${index}`}>
+                  <TableCell className="text-lg">
+                    {capitalizeFirstLetter(course.title)}
+                  </TableCell>
+                  <TableCell className="flex gap-6 items-center justify-end">
+                    <Button
+                      className="bg-indigo-500 hover:bg-indigo-400 py-1 font-black"
+                      size="sm"
+                      disabled={inCatalog || isLoading}
+                      onClick={() => {
+                        fetcher.submit(
+                          { intent: "addCourseToCatalog", courseId: course.id },
+                          { method: "POST" }
+                        );
+                      }}
+                    >
+                      <FaPlus className="mr-2" />
+                      {isLoading ? (
+                        <FaSpinner className="mr-2 animate-spin" />
+                      ) : null}
+                      Add to catalog
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={2}>No courses available</TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>

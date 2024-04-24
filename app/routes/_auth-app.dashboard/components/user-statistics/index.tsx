@@ -1,11 +1,17 @@
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { ChartFilter } from "./chart-filter";
-import { CourseCatalogCard } from "../../../../components/course-catalog";
+import { CourseCatalogCard } from "~/components/course-catalog";
 import { Chart } from "./chart";
+import { ICourseProgress } from "~/constants/types";
 
-export function Statistics() {
+type StatisticsProps = {
+  userCourses: ICourseProgress[];
+};
+
+export function Statistics({ userCourses }: StatisticsProps) {
   const [tab, setTab] = React.useState("chart");
+  console.log(userCourses);
 
   React.useEffect(() => {
     setTab("progress");
@@ -38,7 +44,7 @@ export function Statistics() {
         <Chart />
       </TabsContent>
       <TabsContent value="progress" className="max-h-full">
-        <CourseCatalogCard />
+        <CourseCatalogCard userCourses={userCourses} />
       </TabsContent>
     </Tabs>
   );

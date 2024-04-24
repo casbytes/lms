@@ -13,7 +13,7 @@ import { Link } from "@remix-run/react";
 export function NotFoundUI() {
   return (
     <Container className="bg-header-2 bg-no-repeat bg-cover h-screen">
-      <div className="bg-[url('/favicon.png')] max-w-lg mx-auto bg-no-repeat bg-center">
+      <div className="bg-[url('/favicon.png')] max-w-3xl mx-auto bg-no-repeat bg-center">
         <Card className="flex flex-col gap-6 max-w-lg mx-auto bg-sky-300/95">
           <CardHeader className="flex flex-col gap-2">
             <img

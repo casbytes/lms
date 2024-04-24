@@ -9,12 +9,12 @@ import { GoogleSignIn } from "./google-signin";
 import { GitHubSignIn } from "./github-signin";
 import { Link } from "@remix-run/react";
 
-export function AuthModal() {
+export function AuthDialog({ ...props }) {
   return (
-    <DialogContent className="max-w-sm bg-sky-600/40 gap-8">
+    <DialogContent className="max-w-sm bg-sky-600/40 gap-6">
       <DialogHeader>
         <img
-          src="/logo.png"
+          src="https://cdn.casbytes.com/assets/logo.png"
           width={160}
           height={32}
           className="w-40 h-8 mx-auto mb-6"
@@ -22,6 +22,7 @@ export function AuthModal() {
         />
         <DialogTitle className="mx-auto text-xl mb-4">Sign in with</DialogTitle>
       </DialogHeader>
+
       {/**
        * Google signin
        */}

@@ -1,72 +1,72 @@
+import React from "react";
 import { CircleCheckBig, CircleDotDashed, LockKeyhole } from "lucide-react";
-import { useFetcher, useNavigate, useNavigation } from "@remix-run/react";
+import { useNavigation, useSearchParams, useSubmit } from "@remix-run/react";
 import { Button } from "~/components/ui/button";
 import { BsLockFill, BsUnlockFill } from "react-icons/bs";
 import { cn } from "~/libs/shadcn";
-import { FaSpinner } from "react-icons/fa6";
+import { CgSpinnerTwo } from "react-icons/cg";
 
-export function Courses() {
-  const course = useFetcher();
-  const navigate = useNavigate();
+export function Courses({ modules }: any) {
+  const submit = useSubmit();
   const navigation = useNavigation();
-  const isLoading = navigation.formData?.get("intent") === "random";
+  const [, setSearchParams] = useSearchParams();
+  const moduleId = navigation.formData?.get("moduleId");
 
-  function handleCourseSubmit(i: number) {
-    if (i > 1) {
-      navigate("/subscription");
-    } else {
-      course.submit(
-        { intent: "some" },
-        {
-          method: "POST",
-        }
-      );
-    }
-  }
+  React.useEffect(() => {
+    setSearchParams((params) => {
+      params.set("moduleId", modules[0]?.id);
+      return params;
+    });
+  }, []);
 
   return (
-    <course.Form onSubmit={(event) => event.preventDefault()}>
-      <ul className="space-y-3">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <li key={i} className="w-full">
-            <Button
-              name="intent"
-              value="random"
-              onClick={() => handleCourseSubmit(i)}
-              className={cn(
-                "flex border-l-8 border-b-2 text-zinc-700 border-zinc-500 bg-zinc-200 hover:bg-zinc-300 justify-between w-full text-lg",
-                {
-                  "border-sky-600": i <= 2,
-                }
-              )}
-            >
-              <div className="flex gap-4 items-center">
-                {/* {isLoading ? (
-                  <FaSpinner size={20} className="animate-spin" />
-                ) : null} */}
-                {isLoading ? (
-                  <FaSpinner size={20} className="animate-spin" />
-                ) : i >= 2 ? (
-                  <CircleDotDashed size={20} />
-                ) : (
-                  // <CircleCheckBig size={20} />
-                  <LockKeyhole size={20} />
+    <ul className="space-y-3">
+      {modules && modules?.length > 0 ? (
+        modules.map((module: any, index: number) => {
+          const completed = module.status === "COMPLETED";
+          const inProgress = module.status === "IN_PROGRESS";
+          const locked = module.status === "LOCKED";
+          return (
+            <li key={`${module.id}-${index}`} className="w-full">
+              <Button
+                disabled={locked}
+                aria-label={module.title}
+                onClick={() => submit({ moduleId: module.id })}
+                className={cn(
+                  "overflow-x-auto flex border-l-8 border-b-2 text-zinc-700 border-zinc-500 bg-zinc-200 hover:bg-zinc-300 justify-between w-full text-lg",
+                  {
+                    "border-sky-600": completed,
+                  }
                 )}
-                <span className="capitalize">Kubernetes</span>{" "}
-              </div>
+              >
+                <div className="flex gap-4 items-center">
+                  <div className="sr-only">Module status</div>
+                  {module.id === moduleId ? (
+                    <CgSpinnerTwo size={20} className="animate-spin" />
+                  ) : locked ? (
+                    <LockKeyhole size={20} />
+                  ) : inProgress ? (
+                    <CircleDotDashed size={20} />
+                  ) : (
+                    <CircleCheckBig size={20} />
+                  )}
+                  <span className="capitalize">{module.title}</span>{" "}
+                </div>
 
-              {i >= 2 ? (
-                <BsLockFill className="text-zinc-500" />
-              ) : (
-                // <BsUnlockFill className="text-zinc-500" />
-                <span className="p-1 bg-zinc-200 text-zinc-600 text-sm rounded-md">
-                  free
-                </span>
-              )}
-            </Button>
-          </li>
-        ))}
-      </ul>
-    </course.Form>
+                {index >= 2 ? (
+                  <BsLockFill className="text-zinc-500 absolute sm:static right-8" />
+                ) : (
+                  <BsUnlockFill className="text-zinc-500 absolute sm:static right-8" />
+                )}
+              </Button>
+            </li>
+          );
+        })
+      ) : (
+        <li className="text-center text-lg my-4">
+          No sub modules in this module.
+        </li>
+      )}
+    </ul>
   );
 }

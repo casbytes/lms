@@ -18,6 +18,12 @@ export async function loader() {
 
 export default function TermsOfUse() {
   const data = useLoaderData<typeof loader>();
+
+  const progress = 20;
+
+  const radius = 54;
+  const circumference = 2 * Math.PI * radius;
+  const dashoffset = circumference - (progress / 100) * circumference;
   return (
     <Container className="bg-header-2 bg-no-repeat">
       <div className="mx-auto max-w-3xl">

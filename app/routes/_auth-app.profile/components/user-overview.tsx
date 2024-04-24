@@ -2,8 +2,9 @@ import { AiOutlineDollarCircle } from "react-icons/ai";
 import { FaGithub } from "react-icons/fa";
 import { FaGoogle } from "react-icons/fa6";
 import { IoPersonCircleSharp } from "react-icons/io5";
+import { ICurrentUser } from "~/constants/types";
 
-export function UserOverview({ user }: any) {
+export function UserOverview({ user }: { user: ICurrentUser }) {
   return (
     <div className="flex flex-col sm:flex-row gap-4 justify-between mt-8 md:mt-20 bg-sky-200 rounded-md p-2">
       <div className="flex justify-start sm:justify-between gap-6 flex-wrap items-center">

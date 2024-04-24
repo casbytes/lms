@@ -2,7 +2,6 @@ import { Container } from "../container";
 import { Product } from "./product";
 import { Contact } from "./contact";
 import { About } from "./about";
-import logo from "~/assets/logo.png";
 import { Link } from "@remix-run/react";
 import { Button } from "../ui/button";
 
@@ -15,9 +14,9 @@ export function Footer() {
           <img
             src="https://cdn.casbytes.com/assets/icon.png"
             alt="CASBytes"
-            className="w-20 h-20"
-            width={80}
-            height={80}
+            className="w-14 h-14"
+            width={56}
+            height={56}
           />
           <div className="text-sm">
             <p>&copy;{year} CASBytes.</p>
