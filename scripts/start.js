@@ -8,6 +8,7 @@ async function go() {
   const { getInstanceInfo } = ltfs;
   const { currentInstance, currentIsPrimary, primaryInstance } =
     await getInstanceInfo();
+
   if (currentIsPrimary) {
     console.log(
       `Instance (${currentInstance}) in ${process.env.FLY_REGION} is primary. Deploying migrations.`
