@@ -2,9 +2,10 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import { spawn } from "child_process";
-import { getInstanceInfo } from "litefs-js/remix";
+import * as ltfs from "litefs-js";
 
 async function go() {
+  const { getInstanceInfo } = ltfs;
   const { currentInstance, currentIsPrimary, primaryInstance } =
     await getInstanceInfo();
   if (currentIsPrimary) {
