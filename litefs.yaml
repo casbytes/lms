@@ -1,13 +1,13 @@
 fuse:
   dir: "${LITEFS_DIR}"
 
+data:
+  dir: "/data/litefs"
+
 proxy:
   addr: ":${INTERNAL_PORT}"
   target: "localhost:${PORT}"
   db: "${DATABASE_FILENAME}"
-
-data:
-  dir: "/data/litefs"
 
 lease:
   type: "consul"
@@ -15,6 +15,6 @@ lease:
   promote: true
   advertise-url: "http://${HOSTNAME}.vm.${FLY_APP_NAME}.internal:20202"
 
-consul:
-  url: "${FLY_CONSUL_URL}"
-  key: "litefs/{FLY_APP_NAME}"
+  consul:
+    url: "${FLY_CONSUL_URL}"
+    key: "litefs/${FLY_APP_NAME}"
