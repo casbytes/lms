@@ -8,7 +8,7 @@ installGlobals();
 
 export default defineConfig({
   server: {
-    port: Number(process.env.PORT!),
+    port: Number(process.env.PORT!) ?? 3000,
   },
 
   plugins: [
