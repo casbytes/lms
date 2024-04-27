@@ -17,6 +17,16 @@ const prisma = new PrismaClient();
  * ? into the database_cli so that we can directly have access to the database and run queries directly.
  */
 
+/**
+ * For the test, checkpoint, and project sub-modules, when a user try to visit
+ * them, they will be redirected to their various pages to carryout their
+ * respective tasks.
+ */
+
+type OmitPrismaClientMethods<T> = Omit<
+  T,
+  "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
+>;
 interface ICourse {
   jsonId: string;
   title: string;
@@ -61,89 +71,110 @@ export function parseJson(file: string) {
 }
 
 async function createOrUpdateCourse(data: ICourse): Promise<void> {
-  const { jsonId, title, published, modules } = data;
-
   try {
-    /**
-     * Create or update the course and its elements in a transaction
-     * to ensure data integrity
-     */
     await prisma.$transaction(async (txn) => {
-      /**
-       * Create or update the course
-       * Upsert is used to create a new course if it doesn't exist
-       */
-      const course = await txn.course.upsert({
-        where: { jsonId },
-        update: { title, published, slug: slugify(title, { lower: true }) },
-        create: {
-          jsonId,
-          title,
-          slug: slugify(title, { lower: true }),
-          published,
-        },
-      });
-
-      /**
-       * Create or update the modules, sub-modules, and lessons
-       */
-      for (const moduleData of modules) {
-        const { title, jsonId, subModules } = moduleData;
-        const module = await txn.module.upsert({
-          where: { jsonId },
-          update: {
-            title,
-            slug: slugify(title, { lower: true }),
-            // published
-          },
-          create: {
-            jsonId,
-            title,
-            slug: slugify(title, { lower: true }),
-            // published,
-            courseId: course.id,
-          },
-        });
-
-        /**
-         * Create or update the sub-modules and lessons
-         */
-        for (const subModuleData of subModules) {
-          const { title, jsonId, lessons } = subModuleData;
-          const subModule = await txn.subModule.upsert({
-            where: { jsonId },
-            update: { title, slug: slugify(title, { lower: true }) },
-            create: {
-              jsonId,
-              title,
-              slug: slugify(title, { lower: true }),
-              moduleId: module.id,
-            },
-          });
-
-          /**
-           * Create or update the lessons
-           */
-          for (const lessonData of lessons) {
-            const { title, jsonId } = lessonData;
-            await txn.lesson.upsert({
-              where: { jsonId },
-              update: { title, slug: slugify(title, { lower: true }) },
-              create: {
-                jsonId,
-                title,
-                slug: slugify(title, { lower: true }),
-                subModuleId: subModule.id,
-              },
-            });
-          }
-        }
-      }
+      await createCourse(txn, data);
     });
   } catch (error) {
     console.error("Error creating/updating course:", error);
     process.exit(1);
   }
+}
+
+async function createCourse(
+  txn: OmitPrismaClientMethods<PrismaClient>,
+  data: ICourse
+) {
+  const { title, published, jsonId, modules } = data;
+
+  const course = await txn.course.upsert({
+    where: { jsonId },
+    update: { title, slug: slugify(title, { lower: true }), published },
+    create: { title, slug: slugify(title, { lower: true }), published, jsonId },
+  });
+
+  if (modules?.length > 0) {
+    await Promise.all(
+      modules.map(async (moduleData: IModule) => {
+        const { title, jsonId, subModules } = moduleData;
+
+        const module = await txn.module.upsert({
+          where: { jsonId },
+          update: { title, slug: slugify(title, { lower: true }) },
+          create: {
+            title,
+            slug: slugify(title, { lower: true }),
+            jsonId,
+            courseId: course.id,
+          },
+        });
+
+        if (subModules?.length > 0) {
+          await Promise.all(
+            subModules.map(async (subModuleData: ISubModule) => {
+              const { title, jsonId, lessons } = subModuleData;
+
+              const subModule = await txn.subModule.upsert({
+                where: { jsonId },
+                update: { title, slug: slugify(title, { lower: true }) },
+                create: {
+                  title,
+                  slug: slugify(title, { lower: true }),
+                  jsonId,
+                  moduleId: module.id,
+                },
+              });
+
+              if (lessons?.length > 0) {
+                await Promise.all(
+                  lessons.map(async (lessonData: ILesson) => {
+                    const { title, jsonId } = lessonData;
+                    await txn.lesson.upsert({
+                      where: { jsonId },
+                      update: { title, slug: slugify(title, { lower: true }) },
+                      create: {
+                        title,
+                        slug: slugify(title, { lower: true }),
+                        jsonId,
+                        subModuleId: subModule.id,
+                      },
+                    });
+                  })
+                );
+              }
+            })
+          );
+
+          /**
+           * We ensure all the modules are created before
+           * creating the test, checkpoint sub-modules
+           */
+          // await txn.subModule.upsert({
+          //   where: { jsonId: `${jsonId}-test` },
+          //   update: { title: "test", slug: "test" },
+          //   create: {
+          //     jsonId: `${jsonId}-test`,
+          //     title: "test",
+          //     slug: "test",
+          //     moduleId: module.id,
+          //   },
+          // });
+
+          // await txn.subModule.upsert({
+          //   where: { jsonId: `${jsonId}-checkpoint` },
+          //   update: { title: "checkpoint", slug: "checkpoint" },
+          //   create: {
+          //     jsonId: `${jsonId}-checkpoint`,
+          //     title: "checkpoint",
+          //     slug: "checkpoint",
+          //     moduleId: module.id,
+          //   },
+          // });
+        }
+      })
+    );
+  }
+  return course;
 }
 
 /**

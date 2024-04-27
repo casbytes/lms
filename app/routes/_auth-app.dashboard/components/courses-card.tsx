@@ -21,7 +21,9 @@ export function CoursesCard({
   const { inCatalog, courses } = data;
   const fetcher = useFetcher();
   const navigation = useNavigation();
-  const isLoading = navigation.formData?.get("intent") === "addCourseToCatalog";
+  const isLoading = navigation.state === "submitting";
+  const isActive =
+    navigation.formData?.get("intent") === "addCourseToCatalog" || isLoading;
 
   return (
     <div>
@@ -61,7 +63,7 @@ export function CoursesCard({
                       }}
                     >
                       <FaPlus className="mr-2" />
-                      {isLoading ? (
+                      {isActive ? (
                         <FaSpinner className="mr-2 animate-spin" />
                       ) : null}
                       Add to catalog

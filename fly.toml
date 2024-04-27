@@ -7,6 +7,7 @@ app = 'casbytes'
 primary_region = 'lhr'
 
 [build]
+  dockerfile = "Dockerfile"
 
 [http_service]
   internal_port = 3000
@@ -16,7 +17,39 @@ primary_region = 'lhr'
   min_machines_running = 0
   processes = ['app']
 
+[mounts]
+  source="data"
+  destination="/data"
+
+[[services.tcp_checks]]
+  grace_period = "6s"
+  interval = "15s"
+  restart_limit = 0
+  timeout = "7s"
+
+[[services.http_checks]]
+  interval = 10000
+  grace_period = "6s"
+  method = "get"
+  path = "/"
+  protocol = "http"
+  timeout = 2000
+  tls_skip_verify = false
+  [services.http_checks.headers]
+
+[[services.http_checks]]
+  interval = 10000
+  grace_period = "6s"
+  method = "get"
+  path = "/healthcheck"
+  protocol = "http"
+  timeout = 2000
+  tls_skip_verify = false
+  [services.http_checks.headers]
+
+
 [[vm]]
   memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1
+

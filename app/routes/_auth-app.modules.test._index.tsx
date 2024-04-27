@@ -11,9 +11,9 @@ export default function TestIndexRoute() {
   return (
     <Container className="bg-header-2 bg-no-repeat min-h-screen">
       <div className="max-w-5xl mx-auto min-h-screen">
-        <BackButton to="/test" buttonText="sub module" />
+        <BackButton to="/modules/1" buttonText="sub module" />
         <PageTitle title="Test Your Knowledge: JavaScript functions" />
-        <div className="flex flex-col md:flex-row gap-6 mt-8 md:mt-8 items-start">
+        <div className="flex flex-col md:flex-row gap-6 my-8 items-start">
           <div className="flex flex-col gap-6">
             <p className="text-xl text-zinc-700 max-w-lg">
               Welcome to the {testTitle} test! This test is designed to assess
@@ -42,7 +42,7 @@ export default function TestIndexRoute() {
               </li>
               <li>
                 You must score up to 80% to pass the test and proceed to your
-                project.
+                checkpoint.
               </li>
               <li>
                 If you score below 80%, you can retake the test after 24 hours.

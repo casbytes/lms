@@ -26,7 +26,7 @@ export function Contact() {
             asChild
             aria-label="LinkedIn"
           >
-            <Link to="https://www.linkedin.com/casbytes">
+            <Link target="_blank" to="https://www.linkedin.com/company/casdev">
               <FaLinkedin size={25} />
             </Link>
           </Button>
@@ -34,9 +34,9 @@ export function Contact() {
             variant="link"
             className="p-0 m-0"
             asChild
-            aria-label="X (formerly Twitter)"
+            aria-label="Youtube"
           >
-            <Link to="https://youtube.com/casbytes">
+            <Link target="_blank" to="https://youtube.com/@casbytes">
               <FaYoutube size={25} />
             </Link>
           </Button>
@@ -46,7 +46,7 @@ export function Contact() {
             asChild
             aria-label="Facebook"
           >
-            <Link to="https://www.facebook.com/CASBytes">
+            <Link target="_blank" to="https://www.facebook.com/casbytes">
               <FaFacebook size={25} />
             </Link>
           </Button>
@@ -57,7 +57,7 @@ export function Contact() {
             asChild
             aria-label="X (formerly Twitter)"
           >
-            <Link to="https://twitter.com/casbytes">
+            <Link target="_blank" to="https://twitter.com/casbytes">
               <FaSquareXTwitter size={25} />
             </Link>
           </Button>
