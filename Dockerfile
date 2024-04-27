@@ -42,8 +42,10 @@ FROM base
 
 # Set production environment variables
 ENV LITEFS_DIR="/litefs"
-ENV DATABASE_URL=file:$LITEFS_DIR/sqlite.db
-ENV PORT="3000"
+ENV DATABASE_FILENAME="$LITEFS_DIR/sqlite.db"
+ENV DATABASE_URL="file:$DATABASE_FILENAME"
+ENV INTERNAL_PORT="3000"
+ENV PORT="3001"
 ENV NODE_ENV="production"
 
 # add shortcut for connecting to database CLI
