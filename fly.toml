@@ -21,6 +21,10 @@ primary_region = 'lhr'
   source="data"
   destination="/data"
 
+[experimental]
+  auto_rollback = true
+  enable_consul = true
+
 [[services.tcp_checks]]
   grace_period = "6s"
   interval = "15s"

@@ -1,7 +1,7 @@
 import { json } from "@remix-run/node";
 import { prisma } from "~/libs/prisma";
 
-export async function action() {
+export async function loader() {
   try {
     const course = await prisma.course.findFirst();
     console.log(course);
