@@ -61,13 +61,14 @@ COPY --from=build /app/node_modules/.prisma /app/node_modules/.prisma
 COPY --from=build /app/build /app/build
 COPY --from=build /app/public /app/public
 COPY --from=build /app/package.json /app/package.json
-COPY --from=build /app/content /app/content
-COPY --from=build /app/meta /app/meta
-COPY --from=build /app/prisma /app/prisma
-COPY --from=build /app/scripts /app/scripts
+# COPY --from=build /app/content /app/content
+# COPY --from=build /app/meta /app/meta
+# COPY --from=build /app/prisma /app/prisma
+# COPY --from=build /app/scripts /app/scripts
+
+ADD . .
 
 COPY --from=flyio/litefs:0.5 /usr/local/bin/litefs /usr/local/bin/litefs
-
-ADD litefs.yaml /etc/litefs.yaml
+ADD litefs.yml /etc/litefs.yml
 
 CMD ["litefs", "mount", "--", "npm", "start"]
