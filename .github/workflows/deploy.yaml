@@ -5,8 +5,9 @@ on:
       - main
       - staging
   pull_request:
-    - main
-    - staging
+    branches:
+      - main
+      - staging
 
 jobs:
   deploy:
