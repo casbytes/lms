@@ -4,73 +4,73 @@
   "jsonId": "course-front-end-web-development",
   "modules": [
     {
-      "title": "introduction",
-      "jsonId": "course-front-end-web-development-module-introduction",
+      "title": "front end introduction",
+      "jsonId": "course-front-end-web-development-module-from-end-introduction",
       "subModules": [
         {
           "title": "overview",
-          "jsonId": "course-front-end-web-development-module-introduction-submodule-overview",
+          "jsonId": "course-front-end-web-development-module-from-end-introduction-submodule-overview",
           "lessons": [
             {
-              "jsonId": "course-front-end-web-development-module-introduction-submodule-overview-lesson-definition-and-role",
+              "jsonId": "course-front-end-web-development-module-from-end-introduction-submodule-overview-lesson-definition-and-role",
               "title": "definition and role"
             },
             {
-              "jsonId": "course-front-end-web-development-module-introduction-submodule-overview-lesson-importance",
+              "jsonId": "course-front-end-web-development-module-from-end-introduction-submodule-overview-lesson-importance",
               "title": "importance"
             },
             {
-              "jsonId": "course-front-end-web-development-module-introduction-submodule-overview-lesson-key-skills-and-technologies",
+              "jsonId": "course-front-end-web-development-module-from-end-introduction-submodule-overview-lesson-key-skills-and-technologies",
               "title": "key skills and technologies"
             }
           ]
         },
         {
           "title": "history",
-          "jsonId": "course-front-end-web-development-module-introduction-submodule-history",
+          "jsonId": "course-front-end-web-development-module-from-end-introduction-submodule-history",
           "lessons": [
             {
-              "jsonId": "course-front-end-web-development-module-introduction-submodule-history-lesson-evolution-of-frontend-technologies",
+              "jsonId": "course-front-end-web-development-module-from-end-introduction-submodule-history-lesson-evolution-of-frontend-technologies",
               "title": "evolution of frontend technologies"
             },
             {
-              "jsonId": "course-front-end-web-development-module-introduction-submodule-history-lesson-milstones-in-frontend-development",
+              "jsonId": "course-front-end-web-development-module-from-end-introduction-submodule-history-lesson-milstones-in-frontend-development",
               "title": "milstones in frontend development"
             }
           ]
         },
         {
           "title": "introduction to web standards",
-          "jsonId": "course-front-end-web-development-module-introduction-submodule-introduction-to-web-standards",
+          "jsonId": "course-front-end-web-development-module-from-end-introduction-submodule-introduction-to-web-standards",
           "lessons": [
             {
-              "jsonId": "course-front-end-web-development-module-introduction-submodule-introduction-to-web-standards-lesson-definition-of-web-standards-and-their-importance",
+              "jsonId": "course-front-end-web-development-module-from-end-introduction-submodule-introduction-to-web-standards-lesson-definition-of-web-standards-and-their-importance",
               "title": "definition of web standards and their importance"
             },
             {
-              "jsonId": "course-front-end-web-development-module-introduction-submodule-introduction-to-web-standards-lesson-overview-of-key-web-standards-organizations",
+              "jsonId": "course-front-end-web-development-module-from-end-introduction-submodule-introduction-to-web-standards-lesson-overview-of-key-web-standards-organizations",
               "title": "overview of key web standards organizations"
             },
             {
-              "jsonId": "course-front-end-web-development-module-introduction-submodule-introduction-to-web-standards-lesson-common-web-standards",
+              "jsonId": "course-front-end-web-development-module-from-end-introduction-submodule-introduction-to-web-standards-lesson-common-web-standards",
               "title": "Common web standards"
             }
           ]
         },
         {
           "title": "job opportunities",
-          "jsonId": "course-front-end-web-development-module-introduction-submodule-job-opportunities",
+          "jsonId": "course-front-end-web-development-module-from-end-introduction-submodule-job-opportunities",
           "lessons": [
             {
-              "jsonId": "course-front-end-web-development-module-introduction-submodule-job-opportunities-lesson-career-paths-and-job-roles",
+              "jsonId": "course-front-end-web-development-module-from-end-introduction-submodule-job-opportunities-lesson-career-paths-and-job-roles",
               "title": "career paths and job roles"
             },
             {
-              "jsonId": "course-front-end-web-development-module-introduction-submodule-job-opportunities-lesson-skills-and-qualifications",
+              "jsonId": "course-front-end-web-development-module-from-end-introduction-submodule-job-opportunities-lesson-skills-and-qualifications",
               "title": "skills and qualifications"
             },
             {
-              "jsonId": "course-front-end-web-development-module-introduction-submodule-job-opportunities-lesson-job-outlook-and-trends",
+              "jsonId": "course-front-end-web-development-module-from-end-introduction-submodule-job-opportunities-lesson-job-outlook-and-trends",
               "title": "job outlook and trends"
             }
           ]
@@ -877,5 +877,27 @@
       "jsonId": "course-front-end-web-development-module-mobile-and-desktop-applications",
       "subModules": []
     }
-  ]
+  ],
+  "project": {
+    "title": "project",
+    "jsonId": "course-front-end-web-development-project",
+    "modules": [
+      {
+        "title": "module 1",
+        "jsonId": "course-front-end-web-development-project-module-1",
+        "subModules": [
+          {
+            "title": "sub-module 1",
+            "jsonId": "course-front-end-web-development-project-module-1-sudmodule-submodule-1",
+            "lessons": [
+              {
+                "title": "lesson 1",
+                "jsonId": "course-front-end-web-development-project-module-1-sudmodule-submodule-1-lesson-lession-1"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
 }

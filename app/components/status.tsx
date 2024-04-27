@@ -10,7 +10,6 @@ import { Badge } from "./ui/badge";
 export function Status({ status }: any) {
   const memoizedModuleStatus = React.useMemo(() => {
     if (!status) return { completed: 0, inProgress: 0, locked: 0, total: 0 };
-
     return status.reduce(
       (acc: any, module: any) => {
         switch (module.status) {
@@ -30,22 +29,9 @@ export function Status({ status }: any) {
       { completed: 0, inProgress: 0, locked: 0, total: 0 }
     );
   }, [status]);
-  // const memoizedModuleStatus = React.useMemo(() => {
-  //   const completed = status?.filter(
-  //     (module: any) => module.status === "COMPLETED"
-  //   ).length;
-  //   const inProgress = status?.filter(
-  //     (module: any) => module.status === "IN_PROGRESS"
-  //   ).length;
-  //   const locked = status?.filter(
-  //     (module: any) => module.status === "LOCKED"
-  //   ).length;
-  //   const total = status?.length;
-  //   return { completed, inProgress, locked, total };
-  // }, [status]);
 
   return (
-    <ul className="gap-4 grid grid-cols-1 sm:grid-cols-2 border-l-4 border-blue-600 p-2 text-md my-4">
+    <ul className="gap-4 grid grid-cols-1 sm:grid-cols-2 border-l-4 border-blue-600 text-sm p-2">
       <li className="flex items-center">
         <CheckCircle className="mr-2 text-blue-600" /> Completed:{" "}
         <Badge className="rounded-md ml-2 text-md">

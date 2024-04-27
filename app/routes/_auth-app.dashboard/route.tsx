@@ -36,6 +36,8 @@ export async function action({ request }: ActionFunctionArgs) {
       throw new Error("Invalid catalog intent");
     }
   } catch (error) {
+    console.error(error);
+
     throw new Error("Failed to add course to catalog");
   }
   return null;

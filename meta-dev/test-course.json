@@ -1,0 +1,99 @@
+{
+  "title": "test course",
+  "published": true,
+  "jsonId": "test-course",
+  "modules": [
+    {
+      "title": "Module 1",
+      "jsonId": "test-course-module-1",
+      "subModules": [
+        {
+          "title": "Submodule 1",
+          "jsonId": "test-course-module-1-submodule-1",
+          "lessons": [
+            {
+              "title": "Lesson 1",
+              "jsonId": "test-course-module-1-submodule-1-lesson-1"
+            },
+            {
+              "title": "Lesson 2",
+              "jsonId": "test-course-module-1-submodule-1-lesson-2"
+            }
+          ]
+        },
+        {
+          "title": "Submodule 2",
+          "jsonId": "test-course-module-1-submodule-2",
+          "lessons": [
+            {
+              "title": "Lesson 1",
+              "jsonId": "test-course-module-1-submodule-2-lesson-1"
+            },
+            {
+              "title": "Lesson 2",
+              "jsonId": "test-course-module-1-submodule-2-lesson-2"
+            }
+          ]
+        },
+        {
+          "title": "test",
+          "jsonId": "course-module-submodule-1-test"
+        },
+        {
+          "title": "checkpoint",
+          "jsonId": "course-module-submodule-1-checkpoint"
+        }
+      ]
+    },
+    {
+      "title": "Module 2",
+      "jsonId": "test-course-module-2",
+      "subModules": [
+        {
+          "title": "Submodule 1",
+          "jsonId": "test-course-module-2-submodule-1",
+          "lessons": [
+            {
+              "title": "Lesson 1",
+              "jsonId": "test-course-module-2-submodule-1-lesson-1"
+            },
+            {
+              "title": "Lesson 2",
+              "jsonId": "test-course-module-2-submodule-1-lesson-2"
+            }
+          ]
+        },
+        {
+          "title": "Submodule 2",
+          "jsonId": "test-course-module-2-submodule-2",
+          "lessons": [
+            {
+              "title": "Lesson 1",
+              "jsonId": "test-course-module-2-submodule-2-lesson-1"
+            },
+            {
+              "title": "Lesson 2",
+              "jsonId": "test-course-module-2-submodule-2-lesson-2"
+            }
+          ]
+        },
+        {
+          "title": "test",
+          "jsonId": "course-module-submodule-2-test"
+        },
+        {
+          "title": "checkpoint",
+          "jsonId": "course-module-submodule-2-checkpoint"
+        }
+      ]
+    },
+    {
+      "title": "test",
+      "jsonId": "test-course-module-test"
+    },
+    {
+      "title": "checkpoint",
+      "jsonId": "test-course-module-checkpoint"
+    }
+  ]
+}

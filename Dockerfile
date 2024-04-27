@@ -41,7 +41,7 @@ RUN npm run build
 FROM base
 
 # Set production environment variables
-ENV DATABASE_URL=file:/app/data/sqlite.db
+ENV DATABASE_URL=file:/data/sqlite.db
 ENV PORT="3000"
 ENV NODE_ENV="production"
 

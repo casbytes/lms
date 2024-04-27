@@ -1,16 +1,17 @@
 import React from "react";
 import { Await, useLoaderData, useRouteError } from "@remix-run/react";
-import { cacheOptions } from "~/utils/session.server";
 import { LoaderFunctionArgs, defer } from "@remix-run/node";
+import { cacheOptions } from "~/utils/session.server";
+import { getModules, getSubModules } from "./utils";
 import { BackButton } from "~/components/back-button";
 import { Container } from "~/components/container";
 import { SheetContent } from "~/components/ui/sheet";
 import { ErrorUI } from "~/components/error-ui";
-import { CourseSideContent } from "./components/course-side-content";
-import { ModuleCard } from "./components/module-card";
-import Pagination from "./components/pagination";
-import { getModules, getSubModules } from "./utils";
+import { Separator } from "~/components/ui/separator";
+import { SubModules } from "./components/sub-modules";
 import { Title } from "./components/title";
+import { Assessment } from "./components/assessment";
+import { CourseSideContent } from "./components/course-side-content";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   try {
@@ -34,29 +35,19 @@ export default function CoursesRoute() {
         <ul className="col-span-3 flex flex-col gap-6 overflow-y-auto h-auto max-h-screen">
           <div className="bg-[url('https://cdn.casbytes.com/assets/elearning2.png')] bg-no-repeat bg-contain">
             <div className="flex flex-col gap-6 bg-slate-100/90">
-              <React.Suspense fallback={<>Loading...</>}>
+              <React.Suspense
+                fallback={
+                  <div className="h-8 bg-slate-400 rounded-md w-full animate-pulse" />
+                }
+              >
                 <Await resolve={subModules}>
-                  {(subModules) =>
-                    subModules && subModules.length > 0 ? (
-                      subModules.map((subModule, index) => (
-                        <ModuleCard
-                          key={`${subModule.title}-${index}`}
-                          subModule={subModule}
-                          index={index}
-                        />
-                      ))
-                    ) : (
-                      <p className="text-lg my-4 text-center">
-                        No available sub modules in this module.
-                      </p>
-                    )
-                  }
+                  {(subModules) => <Assessment subModules={subModules} />}
                 </Await>
               </React.Suspense>
+              <Separator className="bg-sky-700 h-2 rounded-tl-md rounded-br-md" />
+              <SubModules subModules={subModules} />
             </div>
           </div>
-          {/* <hr />
-          <Pagination /> */}
         </ul>
 
         {/* mobile screens */}

@@ -25,6 +25,10 @@ model User {
   moduleProgress      ModuleProgress[]
   subModuleProgress   SubModuleProgress[]
   lessonProgress      LessonProgress[]
+  tests               Test[]
+  checkpoints         Checkpoint[]
+  projects            Project[]
+  collaborators       Collaborator[]
 }
 
 model Course {
@@ -77,68 +81,38 @@ model CourseProgress {
   status         String           @default("IN_PROGRESS") //IN_PROGRESS, COMPLETED
   user           User             @relation(fields: [userId], references: [id])
   moduleProgress ModuleProgress[]
+  collaborators  Collaborator[]
+  project        Project[]
 }
 
 model ModuleProgress {
-  id                   String                       @id @default(uuid())
-  title                String
-  slug                 String
-  userId               String
-  courseProgressId     String
-  score                Int                          @default(0)
-  status               String                       @default("LOCKED") //LOCKED, IN_PROGRESS, COMPLETED
-  user                 User                         @relation(fields: [userId], references: [id])
-  course               CourseProgress               @relation(fields: [courseProgressId], references: [id])
-  checkpoint           CheckpointToModuleProgress[]
-  TestToModuleProgress TestToModuleProgress[]
-  subModuleProgress    SubModuleProgress[]
-}
-
-model CheckpointToModuleProgress {
-  id               String         @id @default(uuid())
-  moduleProgressId String
-  checkpointId     String
-  moduleProgress   ModuleProgress @relation(fields: [moduleProgressId], references: [id])
-  checkpoint       Checkpoint[]
-}
-
-model TestToModuleProgress {
-  id               String         @id @default(uuid())
-  testId           String
-  moduleProgressId String
-  moduleProgress   ModuleProgress @relation(fields: [moduleProgressId], references: [id])
-  test             Test           @relation(fields: [testId], references: [id])
+  id                String              @id @default(uuid())
+  title             String
+  slug              String
+  userId            String
+  courseProgressId  String
+  score             Int                 @default(0)
+  status            String              @default("LOCKED") //LOCKED, IN_PROGRESS, COMPLETED
+  user              User                @relation(fields: [userId], references: [id])
+  course            CourseProgress      @relation(fields: [courseProgressId], references: [id])
+  test              Test[]
+  checkpoint        Checkpoint[]
+  subModuleProgress SubModuleProgress[]
 }
 
 model SubModuleProgress {
-  id                            String                          @id @default(uuid())
-  title                         String
-  slug                          String
-  userId                        String
-  moduleProgressId              String
-  score                         Int                             @default(0)
-  status                        String                          @default("LOCKED") //LOCKED, IN_PROGRESS, COMPLETED
-  user                          User                            @relation(fields: [userId], references: [id])
-  module                        ModuleProgress                  @relation(fields: [moduleProgressId], references: [id])
-  checkpointToSubModuleProgress CheckpointToSubModuleProgress[]
-  testToSubModuleProgress       TestToSubModuleProgress[]
-  lessonProgress                LessonProgress[]
-}
-
-model CheckpointToSubModuleProgress {
-  id                  String            @id @default(uuid())
-  subModuleProgressId String
-  checkpointId        String
-  subModuleProgress   SubModuleProgress @relation(fields: [subModuleProgressId], references: [id])
-  checkpoint          Checkpoint[]
-}
-
-model TestToSubModuleProgress {
-  id                  String            @id @default(uuid())
-  testId              String
-  subModuleProgressId String
-  subModuleProgress   SubModuleProgress @relation(fields: [subModuleProgressId], references: [id])
-  test                Test              @relation(fields: [testId], references: [id])
+  id               String           @id @default(uuid())
+  title            String
+  slug             String
+  userId           String
+  moduleProgressId String
+  score            Int              @default(0)
+  status           String           @default("LOCKED") //LOCKED, IN_PROGRESS, COMPLETED
+  user             User             @relation(fields: [userId], references: [id])
+  module           ModuleProgress   @relation(fields: [moduleProgressId], references: [id])
+  lessonProgress   LessonProgress[]
+  test             Test[]
+  checkpoint       Checkpoint[]
 }
 
 model LessonProgress {
@@ -153,20 +127,56 @@ model LessonProgress {
 }
 
 model Checkpoint {
-  id                              String                        @id @default(uuid())
-  score                           Int                           @default(0)
-  status                          String                        @default("LOCKED")
-  checkpointToModuleProgressId    String
-  checkpointToSubModuleProgressId String
-  checkpointToModuleProgress      CheckpointToModuleProgress    @relation(fields: [checkpointToModuleProgressId], references: [id])
-  checkpointToSubModuleProgress   CheckpointToSubModuleProgress @relation(fields: [checkpointToSubModuleProgressId], references: [id])
+  id                  String             @id @default(uuid())
+  title               String
+  score               Int                @default(0)
+  status              String             @default("LOCKED") //LOCKED, IN_PROGRESS, COMPLETED
+  userId              String
+  moduleProgressId    String?
+  subModuleProgressId String?
+  user                User               @relation(fields: [userId], references: [id])
+  moduleProgress      ModuleProgress?    @relation(fields: [moduleProgressId], references: [id])
+  subModuleProgress   SubModuleProgress? @relation(fields: [subModuleProgressId], references: [id])
 }
 
 model Test {
-  id                      String                    @id @default(uuid())
-  score                   Int                       @default(0)
-  attempts                Int                       @default(0)
-  attempted               Boolean                   @default(false)
-  testToModuleProgress    TestToModuleProgress[]
-  testToSubModuleProgress TestToSubModuleProgress[]
+  id                  String             @id @default(uuid())
+  title               String
+  status              String             @default("LOCKED") //LOCKED,  COMPLETED
+  score               Int                @default(0)
+  attempts            Int                @default(0)
+  attempted           Boolean            @default(false)
+  nextAttemptAt       DateTime?
+  userId              String
+  moduleProgressId    String?
+  subModuleProgressId String?
+  user                User               @relation(fields: [userId], references: [id])
+  moduleProgress      ModuleProgress?    @relation(fields: [moduleProgressId], references: [id])
+  subModuleProgress   SubModuleProgress? @relation(fields: [subModuleProgressId], references: [id])
+}
+
+//||||||||||||||||##########||||||||||||||||//
+//                 PROJECT                  //
+//||||||||||||||||##########||||||||||||||||//
+
+model Project {
+  id               String         @id @default(uuid())
+  title            String
+  slug             String
+  status           String         @default("LOCKED") //LOCKED, IN_PROGRESS, COMPLETED
+  userId           String
+  courseProgressId String
+  user             User           @relation(fields: [userId], references: [id])
+  courseProgress   CourseProgress @relation(fields: [courseProgressId], references: [id])
+  collaborators    Collaborator[]
+}
+
+model Collaborator {
+  id               String         @id @default(uuid())
+  userId           String
+  projectId        String
+  courseProgressId String
+  user             User           @relation(fields: [userId], references: [id])
+  project          Project        @relation(fields: [projectId], references: [id])
+  courseProgress   CourseProgress @relation(fields: [courseProgressId], references: [id])
 }

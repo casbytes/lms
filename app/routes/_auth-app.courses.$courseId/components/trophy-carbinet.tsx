@@ -7,7 +7,7 @@ import {
 
 export function TrophyCarbinet() {
   return (
-    <ul className="flex justify-evenly flex-wrap gap-4 p-2 mb-6">
+    <ul className="flex justify-evenly flex-wrap gap-4 p-2 mb-2">
       {Array.from({ length: 4 }).map((_, i) => (
         <HoverCard key={i}>
           <HoverCardTrigger>
