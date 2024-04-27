@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import { spawn } from "child_process";
-import { getInsatnceInfo } from "litefs-js";
+import { getInsatnceInfo } from "litefs-js/remix";
 
 async function go() {
   const { currentInstance, currentIsPrimary, primaryInstance } =
