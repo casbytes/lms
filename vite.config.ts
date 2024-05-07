@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { vitePlugin as remix } from "@remix-run/dev";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 import { installGlobals } from "@remix-run/node";
@@ -10,7 +11,6 @@ export default defineConfig({
   server: {
     port: Number(process.env.PORT!) ?? 3000,
   },
-
   plugins: [
     remix({}),
     tsconfigPaths(),
@@ -19,8 +19,19 @@ export default defineConfig({
       project: "casbytes",
     }),
   ],
-
   build: {
     sourcemap: true,
+  },
+  test: {
+    globals: true,
+    reporters: ["default", "html"],
+    environment: "jsdom",
+    setupFiles: ["./test/setup-tests.ts"],
+    include: ["./app/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+    watchExclude: [
+      ".*\\/node_modules\\/.*",
+      ".*\\/build\\/.*",
+      ".*\\/prisma\\/.*",
+    ],
   },
 });

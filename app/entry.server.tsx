@@ -18,7 +18,8 @@ export function handleError(error, { request }) {
 }
 
 Sentry.init({
-  dsn: "https://b193cd78c26a89a253935f490b3f5579@o4506124590448640.ingest.us.sentry.io/4507138363817984",
+  dsn: process.env.SENTRY_DSN,
+  environment: "production",
   tracesSampleRate: 1,
 });
 

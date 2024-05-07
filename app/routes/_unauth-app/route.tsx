@@ -26,5 +26,5 @@ export default function UnAuthApp() {
 export const menuItems = [
   { label: "courses", href: "courses" },
   { label: "FAQs", href: "faqs" },
-  { label: "blog", href: "blog" },
+  { label: "blog", href: "blog.casbytes.com" },
 ];
