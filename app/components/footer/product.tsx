@@ -22,5 +22,5 @@ export function Product() {
 const items = [
   { title: "courses", href: "/courses" },
   { title: "subscription", href: "/#subscription" },
-  { title: "blog", href: "/blog" },
+  { title: "blog", href: "blog.casbytes.com" },
 ];
