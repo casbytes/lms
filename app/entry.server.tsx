@@ -1,9 +1,4 @@
 import * as Sentry from "@sentry/remix";
-/**
- * By default, Remix will handle generating the HTTP Response for you.
- * You are free to delete this file if you'd like to, but if you ever want it revealed again, you can run `npx remix reveal` ✨
- * For more information, see https://remix.run/file-conventions/entry.server
- */
 
 import { PassThrough } from "node:stream";
 
@@ -12,6 +7,7 @@ import { createReadableStreamFromReadable } from "@remix-run/node";
 import { RemixServer } from "@remix-run/react";
 import { isbot } from "isbot";
 import { renderToPipeableStream } from "react-dom/server";
+
 //@ts-ignore
 export function handleError(error, { request }) {
   Sentry.captureRemixServerException(error, "remix.server", request);

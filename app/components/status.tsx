@@ -63,10 +63,9 @@ export function Status({ status }: any) {
 export function PendingStatus() {
   return (
     <div className="grid grid-cols-2 gap-4 bg-gray-200 w-full p-2 my-4">
-      <div className="h-8 bg-gray-300 rounded-md animate-pulse"></div>
-      <div className="h-8 bg-gray-300 rounded-md animate-pulse"></div>
-      <div className="h-8 bg-gray-300 rounded-md animate-pulse"></div>
-      <div className="h-8 bg-gray-300 rounded-md animate-pulse"></div>
+      {Array(4).map((_, i) => (
+        <div key={i} className="h-8 bg-gray-300 rounded-md animate-pulse" />
+      ))}
     </div>
   );
 }

@@ -1,13 +1,14 @@
+import React from "react";
 import { Fade } from "react-awesome-reveal";
 import { Container } from "../container";
-import elearning2 from "~/assets/elearning2.png";
+import { cn } from "~/libs/shadcn";
 
 export function ContentOverview() {
   return (
-    <Container id="overview" className="mb-8">
+    <Container id="overview" className="container mb-8">
       <div className="flex flex-col md:flex-row justify-evenly max-w-6xl mx-auto">
-        <Fade cascade>
-          <div className="max-w-md mx-auto">
+        <Fade direction="up" cascade duration={300}>
+          <div className={cn("max-w-md mx-auto")}>
             <h1 className="text-3xl font-bold text-center my-12 md:text-left">
               Transform Your Dreams into Reality:{" "}
               <span className="text-blue-700">
@@ -38,13 +39,15 @@ export function ContentOverview() {
               Your journey starts here, with CASBytes.
             </h2>
           </div>
-          <img
-            src="https://cdn.casbytes.com/assets/elearning2.png"
-            width={500}
-            height={500}
-            alt="elearning"
-            className="mt-8 md:mt-32 mx-auto"
-          />
+          <div>
+            <img
+              src="https://cdn.casbytes.com/assets/elearning2.png"
+              width={500}
+              height={500}
+              alt="elearning"
+              className="mt-8 md:mt-32 mx-auto"
+            />
+          </div>
         </Fade>
       </div>
     </Container>

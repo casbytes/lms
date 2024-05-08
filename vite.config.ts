@@ -9,7 +9,8 @@ installGlobals();
 
 export default defineConfig({
   server: {
-    port: Number(process.env.PORT!) ?? 3000,
+    port:
+      process.env.NODE_ENV === "production" ? Number(process.env.PORT!) : 3000,
   },
   plugins: [
     remix({}),
@@ -30,8 +31,15 @@ export default defineConfig({
     include: ["./app/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
     watchExclude: [
       ".*\\/node_modules\\/.*",
+      ".*\\/.github\\/.*",
       ".*\\/build\\/.*",
       ".*\\/prisma\\/.*",
+      ".*\\/.git\\/.*",
+      ".*\\/public\\/.*",
+      ".*\\/playwright\\/.*",
+      ".*\\/e2e\\/.*",
+      ".*\\/content\\/.*",
+      ".*\\/meta\\/.*",
     ],
   },
 });
