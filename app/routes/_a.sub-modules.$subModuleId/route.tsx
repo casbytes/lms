@@ -10,6 +10,7 @@ import {
   Await,
   ClientLoaderFunctionArgs,
   useLoaderData,
+  useLocation,
 } from "@remix-run/react";
 import { Markdown } from "~/components/markdown";
 import axios from "axios";
@@ -76,10 +77,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export default function ModulesRoute() {
-  const { lessons, previousUrl } = useLoaderData<typeof loader>();
+  const { lessons } = useLoaderData<typeof loader>();
+
   return (
     <Container className="max-w-3xl lg:max-w-7xl">
-      <BackButton to={previousUrl} buttonText="Introduction to SE" />
+      <BackButton to="#" buttonText="Introduction to SE" />
       <PageTitle title="Javascript" className="mb-8" />
       <div className="lg:grid lg:grid-cols md:grid-cols-6 gap-6">
         <div className="col-span-4 flex flex-col gap-6 overflow-y-auto h-auto max-h-screen">

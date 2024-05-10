@@ -1,23 +1,22 @@
 import React from "react";
-import { useFetcher, useNavigation, useSubmit } from "@remix-run/react";
+import { useNavigation, useSubmit } from "@remix-run/react";
 import { CourseTitle } from "~/components/course-title";
 import { Status } from "~/components/status";
 import { CheckCircle, CircleDashed, LockKeyhole } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { FaSpinner } from "react-icons/fa6";
 import { capitalizeFirstLetter } from "~/utils/cs";
+import { useLocalStorageState } from "~/utils/hooks";
 
 export function ModuleSideContent({ lessons }: any) {
-  const lesson = useFetcher();
+  const submit = useSubmit();
   const navigation = useNavigation();
-
   const isLoading = navigation.formData?.get("intent") === "some";
 
-  const submit = useSubmit();
   return (
     <>
       <CourseTitle title="Functions" />
-      <Status />
+      <Status status={lessons} />
       <ul className="grid grid-cols-1 gap-4 p-2">
         {lessons && lessons?.length > 0 ? (
           lessons.map((lesson: any, index: number) => (

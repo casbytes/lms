@@ -3,15 +3,19 @@ import { Await } from "@remix-run/react";
 import { CourseTitle } from "~/components/course-title";
 import { Modules } from "./modules";
 import { PendingStatus, Status } from "~/components/status";
-import { TrophyCarbinet } from "./trophy-carbinet";
+import { BadgeGallery } from "./badge-gallery";
 import { Project } from "./project";
 import { Separator } from "~/components/ui/separator";
 
-export function CourseSideContent({ modules }: any) {
+export function CourseSideContent({ modules, moduleBadges }: any) {
   return (
     <>
-      <CourseTitle title="Trophy cabinet" />
-      <TrophyCarbinet />
+      <CourseTitle title="Module Badge Gallery" />
+      <React.Suspense fallback={<PendingBadges />}>
+        <Await resolve={moduleBadges}>
+          {(moduleBadges) => <BadgeGallery badges={moduleBadges} />}
+        </Await>
+      </React.Suspense>
       <CourseTitle title="Modules" />
       <div className="flex flex-col gap-4">
         <React.Suspense fallback={<PendingStatus />}>
@@ -37,6 +41,19 @@ export function CourseSideContent({ modules }: any) {
         </React.Suspense>
       </div>
     </>
+  );
+}
+
+function PendingBadges() {
+  return (
+    <div className="flex gap-4 m-2">
+      {Array(4).map((_, i) => (
+        <div
+          key={i}
+          className="h-8 bg-slate-400 rounded-md w-full animate-pulse"
+        />
+      ))}
+    </div>
   );
 }
 

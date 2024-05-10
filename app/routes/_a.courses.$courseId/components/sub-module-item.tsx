@@ -1,4 +1,4 @@
-import { Link } from "@remix-run/react";
+import { Link, useSearchParams } from "@remix-run/react";
 import { CircleCheckBig, CircleDotDashed, Lock } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/libs/shadcn";
@@ -8,6 +8,7 @@ import { IoShieldCheckmarkSharp } from "react-icons/io5";
 import { MdQuiz } from "react-icons/md";
 
 export function SubModuleItem({ item, index }: any) {
+  const [searchParams, setSearchParams] = useSearchParams();
   const locked = item.status === "LOCKED";
   const inProgress = item.status === "IN_PROGRESS";
   const completed = item.status === "COMPLETED";

@@ -21,9 +21,8 @@ export function CoursesCard({
   const { inCatalog, courses } = data;
   const fetcher = useFetcher();
   const navigation = useNavigation();
-  const isLoading = navigation.state === "submitting";
-  const isActive =
-    navigation.formData?.get("intent") === "addCourseToCatalog" || isLoading;
+  const isSubmitting =
+    navigation.formData?.get("intent") === "addCourseToCatalog";
 
   return (
     <div>
@@ -54,7 +53,7 @@ export function CoursesCard({
                     <Button
                       className="bg-indigo-500 hover:bg-indigo-400 py-1 font-black"
                       size="sm"
-                      disabled={inCatalog || isLoading}
+                      disabled={inCatalog || isSubmitting}
                       onClick={() => {
                         fetcher.submit(
                           { intent: "addCourseToCatalog", courseId: course.id },
@@ -63,7 +62,7 @@ export function CoursesCard({
                       }}
                     >
                       <FaPlus className="mr-2" />
-                      {isActive ? (
+                      {isSubmitting ? (
                         <FaSpinner className="mr-2 animate-spin" />
                       ) : null}
                       Add to catalog

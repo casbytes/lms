@@ -1,5 +1,4 @@
 import React from "react";
-import { motion } from "framer-motion";
 import { cn } from "~/libs/shadcn";
 
 type ContainerProps = {
@@ -17,13 +16,13 @@ export function Container({
   ...props
 }: ContainerProps) {
   return (
-    <motion.section
+    <section
       id={id}
       ref={ref}
-      className={cn("px-4 w-full h-full mx-auto py-6", className)}
+      className={cn("px-4 w-full h-full mx-auto py-4", className)}
       {...props}
     >
       {children}
-    </motion.section>
+    </section>
   );
 }

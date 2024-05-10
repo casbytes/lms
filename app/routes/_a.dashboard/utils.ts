@@ -152,7 +152,7 @@ export async function addCourseToCatalog(userId: string, courseId: string) {
               );
 
               /**
-               * Create test and checkpoint for sub module
+               * Create test, trophies, and checkpoint for sub module
                */
               if (subModuleProgress) {
                 await txn.test.create({
@@ -196,6 +196,40 @@ export async function addCourseToCatalog(userId: string, courseId: string) {
                 user: { connect: { id: userId } },
                 moduleProgress: { connect: { id: moduleProgress.id } },
               },
+            });
+
+            const badges = [
+              {
+                title: "novice",
+                unlocked_description: `Awesome work! You've already conquered 25% of the journey and are well on your way to grasping the fundamentals in ${moduleProgress.title}. Keep practicing to unlock more achievements as you continue your learning adventure!`,
+                locked_description: `Earn this badge by conquering 25% of the ${moduleProgress.title} roadmap. That means completing all the essential lessons, tests, and sub-module checkpoints along the way`,
+              },
+              {
+                title: "adept",
+                unlocked_description: `Congratulations! You've grasped the fundamentals of ${moduleProgress.title} and can tackle most tasks with confidence. Keep exploring to unlock even more achievements!`,
+                locked_description: `Earn this badge by conquering 50% of the ${moduleProgress.title} roadmap. That means completing all the essential lessons, tests, and sub-module checkpoints along the way`,
+              },
+              {
+                title: "proficient",
+                unlocked_description: `Congratulations! You've leveled up your skills and earned the proficient badge. Now you possess a solid grasp of the concepts and can confidently put them to work in real-world situations. Keep pushing forward to unlock even more achievements and reach mastery!`,
+                locked_description: `Earn this badge by conquering 75% of the ${moduleProgress.title} roadmap. That means completing all the essential lessons, tests, and sub-module checkpoints along the way`,
+              },
+              {
+                title: "virtuoso",
+                unlocked_description: `Congratulations! You've mastered ${moduleProgress.title}, conquering even the most intricate challenges. With your newfound skills, you're now an inspiration to others. Now, it's time to claim your expertise with official certification. Keep going to complete the course and become certified!`,
+                locked_description: `Earn this badge by conquering 100% of the ${moduleProgress.title} roadmap. That means completing all the essential lessons, tests, and sub-module checkpoints along the way`,
+              },
+            ];
+
+            await txn.badge.createMany({
+              data: badges.map((badge) => ({
+                title: badge.title,
+                locked_description: badge.locked_description,
+                unlocked_description: badge.unlocked_description,
+                level: badge.title.toUpperCase(),
+                userId: userId,
+                moduleProgressId: moduleProgress.id,
+              })),
             });
           }
         })

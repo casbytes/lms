@@ -1,4 +1,4 @@
-name: 🚀 CI
+name: CI/CD
 on:
   push:
     branches:
@@ -11,7 +11,7 @@ on:
 
 jobs:
   test_unit:
-    name: Test
+    name: 🧪  Unit tests
     runs-on: ubuntu-latest
     steps:
       - name: ⬇️ Checkout repo
@@ -29,6 +29,7 @@ jobs:
         run: npm run test:unit
 
   test_e2e:
+    name: 🧪 🧪  E2E tests
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:

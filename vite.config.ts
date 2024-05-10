@@ -28,7 +28,7 @@ export default defineConfig({
     reporters: ["default", "html"],
     environment: "jsdom",
     setupFiles: ["./test/setup-tests.ts"],
-    include: ["./app/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+    include: ["./app/**/*.{test}.{js,ts,jsx,tsx}"],
     watchExclude: [
       ".*\\/node_modules\\/.*",
       ".*\\/.github\\/.*",

@@ -1,7 +1,7 @@
 import React from "react";
 import { Await, useLoaderData, useRouteError } from "@remix-run/react";
 import { LoaderFunctionArgs, defer } from "@remix-run/node";
-import { getModules, getSubModules } from "./utils";
+import { getModuleBadges, getModules, getSubModules } from "./utils";
 import { BackButton } from "~/components/back-button";
 import { Container } from "~/components/container";
 import { SheetContent } from "~/components/ui/sheet";
@@ -16,19 +16,19 @@ import { cacheOptions } from "../sessions";
 export async function loader({ request, params }: LoaderFunctionArgs) {
   try {
     const modules = getModules(request, params);
+    const moduleBadges = getModuleBadges(request, params);
     const subModules = getSubModules(request, params);
 
-    return defer({ modules, subModules }, cacheOptions);
+    return defer({ modules, moduleBadges, subModules }, cacheOptions);
   } catch (error) {
-    console.error(error);
     throw new Error("Failed to load course data, please try again.");
   }
 }
 
 export default function CoursesRoute() {
-  const { modules, subModules } = useLoaderData<typeof loader>();
+  const { modules, moduleBadges, subModules } = useLoaderData<typeof loader>();
   return (
-    <Container className="max-w-3xl lg:max-w-6xl mt-6">
+    <Container className="max-w-3xl lg:max-w-7xl">
       <BackButton to="/dashboard" buttonText="dashboard" />
       <Title subModules={subModules} />
       <div className="lg:grid lg:grid-cols lg:grid-cols-5 gap-6">
@@ -52,12 +52,12 @@ export default function CoursesRoute() {
 
         {/* mobile screens */}
         <SheetContent className="lg:hidden overflow-y-auto w-full sm:w-auto">
-          <CourseSideContent modules={modules} />
+          <CourseSideContent modules={modules} moduleBadges={moduleBadges} />
         </SheetContent>
 
         {/* large screens */}
         <aside className="hidden lg:block col-span-2 border bg-zinc-100 overflow-y-auto max-h-screen">
-          <CourseSideContent modules={modules} />
+          <CourseSideContent modules={modules} moduleBadges={moduleBadges} />
         </aside>
       </div>
     </Container>

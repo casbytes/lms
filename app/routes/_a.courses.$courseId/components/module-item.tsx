@@ -1,5 +1,6 @@
 import { useNavigation, useSubmit } from "@remix-run/react";
 import { CircleCheckBig, CircleDotDashed, LockKeyhole } from "lucide-react";
+import React from "react";
 import { BsLockFill, BsUnlockFill } from "react-icons/bs";
 import { CgSpinnerTwo } from "react-icons/cg";
 import { Button } from "~/components/ui/button";
@@ -14,6 +15,7 @@ export function ModuleItem({ module, index }: any) {
   const completed = module.status === "COMPLETED";
   const inProgress = module.status === "IN_PROGRESS";
   const locked = module.status === "LOCKED";
+
   return (
     <li key={`${module.id}-${index}`} className="w-full">
       <Button

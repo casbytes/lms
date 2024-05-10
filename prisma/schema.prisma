@@ -29,8 +29,12 @@ model User {
   checkpoints         Checkpoint[]
   projects            Project[]
   collaborators       Collaborator[]
+  badges              Badge[]
 }
 
+//||||||||||||||||##########||||||||||||||||//
+//                  COURSE                  //
+//||||||||||||||||##########||||||||||||||||//
 model Course {
   id        String   @id @default(uuid())
   title     String
@@ -98,6 +102,7 @@ model ModuleProgress {
   test              Test[]
   checkpoint        Checkpoint[]
   subModuleProgress SubModuleProgress[]
+  badges            Badge[]
 }
 
 model SubModuleProgress {
@@ -121,9 +126,22 @@ model LessonProgress {
   slug                String
   userId              String
   subModuleProgressId String
-  status              String            @default("LOCKED") //LOCKED, AVAILABLE, IN_PROGRESS, COMPLETED
+  status              String            @default("LOCKED") //LOCKED, IN_PROGRESS, COMPLETED
   user                User              @relation(fields: [userId], references: [id])
   subModule           SubModuleProgress @relation(fields: [subModuleProgressId], references: [id])
+}
+
+model Badge {
+  id                   String         @id @default(uuid())
+  title                String
+  locked_description   String
+  unlocked_description String
+  level                String // NOVICE, ADEPT, PROFICIENT, VIRTOUSO
+  status               String         @default("LOCKED") //LOCKED, UNLOCKED
+  userId               String
+  moduleProgressId     String
+  user                 User           @relation(fields: [userId], references: [id])
+  moduleProgress       ModuleProgress @relation(fields: [moduleProgressId], references: [id])
 }
 
 model Checkpoint {

@@ -1,15 +1,21 @@
 import React from "react";
 import { useSearchParams } from "@remix-run/react";
 import { ModuleItem } from "./module-item";
+import { useLocalStorageState } from "~/utils/hooks";
 
 export function Modules({ modules }: any) {
+  const [fR, setFR] = useLocalStorageState("fR", true);
+
   const [, setSearchParams] = useSearchParams();
 
   React.useEffect(() => {
-    setSearchParams((params) => {
-      params.set("moduleId", modules[0]?.id);
-      return params;
-    });
+    if (fR) {
+      setSearchParams((params) => {
+        params.set("moduleId", modules[0]?.id);
+        return params;
+      });
+      setFR(false);
+    }
   }, []);
 
   return (

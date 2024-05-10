@@ -5,6 +5,7 @@ import {
   Scripts,
   ScrollRestoration,
   useRouteError,
+  useNavigation,
 } from "@remix-run/react";
 import { captureRemixErrorBoundaryError, withSentry } from "@sentry/remix";
 import { RootLayout } from "./components/layouts";
@@ -12,6 +13,7 @@ import dark from "highlight.js/styles/night-owl.css?url";
 import stylesheet from "./tailwind.css?url";
 
 import { RootErrorUI } from "./components/root-error-ui";
+import { cn } from "./libs/shadcn";
 
 export const links = () => {
   return [
@@ -36,6 +38,8 @@ export const links = () => {
 };
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const navigation = useNavigation();
+  const isLoading = navigation.state !== "idle";
   return (
     <html lang="en">
       <head>
@@ -44,7 +48,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body className="bg-slate-100">
+      <body
+        className={cn("bg-slate-100", {
+          "cursor-wait": isLoading,
+        })}
+      >
         {children}
         <ScrollRestoration />
         <Scripts />
