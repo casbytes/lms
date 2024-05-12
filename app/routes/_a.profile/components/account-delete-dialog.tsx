@@ -11,7 +11,7 @@ import {
   DialogHeader,
 } from "~/components/ui/dialog";
 
-export default function AccountDeleteDialog({ user }: any) {
+export function AccountDeleteDialog({ user }: any) {
   const navigation = useNavigation();
   const isLoading = navigation.formData?.get("intent") === "deleteAccount";
   return (

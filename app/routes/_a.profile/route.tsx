@@ -10,9 +10,10 @@ import { AccountDetails } from "./components/account-details";
 import { UserOverview } from "./components/user-overview";
 import { ActionFunctionArgs, LoaderFunctionArgs, json } from "@remix-run/node";
 import { Dialog } from "~/components/ui/dialog";
-import AccountDeleteDialog from "./components/account-delete-dialog";
+import { AccountDeleteDialog } from "./components/account-delete-dialog";
 import { prisma } from "~/libs/prisma.server";
 import { getUser, signOut } from "../sessions";
+import { Cv } from "./components/cv";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
@@ -72,6 +73,7 @@ export default function Profile() {
           <DiscordCard />
           <CourseCatalogCard userCourses={userCourses} />
         </div>
+        <Cv />
       </div>
     </Container>
   );

@@ -11,9 +11,9 @@ import { captureRemixErrorBoundaryError, withSentry } from "@sentry/remix";
 import { RootLayout } from "./components/layouts";
 import dark from "highlight.js/styles/night-owl.css?url";
 import stylesheet from "./tailwind.css?url";
+import { cn } from "./libs/shadcn";
 
 import { RootErrorUI } from "./components/root-error-ui";
-import { cn } from "./libs/shadcn";
 
 export const links = () => {
   return [
