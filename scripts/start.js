@@ -1,6 +1,3 @@
-import fs from "fs";
-import path from "path";
-import os from "os";
 import { spawn } from "child_process";
 import * as ltfs from "litefs-js";
 
@@ -16,9 +13,11 @@ async function go() {
     await exec("npx prisma migrate deploy");
     console.log("Database migrations completed!");
 
+    // console.log("Validating JSON schema...");
     // await exec("npm run validate");
     // console.log("JSON Schema validated!");
 
+    console.log("Updating database...");
     await exec("npm run update:db");
     console.log("Database updated!");
   } else {
@@ -29,6 +28,7 @@ async function go() {
 
   console.log("Starting server...");
   await exec("remix-serve ./build/server/index.js");
+  console.log("Server started!");
 }
 go();
 

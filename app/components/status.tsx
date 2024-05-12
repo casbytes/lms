@@ -7,12 +7,25 @@ import {
 } from "lucide-react";
 import { Badge } from "./ui/badge";
 
+type StatusType = "COMPLETED" | "IN_PROGRESS" | "LOCKED";
+
+type ItemProps = {
+  status: StatusType;
+};
+
+type ACCProps = {
+  completed: number;
+  inProgress: number;
+  locked: number;
+  total: number;
+};
+
 export function Status({ status }: any) {
   const memoizedModuleStatus = React.useMemo(() => {
     if (!status) return { completed: 0, inProgress: 0, locked: 0, total: 0 };
     return status.reduce(
-      (acc: any, module: any) => {
-        switch (module.status) {
+      (acc: ACCProps, item: ItemProps) => {
+        switch (item.status) {
           case "COMPLETED":
             acc.completed++;
             break;
@@ -63,10 +76,9 @@ export function Status({ status }: any) {
 export function PendingStatus() {
   return (
     <div className="grid grid-cols-2 gap-4 bg-gray-200 w-full p-2 my-4">
-      <div className="h-8 bg-gray-300 rounded-md animate-pulse"></div>
-      <div className="h-8 bg-gray-300 rounded-md animate-pulse"></div>
-      <div className="h-8 bg-gray-300 rounded-md animate-pulse"></div>
-      <div className="h-8 bg-gray-300 rounded-md animate-pulse"></div>
+      {Array(4).map((_, i) => (
+        <div key={i} className="h-8 bg-gray-300 rounded-md animate-pulse" />
+      ))}
     </div>
   );
 }

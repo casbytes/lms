@@ -1,10 +1,8 @@
-import { Link } from "@remix-run/react";
-import { Zoom } from "react-awesome-reveal";
+import { Fade } from "react-awesome-reveal";
 import { LuBrainCircuit } from "react-icons/lu";
 import { LiaBookReaderSolid } from "react-icons/lia";
 import { TbWorldBolt } from "react-icons/tb";
 import { Container } from "../container";
-import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 
 export function CurriculumOverview() {
@@ -14,8 +12,8 @@ export function CurriculumOverview() {
         <h1 className="text-3xl font-bold mb-8 text-blue-500">
           Curriculum overview
         </h1>
-        <Zoom cascade triggerOnce>
-          <div className="flex flex-col gap-10">
+        <div className="flex flex-col gap-10">
+          <Fade cascade damping={0.3} duration={800}>
             {items.map((item, index) => (
               <Card
                 key={`item-${index}`}
@@ -35,13 +33,8 @@ export function CurriculumOverview() {
                 </CardContent>
               </Card>
             ))}
-          </div>
-        </Zoom>
-        {/* <Link to="/curriculum">
-          <Button variant="outline" className="mt-8" aria-label="learn more">
-            learn more...
-          </Button>
-        </Link> */}
+          </Fade>
+        </div>
       </div>
     </Container>
   );

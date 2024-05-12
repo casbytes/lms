@@ -8,11 +8,15 @@ Dockerfile
 .dockerignore
 .git
 .DS_Store
-.env-prod
-
-
-# Sentry Config File
-.sentryclirc
 
 # Sentry Config File
 .env.sentry-build-plugin
+.sentryclirc
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+/html

@@ -76,8 +76,7 @@ async function createOrUpdateCourse(data: ICourse): Promise<void> {
       await createCourse(txn, data);
     });
   } catch (error) {
-    console.error("Error creating/updating course:", error);
-    process.exit(1);
+    throw new Error("Error creating/updating course:" + error);
   }
 }
 
@@ -144,32 +143,6 @@ async function createCourse(
               }
             })
           );
-
-          /**
-           * We ensure all the modules are created before
-           * creating the test, checkpoint sub-modules
-           */
-          // await txn.subModule.upsert({
-          //   where: { jsonId: `${jsonId}-test` },
-          //   update: { title: "test", slug: "test" },
-          //   create: {
-          //     jsonId: `${jsonId}-test`,
-          //     title: "test",
-          //     slug: "test",
-          //     moduleId: module.id,
-          //   },
-          // });
-
-          // await txn.subModule.upsert({
-          //   where: { jsonId: `${jsonId}-checkpoint` },
-          //   update: { title: "checkpoint", slug: "checkpoint" },
-          //   create: {
-          //     jsonId: `${jsonId}-checkpoint`,
-          //     title: "checkpoint",
-          //     slug: "checkpoint",
-          //     moduleId: module.id,
-          //   },
-          // });
         }
       })
     );

@@ -1,4 +1,4 @@
-import fs from "fs";
+import fs from "node:fs";
 import AJV from "ajv";
 import { readJsonFiles } from "./utils.js";
 

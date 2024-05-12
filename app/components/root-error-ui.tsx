@@ -64,7 +64,6 @@ export function RootErrorUI({ error }: ErrorUIProps) {
           </p>
           <Button
             onClick={() => navigate(0)}
-            // variant="destructive"
             className="!uppercase drop-shadow-xl w-full"
           >
             {isLoading ? "retrying..." : "try again"}

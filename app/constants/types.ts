@@ -1,5 +1,5 @@
 export interface ICourseProgress {
-  id: number;
+  id: string;
   title: string;
   slug: string;
   userId: string;
@@ -21,5 +21,6 @@ export interface ICurrentUser {
   name: string;
   avatar_url: string;
   authType: string;
+  currentUrl: string | null;
   completedOnboarding: boolean;
 }

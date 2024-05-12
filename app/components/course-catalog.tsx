@@ -1,18 +1,16 @@
-import { Table, TableBody, TableCell, TableRow } from "./ui/table";
-import { Button } from "./ui/button";
+import { Link } from "@remix-run/react";
 import { CircleCheckBig, CircleDotDashed } from "lucide-react";
 import { BiReset } from "react-icons/bi";
-import { Link } from "@remix-run/react";
-import { ICourseProgress } from "~/constants/types";
+import { Table, TableBody, TableCell, TableRow } from "./ui/table";
+import { Button } from "./ui/button";
 import { capitalizeFirstLetter } from "~/utils/cs";
+import { ICourseProgress } from "~/constants/types";
 
-export function CourseCatalogCard({
-  userCourses,
-}: {
+type CCCProps = {
   userCourses: ICourseProgress[];
-}) {
-  console.log(userCourses);
+};
 
+export function CourseCatalogCard({ userCourses }: CCCProps) {
   return (
     <div className="rounded-md bg-teal-300/30 p-6 flex flex-col items-center">
       <h2 className="text-xl font-bold mb-4 text-teal-600">Course catalog</h2>
@@ -34,7 +32,7 @@ export function CourseCatalogCard({
                       className="bg-teal-500 hover:bg-teal-400 py-1 font-black"
                       size="icon"
                     >
-                      {course.status === "INPROGRESS" ? (
+                      {course.status === "IN_PROGRESS" ? (
                         <CircleDotDashed size={20} />
                       ) : (
                         <CircleCheckBig size={20} />

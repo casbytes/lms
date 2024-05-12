@@ -6,22 +6,15 @@ type NavBarProps = {
   menuItems: { label: string; href: string }[];
   isNavOpen: boolean;
   setIsNavOpen: (value: boolean) => void;
-  user?: any;
 };
 
-export function NavBar({
-  menuItems,
-  isNavOpen,
-  setIsNavOpen,
-  user,
-}: NavBarProps) {
+export function NavBar({ menuItems, isNavOpen, setIsNavOpen }: NavBarProps) {
   const matches = useMatches();
-  // const user = true;
 
   function handleNavToggle() {
     setIsNavOpen(!isNavOpen);
   }
-  const authApp = matches.some((match) => match.id.includes("_auth-app"));
+  const authApp = matches.some((match) => match.id.includes("_a"));
   return (
     <>
       <MainNav
