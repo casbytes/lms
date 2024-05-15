@@ -1,3 +1,36 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html,
+  body {
+    box-sizing: border-box;
+    font-family: "Mulish", sans-serif;
+    font-weight: 400;
+    scroll-behavior: smooth;
+  }
+
+  code {
+    font-family: "Roboto Mono", monospace;
+    font-size: small;
+  }
+}
+
+@layer components {
+  .remark-container {
+    @apply my-8 p-2 pl-11 relative border-l-4;
+  }
+
+  .remark-container > .icon {
+    @apply absolute left-2 top-7;
+  }
+
+  .hljs {
+    @apply rounded-tl-md rounded-br-md rounded-bl-md text-sm p-6;
+  }
+
+  .hljs-inline {
+    @apply bg-slate-200 py-[1px] px-[2px] rounded-sm;
+  }
+}
