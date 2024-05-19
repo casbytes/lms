@@ -3,15 +3,13 @@ import { Form, useLocation } from "@remix-run/react";
 import { cn } from "~/libs/shadcn";
 import { Button } from "./ui/button";
 
-export function SignOutButton({
-  className,
-  isOpen,
-  icon,
-}: {
+type SignOutButtonProps = {
   className?: string;
   isOpen?: boolean;
   icon?: React.ReactNode;
-}) {
+};
+
+export function SignOutButton({ className, isOpen, icon }: SignOutButtonProps) {
   /**
    * This is to keep track of the current URL
    * so that we can redirect the user back to the

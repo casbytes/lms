@@ -63,8 +63,3 @@ export default function CoursesRoute() {
     </Container>
   );
 }
-
-export function ErrorBoundary() {
-  const error = useRouteError();
-  return <ErrorUI error={error} />;
-}

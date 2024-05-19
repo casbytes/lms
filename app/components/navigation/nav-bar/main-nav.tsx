@@ -25,14 +25,12 @@ export function MainNav({
   handleNavToggle,
 }: MainNavProps) {
   const matches = useMatches();
-  const dashboard = matches.some(
+
+  const contentRoutes = matches.some(
     (match) =>
-      match.id.includes("dashboard") ||
-      match.id.includes("onboarding") ||
-      match.id.includes("subscription") ||
-      match.id.includes("events") ||
-      match.id.includes("profile") ||
-      match.id.includes("test")
+      match.id.includes("courses") ||
+      match.id.includes("modules") ||
+      match.id.includes("sub-modules")
   );
   return (
     <nav className={cn("bg-[#E1F4FF]", authApp ? "lg:hidden block" : "")}>
@@ -100,7 +98,7 @@ export function MainNav({
         {/* if a user is authenticated, show the side content drawer icon else show the drowpdown menu for mobile nav */}
         <div>
           {authApp ? (
-            <SheetTrigger className={cn(dashboard ? "hidden" : "")}>
+            <SheetTrigger className={cn(contentRoutes ? "" : "hidden")}>
               <RiMenuFoldFill size={32} className="cursor-pointer" />
             </SheetTrigger>
           ) : (

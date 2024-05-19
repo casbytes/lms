@@ -78,8 +78,3 @@ export default function Profile() {
     </Container>
   );
 }
-
-export function ErrorBoundary() {
-  const error = useRouteError();
-  return <ErrorUI error={error} />;
-}

@@ -41,7 +41,7 @@ export function Subscription() {
 
 const paymentOptions = [
   { season: "month", price: 14.9 },
-  { season: "quarter", price: 39.9 },
+  { season: "quarter", price: 40.9 },
   { season: "biannual", price: 74.9 },
-  { season: "year", price: 142.9 },
+  { season: "year", price: 143.9 },
 ];

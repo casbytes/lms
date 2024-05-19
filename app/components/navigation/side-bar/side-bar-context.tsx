@@ -1,4 +1,5 @@
 import * as React from "react";
+import invariant from "tiny-invariant";
 export interface SideBarProps {
   menuItems: {
     icon: React.ReactNode;
@@ -26,9 +27,7 @@ function SideBarProvider({
 
 function useSideBar() {
   const context = React.useContext(SideBarContext);
-  if (context === undefined) {
-    throw new Error("useSideBar must be used within a SideBarProvider.");
-  }
+  invariant(context, "useSideBar must be used within a SideBarProvider.");
   return context;
 }
 

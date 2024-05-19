@@ -9,7 +9,7 @@ type StatisticsProps = {
 
 export function Statistics({ userCourses }: StatisticsProps) {
   return (
-    <Tabs defaultValue="progress">
+    <Tabs defaultValue="catalog">
       <TabsList className="w-full flex bg-inherit justify-start mb-6">
         <div className="flex flex-wrap justify-between items-center w-full">
           <div>

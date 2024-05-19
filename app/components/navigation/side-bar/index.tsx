@@ -1,7 +1,7 @@
 import { SideBarContainer } from "./side-bar-container";
 import { SideBarProvider, type SideBarProps } from "./side-bar-context";
 import { SideBarContent } from "./side-bar-content";
-import { Link, NavLink } from "@remix-run/react";
+import { Link } from "@remix-run/react";
 import { Tooltip } from "@radix-ui/react-tooltip";
 import { Button } from "~/components/ui/button";
 import {

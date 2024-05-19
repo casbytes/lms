@@ -14,7 +14,8 @@ Dockerfile
 .sentryclirc
 
 # Vitest
-/coverage
+/vitest-report/
+/coverage/
 
 # Playwright
 /test-results/
