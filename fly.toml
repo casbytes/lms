@@ -23,10 +23,10 @@ kill_timeout = "5s"
   handlers = ["tls", "http"]
   port = 443
 
-[[services.ports]]
-  handlers = ["http"]
-  port = 80
-  force_https = true
+# [[services.ports]]
+#   handlers = ["http"]
+#   port = 80
+#   force_https = true
 
 [mounts]
   source="data"
