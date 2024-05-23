@@ -5,28 +5,22 @@
 
 app = 'casbytes'
 primary_region = 'lhr'
-kill_signal = "SIGTERM"
-kill_timeout = "5s"
 
 [build]
   dockerfile = "Dockerfile"
 
 [http_service]
-  internal_port = 8080
+  internal_port = 3000
   force_https = true
   auto_stop_machines = true
   auto_start_machines = true
   min_machines_running = 0
   processes = ['app']
 
-[[services.ports]]
-  handlers = ["tls", "http"]
-  port = 443
+# [[services.ports]]
+#   handlers = ["tls", "http"]
+#   port = 443
 
-[[services.ports]]
-  handlers = ["http"]
-  port = 80
-  force_https = true  # optional
 
 [mounts]
   source="data"
@@ -36,29 +30,29 @@ kill_timeout = "5s"
   auto_rollback = true
   enable_consul = true
 
-[[services.tcp_checks]]
-  grace_period = "30s"
-  interval = "30s"
-  restart_limit = 6
-  timeout = "10s"
+# [[services.tcp_checks]]
+#   grace_period = "6s"
+#   interval = "15s"
+#   restart_limit = 0
+#   timeout = "7s"
 
-[[services.http_checks]]
-  interval = 10000
-  grace_period = "40s"
-  method = "get"
-  path = "/"
-  protocol = "http"
-  timeout = 30000
-  tls_skip_verify = false
+# [[services.http_checks]]
+#   interval = 10000
+#   grace_period = "6s"
+#   method = "get"
+#   path = "/"
+#   protocol = "http"
+#   timeout = 2000
+#   tls_skip_verify = false
 
-[[services.http_checks]]
-  interval = 10000
-  grace_period = "40s"
-  method = "get"
-  path = "/healthcheck"
-  protocol = "http"
-  timeout = 30000
-  tls_skip_verify = false
+# [[services.http_checks]]
+#   interval = 10000
+#   grace_period = "6s"
+#   method = "get"
+#   path = "/healthcheck"
+#   protocol = "http"
+#   timeout = 2000
+#   tls_skip_verify = false
 
 
 [[vm]]
