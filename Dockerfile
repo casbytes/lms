@@ -44,8 +44,8 @@ FROM base
 ENV LITEFS_DIR="/litefs"
 ENV DATABASE_FILENAME="$LITEFS_DIR/sqlite.db"
 ENV DATABASE_URL="file:$DATABASE_FILENAME"
-ENV INTERNAL_PORT="3000"
-ENV PORT="3001"
+ENV INTERNAL_PORT="8080"
+ENV PORT="8081"
 ENV NODE_ENV="production"
 
 # add shortcut for connecting to database CLI
