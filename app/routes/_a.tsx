@@ -1,6 +1,7 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
-import { AuthAppLayout } from "~/components/layouts";
 import { getUser } from "./sessions";
+import { Outlet, useRouteError } from "@remix-run/react";
+import { ErrorUI } from "~/components/error-ui";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
@@ -12,5 +13,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function AuthApp() {
-  return <AuthAppLayout />;
+  return <Outlet />;
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+  return <ErrorUI error={error} />;
 }

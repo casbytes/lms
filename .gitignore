@@ -13,10 +13,13 @@ Dockerfile
 .env.sentry-build-plugin
 .sentryclirc
 
+# Vitest
+/vitest-report/
+/coverage/
+
 # Playwright
 /test-results/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
-
-/html
+/html/

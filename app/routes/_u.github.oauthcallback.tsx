@@ -1,9 +1,12 @@
+import axios from "axios";
 import { LoaderFunctionArgs, redirect } from "@remix-run/node";
-import JWT from "jsonwebtoken";
-import { oauth2Client } from "~/services/google";
+import { useRouteError } from "@remix-run/react";
 import { commitSession, getUserSession } from "./sessions";
 import { sendWelcomeEmail } from "~/services/mailtrap";
 import { prisma } from "~/libs/prisma.server";
+import { RootErrorUI } from "~/components/root-error-ui";
+
+const { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } = process.env;
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
@@ -15,24 +18,32 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw new Error(errorDescription);
   }
 
+  if (!code) {
+    throw new Error("No code provided.");
+  }
+
   try {
-    if (!code) {
-      throw new Error("No google auth code provided.");
-    }
-    const { tokens } = await oauth2Client.getToken(code);
-    const { payload: decodedPayload } = JWT.decode(tokens.id_token!, {
-      complete: true,
-    }) as unknown as {
-      payload: { sub: string; name: string; email: string; picture: string };
-    };
+    const LOGIN_URL = `https://github.com/login/oauth/access_token?client_id=${GITHUB_CLIENT_ID}&client_secret=${GITHUB_CLIENT_SECRET}&code=${code}`;
+    const { data } = await axios.post(LOGIN_URL, {
+      headers: {
+        Accept: "application/json",
+      },
+    });
 
-    if (!decodedPayload) {
-      throw new Error("Failed to decode ID token.");
-    }
+    const accessToken = new URLSearchParams(data).get("access_token");
 
-    const { sub: googleId, name, email, picture: avatar_url } = decodedPayload;
-    const existingUser = await prisma.user.findFirst({
-      where: { googleId },
+    const AUTH_URL = "https://api.github.com/user";
+
+    const {
+      data: { id: githubId, email, name, avatar_url },
+    } = await axios.get(AUTH_URL, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    const existingUser = await prisma.user.findUnique({
+      where: { githubId },
     });
 
     let user;
@@ -43,7 +54,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
      */
     if (!existingUser) {
       user = await prisma.user.create({
-        data: { googleId },
+        data: { githubId },
       });
       // await sendWelcomeEmail({ email, name });
     }
@@ -52,7 +63,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       email,
       name,
       avatar_url,
-      authType: "google",
+      authType: "github",
       userId: existingUser?.id ?? user!.id,
       currentUrl: existingUser?.currentUrl ?? null,
       completedOnboarding:
@@ -82,4 +93,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   } catch (error) {
     throw new Error("An error occurred wile signing in. Please try again.");
   }
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+  return <RootErrorUI error={error} />;
 }

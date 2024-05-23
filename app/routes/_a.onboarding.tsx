@@ -58,6 +58,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function Onboarding() {
   const { user, content } = useLoaderData<typeof loader>();
+
   const navigation = useNavigation();
   const isLoading = navigation.formData?.get("intent") === "markAsCompleted";
 

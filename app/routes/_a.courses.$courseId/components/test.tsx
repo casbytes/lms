@@ -7,8 +7,10 @@ import { cn } from "~/libs/shadcn";
 import { capitalizeFirstLetter } from "~/utils/cs";
 
 export function Test({ test, isActive }: any) {
+  const CUT_OFF_SCORE = 80;
   const locked =
-    test.status === "LOCKED" || (test.attempted === true && test.score < 80);
+    test.status === "LOCKED" ||
+    (test.attempted === true && test.score < CUT_OFF_SCORE);
 
   return (
     <Button
@@ -23,7 +25,7 @@ export function Test({ test, isActive }: any) {
           <MdQuiz
             size={20}
             className={cn("text-zinc-700", {
-              "bg-sky-700": test.attempted && test.score >= 80,
+              "bg-sky-700": test.attempted && test.score >= CUT_OFF_SCORE,
             })}
           />
         </div>

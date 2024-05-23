@@ -49,7 +49,11 @@ export function MobileNav({
             <SignOutButton isOpen={isOpen} />
           ) : (
             <DialogTrigger asChild>
-              <Button variant="ghost" className="self-center text-lg">
+              <Button
+                onClick={handleNavToggle}
+                variant="ghost"
+                className="self-center text-lg"
+              >
                 Sign In
               </Button>
             </DialogTrigger>

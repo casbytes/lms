@@ -1,0 +1,83 @@
+{
+  "title": "test course",
+  "published": true,
+  "jsonId": "course-test-course",
+  "modules": [
+    {
+      "title": "test module 1",
+      "jsonId": "course-test-course-module-1",
+      "subModules": [
+        {
+          "title": "test sub module 1",
+          "jsonId": "course-test-course-module-1-sub-module-1",
+          "lessons": [
+            {
+              "title": "test lesson 1",
+              "jsonId": "course-test-course-module-1-sub-module-1-lesson-1",
+              "content": "test content 1"
+            },
+            {
+              "title": "test lesson 2",
+              "jsonId": "course-test-course-module-1-sub-module-1-lesson-2",
+              "content": "test content 2"
+            }
+          ]
+        },
+        {
+          "title": "test sub module 2",
+          "jsonId": "course-test-course-module-1-sub-module-2",
+          "lessons": [
+            {
+              "title": "test lesson 3",
+              "jsonId": "course-test-course-module-1-sub-module-2-lesson-3",
+              "content": "test content 3"
+            },
+            {
+              "title": "test lesson 4",
+              "jsonId": "course-test-course-module-1-sub-module-2-lesson-4",
+              "content": "test content 4"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "test module 2",
+      "jsonId": "course-test-course-module-2",
+      "subModules": [
+        {
+          "title": "test sub module 3",
+          "jsonId": "course-test-course-module-2-sub-module-3",
+          "lessons": [
+            {
+              "title": "test lesson 5",
+              "jsonId": "course-test-course-module-2-sub-module-3-lesson-5",
+              "content": "test content 5"
+            },
+            {
+              "title": "test lesson 6",
+              "jsonId": "course-test-course-module-2-sub-module-3-lesson-6",
+              "content": "test content 6"
+            }
+          ]
+        },
+        {
+          "title": "test sub module 4",
+          "jsonId": "course-test-course-module-2-sub-module-4",
+          "lessons": [
+            {
+              "title": "test lesson 7",
+              "jsonId": "course-test-course-module-2-sub-module-4-lesson-7",
+              "content": "test content 7"
+            },
+            {
+              "title": "test lesson 8",
+              "jsonId": "course-test-course-module-2-sub-module-4-lesson-8",
+              "content": "test content 8"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

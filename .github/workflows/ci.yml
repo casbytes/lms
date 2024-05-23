@@ -1,13 +1,17 @@
-name: 🚀 CI
+name: CI/CD
 on:
   push:
+    branches:
+      - main
+      - staging
+  pull_request:
     branches:
       - main
       - staging
 
 jobs:
   test_unit:
-    name: Test
+    name: 🧪  Unit tests
     runs-on: ubuntu-latest
     steps:
       - name: ⬇️ Checkout repo
@@ -21,10 +25,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: 🧪 Run Vitest tests
+      - name: 🧪 Run unit tests
         run: npm run test:unit
 
   test_e2e:
+    name: 🧪 🧪  E2E tests
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
@@ -42,7 +47,7 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
-      - name: 🧪 Run Playwright tests
+      - name: 🧪 Run e2e tests
         run: npm run test:e2e
 
       - uses: actions/upload-artifact@v4

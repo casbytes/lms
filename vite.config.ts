@@ -13,7 +13,9 @@ export default defineConfig({
       process.env.NODE_ENV === "production" ? Number(process.env.PORT!) : 3000,
   },
   plugins: [
-    remix({}),
+    remix({
+      ignoredRouteFiles: ["**/*"],
+    }),
     tsconfigPaths(),
     sentryVitePlugin({
       org: "christopher-a-sesugh",
@@ -22,24 +24,5 @@ export default defineConfig({
   ],
   build: {
     sourcemap: true,
-  },
-  test: {
-    globals: true,
-    reporters: ["default", "html"],
-    environment: "jsdom",
-    setupFiles: ["./test/setup-tests.ts"],
-    include: ["./app/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
-    watchExclude: [
-      ".*\\/node_modules\\/.*",
-      ".*\\/.github\\/.*",
-      ".*\\/build\\/.*",
-      ".*\\/prisma\\/.*",
-      ".*\\/.git\\/.*",
-      ".*\\/public\\/.*",
-      ".*\\/playwright\\/.*",
-      ".*\\/e2e\\/.*",
-      ".*\\/content\\/.*",
-      ".*\\/meta\\/.*",
-    ],
   },
 });

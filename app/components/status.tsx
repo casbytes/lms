@@ -7,12 +7,25 @@ import {
 } from "lucide-react";
 import { Badge } from "./ui/badge";
 
+type StatusType = "COMPLETED" | "IN_PROGRESS" | "LOCKED";
+
+type ItemProps = {
+  status: StatusType;
+};
+
+type ACCProps = {
+  completed: number;
+  inProgress: number;
+  locked: number;
+  total: number;
+};
+
 export function Status({ status }: any) {
   const memoizedModuleStatus = React.useMemo(() => {
     if (!status) return { completed: 0, inProgress: 0, locked: 0, total: 0 };
     return status.reduce(
-      (acc: any, module: any) => {
-        switch (module.status) {
+      (acc: ACCProps, item: ItemProps) => {
+        switch (item.status) {
           case "COMPLETED":
             acc.completed++;
             break;

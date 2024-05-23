@@ -2,8 +2,6 @@ import { ChevronLeft, ChevronRight, LogOut } from "lucide-react";
 import { Link } from "@remix-run/react";
 import { cn } from "~/libs/shadcn";
 import { useSideBar } from "./side-bar-context";
-import icon from "~/assets/icon.png";
-import logo from "~/assets/logo.png";
 import { SignOutButton } from "~/components/signout-form";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";

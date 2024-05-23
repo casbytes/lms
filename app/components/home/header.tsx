@@ -47,7 +47,7 @@ export function Header() {
         <div className="mt-8 md:mt-0">
           <Fade direction="up" triggerOnce>
             <img
-              src="https://cdn.casbytes.com/elearning.png"
+              src="https://cdn.casbytes.com/assets/elearning.png"
               alt="elearning"
               width={550}
               height={550}

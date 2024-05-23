@@ -2,8 +2,7 @@ import React from "react";
 import { ActionFunctionArgs, LoaderFunctionArgs, defer } from "@remix-run/node";
 import { Container } from "~/components/container";
 import { PageTitle } from "~/components/page-title";
-import { Await, useLoaderData, useRouteError } from "@remix-run/react";
-import { ErrorUI } from "~/components/error-ui";
+import { Await, useLoaderData } from "@remix-run/react";
 import { CoursesCard } from "./components/courses-card";
 import { MembershipCard } from "~/components/membership-card";
 import { DiscordCard } from "~/components/discord-card";
@@ -48,7 +47,7 @@ export default function Dashboard() {
 
   return (
     <Container className="bg-2 bg-no-repeat">
-      <div className="lg:p-8 max-w-6xl mx-auto">
+      <div className="lg:p-8 max-w-7xl mx-auto">
         <PageTitle title="Dashboard" className="mb-12" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white p-4 rounded-md drop-shadow-sm">
           <div className="flex gap-10 flex-col">
@@ -72,9 +71,4 @@ export default function Dashboard() {
       </div>
     </Container>
   );
-}
-
-export function ErrorBoundary() {
-  const error = useRouteError();
-  return <ErrorUI error={error} />;
 }

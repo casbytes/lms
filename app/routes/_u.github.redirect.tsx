@@ -1,4 +1,6 @@
 import { redirect } from "@remix-run/node";
+import { useRouteError } from "@remix-run/react";
+import { RootErrorUI } from "~/components/root-error-ui";
 
 const { GITHUB_CLIENT_ID, GITHUB_REDIRECT_URI } = process.env;
 
@@ -10,4 +12,9 @@ export async function action() {
   } catch (error) {
     throw new Error("An error occured during redirect, please try again.");
   }
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+  return <RootErrorUI error={error} />;
 }

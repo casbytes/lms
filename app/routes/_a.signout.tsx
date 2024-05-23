@@ -1,14 +1,27 @@
-import { ActionFunctionArgs, redirect } from "@remix-run/node";
+import {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  redirect,
+} from "@remix-run/node";
 import { destroySession, getUser, getUserSession } from "./sessions";
 import { prisma } from "~/libs/prisma.server";
+import { useRouteError } from "@remix-run/react";
+import { RootErrorUI } from "~/components/root-error-ui";
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  try {
+    await getUser(request);
+  } catch (error) {
+    throw new Error("Unauthorized!");
+  }
+  return null;
+}
 
 export async function action({ request }: ActionFunctionArgs) {
   const { userId } = await getUser(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
   const currentUrl = String(formData.get("currentUrl"));
-
-  const commitSessionOptions = {};
 
   /**
    * If the intent is to sign out, update the user's current URL
@@ -22,15 +35,17 @@ export async function action({ request }: ActionFunctionArgs) {
      * instead we will just destroy the session and redirect them to the
      * homepage.
      */
-    const user = await prisma.user.findFirst({
-      where: { id: userId },
-    });
-
-    if (user) {
-      await prisma.user.update({
+    if (intent === "signout" && userId) {
+      const user = await prisma.user.findFirst({
         where: { id: userId },
-        data: { currentUrl },
       });
+
+      if (user) {
+        await prisma.user.update({
+          where: { id: userId },
+          data: { currentUrl },
+        });
+      }
     }
 
     return redirect("/", {
@@ -45,4 +60,9 @@ export async function action({ request }: ActionFunctionArgs) {
       "An error occured while signing out, please try refreshing the page."
     );
   }
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+  return <RootErrorUI error={error} />;
 }
