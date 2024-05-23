@@ -12,16 +12,11 @@ export default defineConfig({
     port: Number(process.env.PORT!),
   },
   plugins: [
-    remix({
-      ignoredRouteFiles: ["**/*"],
-    }),
+    remix({}),
     tsconfigPaths(),
     sentryVitePlugin({
       org: "christopher-a-sesugh",
       project: "casbytes",
     }),
   ],
-  build: {
-    sourcemap: true,
-  },
 });
