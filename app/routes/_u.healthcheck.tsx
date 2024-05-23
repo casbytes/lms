@@ -1,6 +1,4 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
-import { useRouteError } from "@remix-run/react";
-import { RootErrorUI } from "~/components/root-error-ui";
 import { prisma } from "~/libs/prisma.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -23,9 +21,4 @@ export async function loader({ request }: LoaderFunctionArgs) {
     console.error(request.url, "healthcheck ❌", { error });
     return new Response("ERROR", { status: 500 });
   }
-}
-
-export function ErrorBoundary() {
-  const error = useRouteError();
-  return <RootErrorUI error={error} />;
 }
