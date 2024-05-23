@@ -5,7 +5,7 @@
 
 app = 'casbytes'
 primary_region = 'lhr'
-kill_signal = "SIGTERM"
+kill_signal = "SIGINT"
 kill_timeout = "5s"
 
 [build]
