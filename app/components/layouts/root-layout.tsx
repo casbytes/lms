@@ -12,11 +12,12 @@ export function RootLayout() {
 
   const matches = useMatches();
   const auth = matches.some((match) => match.id.includes("_a"));
-  const resourceRoutes = matches.some(
+  const authError = matches.some(
     (match) =>
       match.id.includes("signout") ||
       match.id.includes("google") ||
-      match.id.includes("github")
+      match.id.includes("github") ||
+      match.id.includes("healthcheck")
   );
   const menuItems = auth ? authMenuItems : unAuthMenuItems;
   return (
@@ -27,7 +28,7 @@ export function RootLayout() {
           isNavOpen={isNavOpen}
           setIsNavOpen={setIsNavOpen}
         />
-        {auth && !resourceRoutes ? (
+        {auth && !authError ? (
           <SideBar
             menuItems={authMenuItems}
             isOpen={isNavOpen}
@@ -38,10 +39,10 @@ export function RootLayout() {
           className={cn(
             "duration-300",
             isNavOpen
-              ? auth && !resourceRoutes
+              ? auth && !authError
                 ? "ml-0 lg:ml-52"
                 : ""
-              : auth && !resourceRoutes
+              : auth && !authError
               ? "ml-0 lg:ml-16"
               : ""
           )}

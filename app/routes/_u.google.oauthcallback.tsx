@@ -1,7 +1,7 @@
 import { LoaderFunctionArgs, redirect } from "@remix-run/node";
 import JWT from "jsonwebtoken";
 import { oauth2Client } from "~/services/google";
-import { commitSession, getUserSession } from "./sessions";
+import { commitSession, getUserSession } from "./sessions.server";
 import { sendWelcomeEmail } from "~/services/mailtrap";
 import { prisma } from "~/libs/prisma.server";
 import { useRouteError } from "@remix-run/react";
@@ -55,10 +55,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       name,
       avatar_url,
       authType: "google",
-      userId: existingUser?.id ?? user!.id,
-      currentUrl: existingUser?.currentUrl ?? null,
-      completedOnboarding:
-        existingUser?.completedOnboarding ?? user!.completedOnboarding,
+      id: existingUser?.id ?? user!.id,
     };
 
     const session = await getUserSession(request);

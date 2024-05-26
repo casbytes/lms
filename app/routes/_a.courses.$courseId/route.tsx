@@ -1,17 +1,16 @@
 import React from "react";
-import { Await, useLoaderData, useRouteError } from "@remix-run/react";
+import { Await, useLoaderData } from "@remix-run/react";
 import { LoaderFunctionArgs, defer } from "@remix-run/node";
 import { getModuleBadges, getModules, getSubModules } from "./utils";
 import { BackButton } from "~/components/back-button";
 import { Container } from "~/components/container";
 import { SheetContent } from "~/components/ui/sheet";
-import { ErrorUI } from "~/components/error-ui";
 import { Separator } from "~/components/ui/separator";
 import { SubModules } from "./components/sub-modules";
 import { Title } from "./components/title";
 import { Assessment } from "./components/assessment";
 import { CourseSideContent } from "./components/course-side-content";
-import { cacheOptions } from "../sessions";
+import { cacheOptions } from "../sessions.server";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   try {
@@ -36,9 +35,9 @@ export default function CoursesRoute() {
           <div className="bg-[url('https://cdn.casbytes.com/assets/elearning2.png')] bg-no-repeat bg-contain">
             <div className="flex flex-col gap-6 bg-slate-100/90">
               <React.Suspense
-                fallback={
+                fallback={Array.from({ length: 2 }).map((_, i) => (
                   <div className="h-8 bg-slate-400 rounded-md w-full animate-pulse" />
-                }
+                ))}
               >
                 <Await resolve={subModules}>
                   {(subModules) => <Assessment subModules={subModules} />}

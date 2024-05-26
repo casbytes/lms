@@ -1,10 +1,10 @@
 import { Link } from "@remix-run/react";
-import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { BackButton } from "~/components/back-button";
 import { Container } from "~/components/container";
 import { PageTitle } from "~/components/page-title";
 import { Button } from "~/components/ui/button";
+import { IoAlertCircleOutline } from "react-icons/io5";
 
 export default function TestIndexRoute() {
   const testTitle = "JavaScript functions";
@@ -60,7 +60,7 @@ export default function TestIndexRoute() {
           </div>
         </div>
         <Alert variant="destructive" className="max-w-3xl mx-auto -mt-4">
-          <AlertCircle className="h-4 w-4" />
+          <IoAlertCircleOutline className="h-4 w-4" />
           <AlertTitle>Warning</AlertTitle>
           <AlertDescription>
             Please stay focused on the test during this time. If you navigate

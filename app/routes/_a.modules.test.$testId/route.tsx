@@ -12,10 +12,10 @@ import { Dialog, DialogTrigger } from "~/components/ui/dialog";
 import { TestDialog } from "./components/test-dialog";
 import { useLoaderData } from "@remix-run/react";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
-import { AlertCircle } from "lucide-react";
 import { Separator } from "~/components/ui/separator";
 import { useLocalStorageState } from "~/utils/hooks";
 import { FullPagePendingUI } from "~/components/full-page-pending-ui";
+import { IoAlertCircleOutline } from "react-icons/io5";
 
 interface Option {
   id: number;
@@ -223,7 +223,7 @@ export default function TestRoute() {
         <PageTitle title={`Javascript functions`} />
         <div className="my-4">
           <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
+            <IoAlertCircleOutline className="h-4 w-4" />
             <AlertTitle>Warning</AlertTitle>
             <AlertDescription>
               Please stay focused on the test during this time. If you navigate

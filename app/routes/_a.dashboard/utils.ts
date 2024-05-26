@@ -1,5 +1,5 @@
-import { ICourse, ICourseProgress } from "~/constants/types";
-import { getUser } from "../sessions";
+import { ICourse } from "~/constants/types";
+import { getUser } from "../sessions.server";
 import { prisma } from "~/libs/prisma.server";
 
 /**
@@ -8,7 +8,7 @@ import { prisma } from "~/libs/prisma.server";
  * @returns {Promise<ICourseProgress[]>}
  */
 export async function getUserCourses(request: Request): Promise<any> {
-  const { userId } = await getUser(request);
+  const { id: userId } = await getUser(request);
   const userCourses = await prisma.courseProgress.findMany({
     where: { userId },
   });
@@ -41,7 +41,7 @@ export async function checkCatalog(userId: string): Promise<boolean> {
 export async function getCourses(
   request: Request
 ): Promise<{ courses: ICourse[]; inCatalog: boolean }> {
-  const { userId } = await getUser(request);
+  const { id: userId } = await getUser(request);
   const inCatalog = await checkCatalog(userId);
   const courses = await prisma.course.findMany({ where: { published: true } });
   return { courses, inCatalog };
@@ -86,6 +86,13 @@ export async function addCourseToCatalog(userId: string, courseId: string) {
           title: course.title,
           slug: course.slug,
           user: { connect: { id: userId } },
+          project: {
+            create: {
+              title: `${course.title} project`,
+              slug: course.slug,
+              user: { connect: { id: userId } },
+            },
+          },
         },
         include: {
           moduleProgress: true,
@@ -102,24 +109,21 @@ export async function addCourseToCatalog(userId: string, courseId: string) {
               title: module.title,
               slug: module.slug,
               user: { connect: { id: userId } },
-              course: { connect: { id: courseProgress.id } },
+              courseProgress: { connect: { id: courseProgress.id } },
+              test: {
+                create: {
+                  title: `${module.title} test`,
+                  user: { connect: { id: userId } },
+                },
+              },
+              checkpoint: {
+                create: {
+                  title: `${module.title} checkpoint`,
+                  user: { connect: { id: userId } },
+                },
+              },
             },
           });
-
-          /**
-           * Update the first module to be in progress
-           * This is to ensure the user starts from the first module
-           */
-          // if (moduleProgress.id === courseProgress.moduleProgress[0].id) {
-          //   await prisma.moduleProgress.update({
-          //     where: {
-          //       id: moduleProgress.id,
-          //     },
-          //     data: {
-          //       status: "IN_PROGRESS",
-          //     },
-          //   });
-          // }
 
           /**
            * Create sub module progress, lesson progress, test, and checkpoint
@@ -131,7 +135,19 @@ export async function addCourseToCatalog(userId: string, courseId: string) {
                   title: subModule.title,
                   slug: subModule.slug,
                   user: { connect: { id: userId } },
-                  module: { connect: { id: moduleProgress.id } },
+                  moduleProgress: { connect: { id: moduleProgress.id } },
+                  test: {
+                    create: {
+                      title: `${subModule.title} test`,
+                      user: { connect: { id: userId } },
+                    },
+                  },
+                  checkpoint: {
+                    create: {
+                      title: `${subModule.title} checkpoint`,
+                      user: { connect: { id: userId } },
+                    },
+                  },
                 },
               });
 
@@ -145,36 +161,13 @@ export async function addCourseToCatalog(userId: string, courseId: string) {
                       title: lesson.title,
                       slug: lesson.slug,
                       user: { connect: { id: userId } },
-                      subModule: { connect: { id: subModuleProgress.id } },
+                      subModuleProgress: {
+                        connect: { id: subModuleProgress.id },
+                      },
                     },
                   });
                 })
               );
-
-              /**
-               * Create test, trophies, and checkpoint for sub module
-               */
-              if (subModuleProgress) {
-                await txn.test.create({
-                  data: {
-                    title: `${subModuleProgress.title} test`,
-                    user: { connect: { id: userId } },
-                    subModuleProgress: {
-                      connect: { id: subModuleProgress.id },
-                    },
-                  },
-                });
-
-                await txn.checkpoint.create({
-                  data: {
-                    title: `${subModuleProgress.title} checkpoint`,
-                    user: { connect: { id: userId } },
-                    subModuleProgress: {
-                      connect: { id: subModuleProgress.id },
-                    },
-                  },
-                });
-              }
             })
           );
 
@@ -234,18 +227,6 @@ export async function addCourseToCatalog(userId: string, courseId: string) {
           }
         })
       );
-
-      /**
-       * Create project for the course
-       */
-      await txn.project.create({
-        data: {
-          title: `${courseProgress.title} project`,
-          slug: course.slug,
-          user: { connect: { id: userId } },
-          courseProgress: { connect: { id: courseProgress.id } },
-        },
-      });
     });
   } catch (error) {
     console.error(error);

@@ -1,12 +1,11 @@
-import React from "react";
 import { useNavigation, useSubmit } from "@remix-run/react";
+import { SlLock } from "react-icons/sl";
+import { FiCheckCircle } from "react-icons/fi";
 import { CourseTitle } from "~/components/course-title";
 import { Status } from "~/components/status";
-import { CheckCircle, CircleDashed, LockKeyhole } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { FaSpinner } from "react-icons/fa6";
 import { capitalizeFirstLetter } from "~/utils/cs";
-import { useLocalStorageState } from "~/utils/hooks";
 
 export function ModuleSideContent({ lessons }: any) {
   const submit = useSubmit();
@@ -38,9 +37,9 @@ export function ModuleSideContent({ lessons }: any) {
                       className="mr-4 text-sky-600 animate-spin"
                     />
                   ) : index < 2 ? (
-                    <CheckCircle size={20} className="mr-4 text-blue-600" />
+                    <FiCheckCircle size={20} className="mr-4 text-blue-600" />
                   ) : (
-                    <LockKeyhole size={20} className="mr-4" />
+                    <SlLock size={20} className="mr-4" />
                   )}{" "}
                   {capitalizeFirstLetter(lesson.title)}
                 </>

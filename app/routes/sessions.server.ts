@@ -1,8 +1,14 @@
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
-import { ICurrentUser } from "~/constants/types";
+import { ICurrentUser, ISessionUser, IUser } from "~/constants/types";
+import {
+  InternalServerError,
+  NotFoundError,
+  UnAuthorizedError,
+} from "~/errors";
+import { prisma } from "~/libs/prisma.server";
 
 export interface SessionData {
-  currentUser: ICurrentUser;
+  currentUser: ISessionUser;
 }
 
 export interface SessionFlashData {
@@ -36,30 +42,52 @@ async function signOut(request: Request) {
       },
     });
   } catch (error) {
-    throw new Error("An error occur while signing out, please try again.");
+    throw new InternalServerError();
   }
 }
 
-async function requireUser(request: Request) {
+async function checkUser(request: Request) {
   try {
     const session = await getUserSession(request);
-    const user = session?.get("currentUser");
-    const userId = user?.userId;
-    if (!user || !userId) {
-      await signOut(request);
+    const currentUser = session?.get("currentUser");
+    if (!currentUser || !currentUser.id) {
+      throw redirect("/");
     }
-    return user as ICurrentUser;
+    const user = await prisma.user.findUnique({
+      where: { id: currentUser.id },
+    });
+    if (!user) {
+      throw redirect("/");
+    }
+    return user;
   } catch (error) {
-    throw new Error("An error occured while accessing user session.");
+    throw new InternalServerError();
   }
 }
 
 async function getUser(request: Request): Promise<ICurrentUser> {
   try {
-    const user = (await requireUser(request)) as ICurrentUser;
+    const session = await getUserSession(request);
+    const currentUser: ISessionUser | undefined = session?.get("currentUser");
+    if (!currentUser || !currentUser.id) {
+      throw new UnAuthorizedError("User session is invalid.");
+    }
+    const dbUser = await prisma.user.findUnique({
+      where: { id: currentUser.id },
+    });
+    if (!dbUser) {
+      throw new NotFoundError("User not found.");
+    }
+    const user: ICurrentUser = {
+      ...currentUser,
+      ...dbUser,
+    };
     return user;
   } catch (error) {
-    throw new Error("An error occured while getting user.");
+    if (error instanceof UnAuthorizedError || error instanceof NotFoundError) {
+      throw error;
+    }
+    throw new InternalServerError();
   }
 }
 
@@ -79,6 +107,7 @@ export {
   getSession,
   commitSession,
   destroySession,
+  checkUser,
   getUser,
   signOut,
   getUserSession,

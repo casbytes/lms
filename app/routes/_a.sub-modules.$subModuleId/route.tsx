@@ -14,11 +14,11 @@ import {
 } from "@remix-run/react";
 import { Markdown } from "~/components/markdown";
 import axios from "axios";
-import { VideoIframe, DiagramIframe } from "~/components/iframes";
 import { prisma } from "~/libs/prisma.server";
 import { getContentFromGithub } from "~/utils/octokit.server";
 import invariant from "tiny-invariant";
-import { cacheOptions, getUser } from "../sessions";
+import { cacheOptions, getUser } from "../sessions.server";
+import { VideoIframe } from "~/components/video-iframe";
 
 const libraryId = "230663";
 
@@ -47,11 +47,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const lessons = await prisma.lessonProgress.findMany({
     where: { subModuleProgressId: subModuleId, userId },
     include: {
-      subModule: {
+      subModuleProgress: {
         include: {
-          module: {
+          moduleProgress: {
             include: {
-              course: true,
+              courseProgress: true,
             },
           },
         },
@@ -88,7 +88,7 @@ export default function ModulesRoute() {
           <div className="col-span-3">
             {/* <Markdown source={data.content} /> */}
             {/* <DiagramIframe /> */}
-            {/* {data.videoId ? (
+            {/* {data?.videoId ? (
               <VideoIframe
                 className="mt-8"
                 libraryId={libraryId}

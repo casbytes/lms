@@ -1,10 +1,7 @@
 import React from "react";
-import {
-  CheckCircle,
-  CircleDotDashed,
-  LockKeyhole,
-  SigmaSquare,
-} from "lucide-react";
+import { SlLock } from "react-icons/sl";
+import { FiCheckCircle } from "react-icons/fi";
+import { LuCircleDotDashed, LuSigmaSquare } from "react-icons/lu";
 import { Badge } from "./ui/badge";
 
 type StatusType = "COMPLETED" | "IN_PROGRESS" | "LOCKED";
@@ -46,25 +43,29 @@ export function Status({ status }: any) {
   return (
     <ul className="gap-4 grid grid-cols-1 sm:grid-cols-2 border-l-4 border-blue-600 text-sm p-2">
       <li className="flex items-center">
-        <CheckCircle className="mr-2 text-blue-600" /> Completed:{" "}
+        <FiCheckCircle size={25} className="mr-2 text-blue-600" />
+        Completed:{" "}
         <Badge className="rounded-md ml-2 text-md">
           {memoizedModuleStatus?.completed}
         </Badge>
       </li>
       <li className="flex items-center">
-        <CircleDotDashed className="mr-2 text-blue-600" /> In progress:{" "}
+        <LuCircleDotDashed size={25} className="mr-2 text-blue-600" />
+        In progress:{" "}
         <Badge className="rounded-md ml-2 text-md">
           {memoizedModuleStatus?.inProgress}
         </Badge>
       </li>
       <li className="flex items-center">
-        <LockKeyhole className="mr-2 text-slate-400" /> Locked:{" "}
+        <SlLock size={25} className="mr-2 text-slate-400" />
+        Locked:{" "}
         <Badge className="rounded-md ml-2 text-md">
           {memoizedModuleStatus?.locked}
         </Badge>
       </li>
       <li className="flex items-center">
-        <SigmaSquare className="mr-2" /> Total:{" "}
+        <LuSigmaSquare size={25} className="mr-2" />
+        Total:{" "}
         <Badge className="rounded-md ml-2 text-md">
           {memoizedModuleStatus?.total}
         </Badge>

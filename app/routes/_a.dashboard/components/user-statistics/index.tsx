@@ -2,9 +2,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { CourseCatalogCard } from "~/components/course-catalog";
 import { Chart } from "./chart";
 import { ICourseProgress } from "~/constants/types";
+import React from "react";
+import { Await } from "@remix-run/react";
+import { ImSpinner2 } from "react-icons/im";
 
 type StatisticsProps = {
-  userCourses: ICourseProgress[];
+  userCourses: Promise<ICourseProgress[]>;
 };
 
 export function Statistics({ userCourses }: StatisticsProps) {
@@ -33,7 +36,11 @@ export function Statistics({ userCourses }: StatisticsProps) {
         <Chart />
       </TabsContent>
       <TabsContent value="catalog" className="max-h-full">
-        <CourseCatalogCard userCourses={userCourses} />
+        <React.Suspense fallback={<PendingCard />}>
+          <Await resolve={userCourses}>
+            {(userCourses) => <CourseCatalogCard userCourses={userCourses} />}
+          </Await>
+        </React.Suspense>
       </TabsContent>
       <TabsContent value="progress" className="max-h-full">
         some progress
@@ -42,5 +49,13 @@ export function Statistics({ userCourses }: StatisticsProps) {
         achievements
       </TabsContent>
     </Tabs>
+  );
+}
+
+function PendingCard() {
+  return (
+    <div className="w-full flex items-center justify-center p-20 bg-slate-300 rounded-md">
+      <ImSpinner2 size={50} className="animate-spin text-slate-600 " />
+    </div>
   );
 }

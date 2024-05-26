@@ -1,20 +1,27 @@
 import { useNavigation, useSubmit } from "@remix-run/react";
-import { CircleCheckBig, CircleDotDashed, LockKeyhole } from "lucide-react";
-import React from "react";
 import { BsLockFill, BsUnlockFill } from "react-icons/bs";
 import { CgSpinnerTwo } from "react-icons/cg";
+import { FiCheckCircle } from "react-icons/fi";
+import { LuCircleDotDashed } from "react-icons/lu";
+import { SlLock } from "react-icons/sl";
 import { Button } from "~/components/ui/button";
+import { ISubModuleProgress, Status } from "~/constants/types";
 import { cn } from "~/libs/shadcn";
 import { capitalizeFirstLetter } from "~/utils/cs";
 
-export function ModuleItem({ module, index }: any) {
+type ModuleItemProps = {
+  module: ISubModuleProgress;
+  index: number;
+};
+
+export function ModuleItem({ module, index }: ModuleItemProps) {
   const submit = useSubmit();
   const navigation = useNavigation();
   const moduleId = navigation.formData?.get("moduleId");
 
-  const completed = module.status === "COMPLETED";
-  const inProgress = module.status === "IN_PROGRESS";
-  const locked = module.status === "LOCKED";
+  const completed = module.status === Status.COMPLETED;
+  const inProgress = module.status === Status.IN_PROGRESS;
+  const locked = module.status === Status.LOCKED;
 
   return (
     <li key={`${module.id}-${index}`} className="w-full">
@@ -34,14 +41,14 @@ export function ModuleItem({ module, index }: any) {
           {module.id === moduleId ? (
             <CgSpinnerTwo size={20} className="animate-spin" />
           ) : locked ? (
-            <LockKeyhole size={20} />
+            <SlLock size={20} />
           ) : inProgress ? (
-            <CircleDotDashed size={20} />
+            <LuCircleDotDashed size={20} />
           ) : (
-            <CircleCheckBig size={20} />
+            <FiCheckCircle size={20} />
           )}
           <div className="flex items-center gap-4">
-            {capitalizeFirstLetter(module.title)}{" "}
+            {capitalizeFirstLetter(module?.title)}{" "}
           </div>{" "}
         </div>
 

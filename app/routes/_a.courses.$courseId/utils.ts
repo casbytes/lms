@@ -1,7 +1,7 @@
 import invariant from "tiny-invariant";
 import { Params } from "@remix-run/react";
 import { prisma } from "~/libs/prisma.server";
-import { getUser } from "../sessions";
+import { getUser } from "../sessions.server";
 
 /**
  * Get modules by a given course ID
@@ -17,7 +17,7 @@ export async function getModules(request: Request, params: Params<string>) {
     const modules = await prisma.moduleProgress.findMany({
       where: { userId, courseProgressId: courseId },
       include: {
-        course: {
+        courseProgress: {
           include: {
             project: true,
           },
@@ -78,7 +78,6 @@ export async function getModuleBadges(
         moduleProgress: true,
       },
     });
-
     return badges;
   } catch (error) {
     throw new Error(
@@ -112,7 +111,7 @@ export async function getSubModules(request: Request, params: Params<string>) {
       const subModules = await prisma.subModuleProgress.findMany({
         where: { userId, moduleProgressId: moduleIdToUse },
         include: {
-          module: {
+          moduleProgress: {
             include: {
               test: true,
               checkpoint: true,

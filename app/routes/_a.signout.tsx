@@ -3,18 +3,18 @@ import {
   LoaderFunctionArgs,
   redirect,
 } from "@remix-run/node";
-import { destroySession, getUser, getUserSession } from "./sessions";
+import { destroySession, getUser, getUserSession } from "./sessions.server";
 import { prisma } from "~/libs/prisma.server";
 import { useRouteError } from "@remix-run/react";
 import { RootErrorUI } from "~/components/root-error-ui";
+import { BadRequestError, UnAuthorizedError } from "~/errors";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   try {
-    await getUser(request);
+    return getUser(request);
   } catch (error) {
-    throw new Error("Unauthorized!");
+    throw new UnAuthorizedError();
   }
-  return null;
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -35,17 +35,20 @@ export async function action({ request }: ActionFunctionArgs) {
      * instead we will just destroy the session and redirect them to the
      * homepage.
      */
-    if (intent === "signout" && userId) {
-      const user = await prisma.user.findFirst({
-        where: { id: userId },
-      });
 
-      if (user) {
-        await prisma.user.update({
-          where: { id: userId },
-          data: { currentUrl },
-        });
-      }
+    if (intent !== "signout") {
+      throw new BadRequestError("Invalid form data.");
+    }
+
+    const user = await prisma.user.findFirst({
+      where: { id: userId },
+    });
+
+    if (user) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { currentUrl },
+      });
     }
 
     return redirect("/", {

@@ -6,8 +6,17 @@ import { PendingStatus, Status } from "~/components/status";
 import { BadgeGallery } from "./badge-gallery";
 import { Project } from "./project";
 import { Separator } from "~/components/ui/separator";
+import { IBadge, IModuleProgress } from "~/constants/types";
 
-export function CourseSideContent({ modules, moduleBadges }: any) {
+type CourseSideContentProps = {
+  modules: Promise<IModuleProgress[]>;
+  moduleBadges: Promise<IBadge[]>;
+};
+
+export function CourseSideContent({
+  modules,
+  moduleBadges,
+}: CourseSideContentProps) {
   return (
     <>
       <CourseTitle title="Module Badge Gallery" />

@@ -1,9 +1,15 @@
 import { FaSpinner } from "react-icons/fa6";
+import { format } from "date-fns";
 import { Button } from "~/components/ui/button";
 import { DialogTrigger } from "~/components/ui/dialog";
 import { Table, TableBody, TableCell, TableRow } from "~/components/ui/table";
+import { ICurrentUser } from "~/constants/types";
 
-export function AccountDetails({ user }: any) {
+type AccountDetailsProps = {
+  user: ICurrentUser;
+};
+
+export function AccountDetails({ user }: AccountDetailsProps) {
   return (
     <div className="rounded-md bg-gray-300/50 p-6 flex flex-col justify-center items-center">
       <h2 className="text-2xl font-bold mb-4">Account details</h2>
@@ -16,6 +22,12 @@ export function AccountDetails({ user }: any) {
           <TableRow>
             <TableCell>Sign In</TableCell>
             <TableCell className="capitalize">{user.authType}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>Joined On</TableCell>
+            <TableCell className="capitalize">
+              {format(new Date(user.createdAt), "do MMMM, yyyy")}
+            </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Membership</TableCell>

@@ -12,20 +12,20 @@ import { ActionFunctionArgs, LoaderFunctionArgs, json } from "@remix-run/node";
 import { Dialog } from "~/components/ui/dialog";
 import { AccountDeleteDialog } from "./components/account-delete-dialog";
 import { prisma } from "~/libs/prisma.server";
-import { getUser, signOut } from "../sessions";
+import { getUser, signOut } from "../sessions.server";
 import { Cv } from "./components/cv";
+import { BadRequestError, InternalServerError } from "~/errors";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     const user = await getUser(request);
-
     const userCourses = await prisma.courseProgress.findMany({
-      where: { userId: user.userId },
+      where: { userId: user.id },
       include: { moduleProgress: true },
     });
     return json({ user, userCourses });
   } catch (error) {
-    throw error;
+    throw new InternalServerError();
   }
 };
 
@@ -34,25 +34,25 @@ export async function action({ request }: ActionFunctionArgs) {
   const intent = formData.get("intent");
   const userId = String(formData.get("userId"));
   try {
-    if (intent === "deleteAccount" && userId) {
-      /**
-       * !Cancel subscription
-       */
-      /**
-       * ! Delete all user courses and progress
-       */
-      await prisma.user.delete({
-        where: { id: userId },
-      });
-      /**
-       * !Send googbye email
-       */
-      await signOut(request);
-    } else {
-      throw new Error("Unknown form intent.");
+    if (intent !== "deleteAccount" && !userId) {
+      throw new BadRequestError("Invalid form data.");
     }
+
+    /**
+     * !Cancel subscription
+     */
+    /**
+     * ! Delete all user courses and progress
+     */
+    await prisma.user.delete({
+      where: { id: userId },
+    });
+    /**
+     * !Send googbye email
+     */
+    return signOut(request);
   } catch (error) {
-    throw error;
+    throw new InternalServerError();
   }
 }
 

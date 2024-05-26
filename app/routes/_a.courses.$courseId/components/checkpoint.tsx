@@ -1,16 +1,22 @@
 import { Link } from "@remix-run/react";
-import { CircleCheckBig, CircleDotDashed, Lock } from "lucide-react";
+import { FiCheckCircle } from "react-icons/fi";
 import { IoShieldCheckmarkSharp } from "react-icons/io5";
-import { MdQuiz } from "react-icons/md";
+import { LuCircleDotDashed } from "react-icons/lu";
+import { SlLock } from "react-icons/sl";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
+import { ICheckpoint, Status } from "~/constants/types";
 import { cn } from "~/libs/shadcn";
 import { capitalizeFirstLetter } from "~/utils/cs";
 
-export function Checkpoint({ checkpoint }: any) {
-  const locked = checkpoint.status === "LOCKED";
-  const inProgress = checkpoint.status === "IN_PROGRESS";
-  const completed = checkpoint.status === "COMPLETED";
+type CheckpointProps = {
+  checkpoint: ICheckpoint;
+};
+
+export function Checkpoint({ checkpoint }: CheckpointProps) {
+  const locked = checkpoint.status === Status.LOCKED;
+  const inProgress = checkpoint.status === Status.IN_PROGRESS;
+  const completed = checkpoint.status === Status.COMPLETED;
   return (
     <Button
       disabled={locked}
@@ -33,14 +39,14 @@ export function Checkpoint({ checkpoint }: any) {
           <Badge>{checkpoint.score} %</Badge>
         </div>
         {locked ? (
-          <Lock size={20} className="absolute sm:static right-2" />
+          <SlLock size={20} className="absolute sm:static right-2" />
         ) : inProgress ? (
-          <CircleDotDashed
+          <LuCircleDotDashed
             size={20}
             className="text-sky-700 absolute sm:static right-2"
           />
         ) : (
-          <CircleCheckBig
+          <FiCheckCircle
             size={20}
             className="text-sky-700 absolute sm:static right-2"
           />
