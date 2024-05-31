@@ -3,22 +3,24 @@ import { Params } from "@remix-run/react";
 import { prisma } from "~/libs/prisma.server";
 import { getUser } from "../sessions.server";
 import { InternalServerError, NotFoundError } from "~/errors";
-import { IModuleProgress } from "~/constants/types";
+import { IBadge, IModuleProgress, ISubModuleProgress } from "~/constants/types";
 
-export async function getAssessmentAndMetadata(
+/**
+ *
+ * @param {Request} request
+ * @param {Params} params
+ * @returns {Promise<IModuleProgress>}
+ */
+export async function getTestCheckpointProject(
   request: Request,
   params: Params<string>
-) {
+): Promise<IModuleProgress> {
   try {
     invariant(params.courseId, "Course ID is required to get badges.");
     const courseId = params.courseId;
     const { id: userId } = await getUser(request);
-    const moduleId = getModuleId(request);
-    let module;
-    if (!moduleId) {
-      module = await getModule(userId, courseId);
-    }
-    const moduleIdToUse = moduleId ?? module!.id;
+    const moduleIdToUse = await getModuleIdToUse(request, userId, courseId);
+
     const moduleProgress = await prisma.moduleProgress.findFirst({
       where: {
         id: moduleIdToUse,
@@ -27,6 +29,11 @@ export async function getAssessmentAndMetadata(
       include: {
         test: true,
         checkpoint: true,
+        courseProgress: {
+          include: {
+            project: true,
+          },
+        },
       },
     });
     if (!moduleProgress) {
@@ -40,31 +47,16 @@ export async function getAssessmentAndMetadata(
   }
 }
 
-export async function getProject(request: Request, params: Params<string>) {
-  try {
-    invariant(params.courseId, "Course ID is required to get badges.");
-    const courseId = params.courseId;
-    const { id: userId } = await getUser(request);
-    return prisma.project.findFirst({
-      where: {
-        courseProgressId: courseId,
-        contributors: { some: { id: userId } },
-      },
-    });
-  } catch (error) {
-    throw new InternalServerError(
-      "An error occured while fetching project, please try again."
-    );
-  }
-}
-
 /**
  * Get modules by a given course ID
  * @param {Request} request
  * @param {Params<string>} params
- * @returns {Promise<modules>}
+ * @returns {Promise<IModuleProgress[]>}
  */
-export async function getModules(request: Request, params: Params<string>) {
+export async function getModules(
+  request: Request,
+  params: Params<string>
+): Promise<IModuleProgress[]> {
   try {
     invariant(params.courseId, "Course ID is required to get modules.");
     const courseProgressId = params.courseId;
@@ -74,13 +66,6 @@ export async function getModules(request: Request, params: Params<string>) {
       where: {
         users: { some: { id: userId } },
         courseProgressId: courseProgressId,
-      },
-      include: {
-        courseProgress: {
-          include: {
-            project: true,
-          },
-        },
       },
     });
 
@@ -128,22 +113,19 @@ async function ensureFirstSubModuleInProgress(
  * Get badges by a given module ID
  * @param {Request} request
  * @param {Params<string>} params
- * @returns {Promise<badges>}
+ * @returns {Promise<IBadge[]>}
  */
 export async function getModuleBadges(
   request: Request,
   params: Params<string>
-) {
+): Promise<IBadge[]> {
   try {
     invariant(params.courseId, "Course ID is required to get badges.");
+
     const courseId = params.courseId;
     const { id: userId } = await getUser(request);
-    const moduleId = getModuleId(request);
-    let module;
-    if (!moduleId) {
-      module = await getModule(userId, courseId);
-    }
-    const moduleIdToUse = moduleId ?? module!.id;
+    const moduleIdToUse = await getModuleIdToUse(request, userId, courseId);
+
     const badges = await prisma.badge.findMany({
       where: { userId, moduleProgressId: moduleIdToUse },
       include: {
@@ -162,20 +144,17 @@ export async function getModuleBadges(
  * Get sub modules by a given module ID
  * @param {Request} request
  * @param {Params<string>} params
- * @returns {Promise<subModules>}
+ * @returns {Promise<ISubModuleProgress[]>}
  */
-export async function getSubModules(request: Request, params: Params<string>) {
+export async function getSubModules(
+  request: Request,
+  params: Params<string>
+): Promise<ISubModuleProgress[]> {
   try {
     invariant(params.courseId, "Course ID is required to get sub modules.");
-    const { id: userId } = await getUser(request);
     const courseId = params.courseId;
-
-    const moduleId = getModuleId(request);
-    let module;
-    if (!moduleId) {
-      module = await getModule(userId, courseId);
-    }
-    const moduleIdToUse = moduleId ?? module!.id;
+    const { id: userId } = await getUser(request);
+    const moduleIdToUse = await getModuleIdToUse(request, userId, courseId);
 
     const subModules = await prisma.subModuleProgress.findMany({
       where: {
@@ -204,19 +183,46 @@ export async function getSubModules(request: Request, params: Params<string>) {
  * Get Module
  * @param {String} userId
  * @param {String} courseId
- * @returns {Promise}
+ * @returns {Promise<IModuleProgress>}
  */
-async function getModule(userId: string, courseId: string) {
+async function getModule(
+  userId: string,
+  courseId: string
+): Promise<IModuleProgress> {
   try {
     const module = await prisma.moduleProgress.findFirst({
       where: { users: { some: { id: userId } }, courseProgressId: courseId },
     });
+    if (!module) {
+      throw new NotFoundError("Module not found.");
+    }
     return module;
   } catch (error) {
     throw new InternalServerError(
       "An error occured while fetching module, please try again."
     );
   }
+}
+
+/**
+ * Get module ID to use in fetching sub modules
+ * @param {Request} request
+ * @param {String} userId
+ * @param {String} courseId
+ * @returns {Promise<string>}
+ */
+async function getModuleIdToUse(
+  request: Request,
+  userId: string,
+  courseId: string
+): Promise<string> {
+  const moduleId = getModuleId(request);
+  let module;
+  if (!moduleId) {
+    module = await getModule(userId, courseId);
+  }
+  const moduleIdToUse = moduleId ?? module!.id;
+  return moduleIdToUse;
 }
 
 /**

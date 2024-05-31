@@ -1,19 +1,16 @@
-import React from "react";
-import { Await, useLoaderData } from "@remix-run/react";
+import { useLoaderData } from "@remix-run/react";
 import { LoaderFunctionArgs, defer } from "@remix-run/node";
 import {
-  getAssessmentAndMetadata,
   getModuleBadges,
   getModules,
-  getProject,
   getSubModules,
-} from "./utils";
+  getTestCheckpointProject,
+} from "./utils.server";
 import { BackButton } from "~/components/back-button";
 import { Container } from "~/components/container";
 import { SheetContent } from "~/components/ui/sheet";
 import { Separator } from "~/components/ui/separator";
 import { SubModules } from "./components/sub-modules";
-import { Title } from "./components/title";
 import { Assessment } from "./components/assessment";
 import { CourseSideContent } from "./components/course-side-content";
 import { cacheOptions } from "../sessions.server";
@@ -23,17 +20,12 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const modules = getModules(request, params);
   const moduleBadges = getModuleBadges(request, params);
   const subModules = getSubModules(request, params);
-  const module = await getAssessmentAndMetadata(request, params);
-  const project = await getProject(request, params);
-
-  return defer(
-    { modules, moduleBadges, subModules, module, project },
-    cacheOptions
-  );
+  const module = await getTestCheckpointProject(request, params);
+  return defer({ modules, moduleBadges, subModules, module }, cacheOptions);
 }
 
 export default function CoursesRoute() {
-  const { modules, moduleBadges, subModules, module, project } =
+  const { modules, moduleBadges, subModules, module } =
     useLoaderData<typeof loader>();
   return (
     <Container className="max-w-3xl lg:max-w-7xl">
@@ -55,7 +47,7 @@ export default function CoursesRoute() {
           <CourseSideContent
             modules={modules}
             moduleBadges={moduleBadges}
-            project={project}
+            module={module}
           />
         </SheetContent>
 
@@ -64,7 +56,7 @@ export default function CoursesRoute() {
           <CourseSideContent
             modules={modules}
             moduleBadges={moduleBadges}
-            project={project}
+            module={module}
           />
         </aside>
       </div>

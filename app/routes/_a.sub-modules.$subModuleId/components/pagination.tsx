@@ -1,15 +1,12 @@
-import { useFetcher } from "@remix-run/react";
-import React from "react";
+import { Form } from "@remix-run/react";
 import { RiArrowLeftSLine, RiArrowRightSLine } from "react-icons/ri";
 import { Button } from "~/components/ui/button";
 
-export default function Pagination() {
-  const pagination = useFetcher();
-
+export function Pagination() {
   return (
-    <pagination.Form
+    <Form
       method="post"
-      className="flex flex-col gap-4 md:flex-row justify-between"
+      className="flex flex-col gap-4 md:flex-row justify-between mt-4"
     >
       <Button
         variant="outline"
@@ -34,6 +31,6 @@ export default function Pagination() {
           some next <RiArrowRightSLine className="inline h-6 w-6" />
         </>
       </Button>
-    </pagination.Form>
+    </Form>
   );
 }

@@ -11,14 +11,15 @@ import { IBadge, IModuleProgress, IProject } from "~/constants/types";
 type CourseSideContentProps = {
   modules: Promise<IModuleProgress[]>;
   moduleBadges: Promise<IBadge[]>;
-  project: IProject | null;
+  module: IModuleProgress;
 };
 
 export function CourseSideContent({
   modules,
   moduleBadges,
-  project,
+  module,
 }: CourseSideContentProps) {
+  const { courseProgress } = module;
   return (
     <>
       <CourseTitle title="Module Badge Gallery" />
@@ -36,7 +37,9 @@ export function CourseSideContent({
         </React.Suspense>
 
         <Separator className="bg-sky-700 h-2 rounded-tl-md rounded-br-md" />
-        <Project project={project} />
+        {courseProgress?.project ? (
+          <Project project={courseProgress.project} />
+        ) : null}
         <Separator className="bg-sky-700 h-2 rounded-tl-md rounded-br-md" />
 
         <React.Suspense fallback={<PendingModules />}>

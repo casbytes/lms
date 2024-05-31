@@ -170,11 +170,13 @@ export async function addCourseToCatalog(userId: string, courseId: string) {
                * Create lesson progress
                */
               await Promise.all(
-                subModule?.lessons?.map(async (lesson) => {
+                subModule?.lessons?.map(async (lesson, index) => {
+                  const currentOrder = index + 1;
                   await txn.lessonProgress.create({
                     data: {
                       title: lesson.title,
                       slug: lesson.slug,
+                      order: currentOrder,
                       users: { connect: { id: userId } },
                       subModuleProgress: {
                         connect: { id: subModuleProgress.id },

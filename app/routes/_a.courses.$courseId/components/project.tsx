@@ -9,12 +9,11 @@ import { cn } from "~/libs/shadcn";
 import { capitalizeFirstLetter } from "~/utils/cs";
 
 type ProjectProps = {
-  project: IProject | null;
+  project: IProject | null | undefined;
 };
 
 export function Project({ project }: ProjectProps) {
   const index = 2;
-  console.log("project", project);
 
   const completed = project?.status === Status.COMPLETED;
   const inProgress = project?.status === Status.IN_PROGRESS;

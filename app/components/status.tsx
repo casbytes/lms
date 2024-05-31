@@ -57,7 +57,7 @@ export function Status({ status }: any) {
         </Badge>
       </li>
       <li className="flex items-center">
-        <SlLock size={25} className="mr-2 text-slate-400" />
+        <SlLock size={25} className="mr-2 text-slate-600" />
         Locked:{" "}
         <Badge className="rounded-md ml-2 text-md">
           {memoizedModuleStatus?.locked}

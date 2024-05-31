@@ -1,60 +1,46 @@
 import React from "react";
-import { Await, useNavigation, useSubmit } from "@remix-run/react";
-import { SlLock } from "react-icons/sl";
-import { FiCheckCircle } from "react-icons/fi";
+import { Await } from "@remix-run/react";
 import { CourseTitle } from "~/components/course-title";
 import { PendingStatus, Status } from "~/components/status";
-import { Button } from "~/components/ui/button";
-import { FaSpinner } from "react-icons/fa6";
 import { capitalizeFirstLetter } from "~/utils/cs";
+import { Lessons } from "./lessons";
+import { ILessonProgress, ISubModuleProgress } from "~/constants/types";
 
-export function ModuleSideContent({ lessons, subModule }: any) {
-  const submit = useSubmit();
-  const navigation = useNavigation();
-  const isLoading = navigation.formData?.get("intent") === "some";
+type ModuleSideContentProps = {
+  lessons: Promise<ILessonProgress[]>;
+  subModule: ISubModuleProgress | null;
+};
 
+export function ModuleSideContent({
+  lessons,
+  subModule,
+}: ModuleSideContentProps) {
   return (
     <>
-      <CourseTitle title={capitalizeFirstLetter(subModule.title)} />
+      {subModule ? (
+        <CourseTitle title={capitalizeFirstLetter(subModule.title)} />
+      ) : null}
       <React.Suspense fallback={<PendingStatus />}>
         <Await resolve={lessons}>
           {(lessons) => <Status status={lessons} />}
         </Await>
       </React.Suspense>
-      <ul className="grid grid-cols-1 gap-4 p-2">
-        {lessons && lessons?.length > 0 ? (
-          lessons.map((lesson: any, index: number) => (
-            <li key={`${lesson.id}-${index}`} className="w-full">
-              <Button
-                onClick={() =>
-                  submit({
-                    lessonSlug: lesson.slug,
-                  })
-                }
-                disabled={index > 1}
-                variant="secondary"
-                className="flex items-center justify-start bg-slate-300 hover:bg-slate-300/50 text-black w-full"
-              >
-                <>
-                  {isLoading ? (
-                    <FaSpinner
-                      size={20}
-                      className="mr-4 text-sky-600 animate-spin"
-                    />
-                  ) : index < 2 ? (
-                    <FiCheckCircle size={20} className="mr-4 text-blue-600" />
-                  ) : (
-                    <SlLock size={20} className="mr-4" />
-                  )}{" "}
-                  {capitalizeFirstLetter(lesson.title)}
-                </>
-              </Button>
-            </li>
-          ))
-        ) : (
-          <p>There are no lessons in this sub module</p>
-        )}
-      </ul>
+
+      <React.Suspense fallback={<PendingLessons />}>
+        <Await resolve={lessons}>
+          {(lessons) => <Lessons lessons={lessons} />}
+        </Await>
+      </React.Suspense>
     </>
+  );
+}
+
+function PendingLessons() {
+  return (
+    <ul className="space-y-3">
+      {Array(10).map((_, i) => (
+        <li key={i} className="bg-gray-300 h-8 rounded-md animate-pulse" />
+      ))}
+    </ul>
   );
 }

@@ -1,23 +1,18 @@
 import React from "react";
+import { LoaderFunctionArgs, defer } from "@remix-run/node";
+import { Await, useLoaderData } from "@remix-run/react";
+import { cacheOptions } from "../sessions.server";
+import { getLessonContent, getLessons, getSubModule } from "./utils.server";
+import { PiSpinnerGap } from "react-icons/pi";
 import { BackButton } from "~/components/back-button";
 import { Container } from "~/components/container";
 import { PageTitle } from "~/components/page-title";
-import { Pagination } from "~/components/pagination";
 import { SheetContent } from "~/components/ui/sheet";
 import { ModuleSideContent } from "./components/module-side-content";
-import { LoaderFunctionArgs, defer, json } from "@remix-run/node";
-import {
-  Await,
-  ClientLoaderFunctionArgs,
-  Params,
-  useLoaderData,
-  useLocation,
-} from "@remix-run/react";
 import { Markdown } from "~/components/markdown";
-import { cacheOptions, getUser } from "../sessions.server";
 import { VideoIframe } from "~/components/video-iframe";
-import { BadRequestError, InternalServerError } from "~/errors";
-import { getLessonContent, getLessons, getSubModule } from "./utils";
+import { Pagination } from "./components/pagination";
+import { Separator } from "~/components/ui/separator";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const lessons = getLessons(request, params);
@@ -28,7 +23,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export default function ModulesRoute() {
   const { lessons, lessonContent, subModule } = useLoaderData<typeof loader>();
-  const libraryId = "230663";
 
   return (
     <Container className="max-w-3xl lg:max-w-7xl">
@@ -41,8 +35,14 @@ export default function ModulesRoute() {
       />
       <div className="lg:grid lg:grid-cols md:grid-cols-6 gap-6">
         <div className="col-span-4 flex flex-col gap-6 overflow-y-auto h-auto max-h-screen">
-          <div className="col-span-3">
-            {/* <React.Suspense fallback={<>loading...</>}>
+          <div className="col-span-3 min-h-full">
+            {/* <React.Suspense
+              fallback={
+                <div className="w-full h-full flex items-center justify-center rounded-md bg-slate-300 animate-pulse">
+                  <PiSpinnerGap size={100} className="animate-spin" />
+                </div>
+              }
+            >
               <Await resolve={lessonContent}>
                 {(lessonContent) => (
                   <>
@@ -50,7 +50,6 @@ export default function ModulesRoute() {
                     {lessonContent?.data?.videoId ? (
                       <VideoIframe
                         className="mt-8"
-                        libraryId={libraryId}
                         videoId={lessonContent.data.videoId}
                       />
                     ) : null}
@@ -58,9 +57,10 @@ export default function ModulesRoute() {
                 )}
               </Await>
             </React.Suspense> */}
+
+            <Separator className="h-1 bg-slate-600" />
+            <Pagination />
           </div>
-          <hr />
-          {/* <Pagination /> */}
         </div>
 
         {/* mobile screens */}

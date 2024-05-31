@@ -121,6 +121,7 @@ model LessonProgress {
   slug                String
   status              String            @default("LOCKED") //LOCKED, IN_PROGRESS, COMPLETED
   subModuleProgressId String
+  order               Int
   users               User[]
   subModuleProgress   SubModuleProgress @relation(fields: [subModuleProgressId], references: [id])
 }

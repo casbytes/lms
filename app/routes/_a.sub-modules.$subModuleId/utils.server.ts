@@ -1,23 +1,27 @@
 import invariant from "tiny-invariant";
+import matter from "gray-matter";
 import { Params } from "@remix-run/react";
-import { InternalServerError } from "~/errors";
+import { InternalServerError, NotFoundError } from "~/errors";
 import { getContentFromGithub } from "~/utils/octokit.server";
 import { getUser } from "../sessions.server";
 import { prisma } from "~/libs/prisma.server";
-import matter from "gray-matter";
+import { ILessonProgress, ISubModuleProgress } from "~/constants/types";
 
 /**
- * Get module by given ID
+ * Get sub module by given ID
  * @param {Request} request
  * @param {Params<string>} params
- * @returns {SubModuleProgress}
+ * @returns {Promise<ISubModuleProgress | null>}
  */
-export async function getSubModule(request: Request, params: Params<string>) {
-  invariant(params.subModuleId, "Submodule ID is required.");
-  const subModuleId = params.subModuleId;
+export async function getSubModule(
+  request: Request,
+  params: Params<string>
+): Promise<ISubModuleProgress | null> {
   try {
+    invariant(params.subModuleId, "Submodule ID is required.");
+    const subModuleId = params.subModuleId;
     const user = await getUser(request);
-    return prisma.subModuleProgress.findFirst({
+    const subModule = await prisma.subModuleProgress.findFirst({
       where: {
         id: subModuleId,
         users: { some: { id: user.id } },
@@ -25,15 +29,17 @@ export async function getSubModule(request: Request, params: Params<string>) {
       include: {
         test: true,
         checkpoint: true,
-        moduleProgress: {
-          select: {
-            title: true,
-          },
-        },
+        moduleProgress: true,
       },
     });
+    if (!subModule) {
+      throw new NotFoundError("Sub module not found.");
+    }
+    return subModule;
   } catch (error) {
-    throw error;
+    throw new InternalServerError(
+      "An error occured why fetching sub modules, please try again."
+    );
   }
 }
 
@@ -41,15 +47,17 @@ export async function getSubModule(request: Request, params: Params<string>) {
  * Get subModule lessons
  * @param {Request} request
  * @param {Params<string>} params
- * @returns {Lessons}
+ * @returns {Promise<ILessonProgress[]>}
  */
-export async function getLessons(request: Request, params: Params<string>) {
+export async function getLessons(
+  request: Request,
+  params: Params<string>
+): Promise<ILessonProgress[]> {
   invariant(params.subModuleId, "Submodule ID is required to fetch lessons.");
   const subModuleId = params.subModuleId;
 
   try {
     const user = await getUser(request);
-
     return prisma.lessonProgress.findMany({
       where: {
         subModuleProgressId: subModuleId,
@@ -57,7 +65,9 @@ export async function getLessons(request: Request, params: Params<string>) {
       },
     });
   } catch (error) {
-    throw error;
+    throw new InternalServerError(
+      "An error occured while fetching lessons, please try again."
+    );
   }
 }
 
