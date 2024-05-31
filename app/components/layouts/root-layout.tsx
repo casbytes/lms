@@ -12,7 +12,7 @@ export function RootLayout() {
 
   const matches = useMatches();
   const auth = matches.some((match) => match.id.includes("_a"));
-  const authError = matches.some(
+  const resourceRoutes = matches.some(
     (match) =>
       match.id.includes("signout") ||
       match.id.includes("google") ||
@@ -28,7 +28,7 @@ export function RootLayout() {
           isNavOpen={isNavOpen}
           setIsNavOpen={setIsNavOpen}
         />
-        {auth && !authError ? (
+        {auth && !resourceRoutes ? (
           <SideBar
             menuItems={authMenuItems}
             isOpen={isNavOpen}
@@ -39,10 +39,10 @@ export function RootLayout() {
           className={cn(
             "duration-300",
             isNavOpen
-              ? auth && !authError
+              ? auth && !resourceRoutes
                 ? "ml-0 lg:ml-52"
                 : ""
-              : auth && !authError
+              : auth && !resourceRoutes
               ? "ml-0 lg:ml-16"
               : ""
           )}

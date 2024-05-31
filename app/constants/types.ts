@@ -10,7 +10,7 @@ export interface IUser {
   id: string;
   createdAt: Date | string;
   updatedAt: Date | string;
-  currentUrl?: string | null;
+  currentUrl: string | null;
   completedOnboarding: boolean;
 }
 
@@ -61,58 +61,49 @@ export interface ICourseProgress {
   id: string;
   title: string;
   slug: string;
-  userId: string;
   score: number;
-  projectId: string;
   status: string;
-  user?: ICurrentUser;
+  users?: ICurrentUser[];
   moduleProgress?: IModuleProgress[];
-  project?: IProject;
+  project?: IProject | null;
 }
 
 export interface IModuleProgress {
   id: string;
   title: string;
   slug: string;
-  userId: string;
-  courseProgressId: string;
   score: number;
-  testId: string;
-  checkpointId: string;
   status: string;
-  user?: ICurrentUser;
+  courseProgressId: string;
+  users?: ICurrentUser[];
   courseProgress?: ICourseProgress;
   subModuleProgress?: ISubModuleProgress[];
   badges?: IBadge[];
-  test?: ITest;
-  checkpoint?: ICheckpoint;
+  test?: ITest | undefined | null;
+  checkpoint?: ICheckpoint | undefined | null;
 }
 
 export interface ISubModuleProgress {
   id: string;
   title: string;
   slug: string;
-  userId: string;
   score: number;
-  moduleProgressId: string;
-  testId: string;
-  checkpointId: string;
   status: string;
-  user: ICurrentUser;
-  moduleProgress: IModuleProgress;
-  lessonProgress: ILessonProgress[];
-  test: ITest;
-  checkpoint: ICheckpoint;
+  moduleProgressId?: string;
+  users?: ICurrentUser[];
+  moduleProgress?: IModuleProgress;
+  lessonProgress?: ILessonProgress[];
+  test?: ITest | null;
+  checkpoint?: ICheckpoint | null;
 }
 
 export interface ILessonProgress {
   id: string;
   title: string;
   slug: string;
-  userId: string;
   status: string;
   subModuleProgressId: string;
-  user?: ICurrentUser;
+  users?: ICurrentUser[];
   subModuleProgress?: ISubModuleProgress;
 }
 
@@ -134,10 +125,9 @@ export interface ICheckpoint {
   title: string;
   score: number;
   status: string;
-  userId: string;
   moduleProgressId?: string | null;
   subModuleProgressId?: string | null;
-  user?: ICurrentUser;
+  users?: ICurrentUser[];
   moduleProgress?: IModuleProgress[];
   subModuleProgress?: ISubModuleProgress[];
 }
@@ -149,13 +139,12 @@ export interface ITest {
   score: number;
   attempts: number;
   attempted: boolean;
-  nextAttemptAt?: Date;
-  userId: string;
-  moduleProgressId?: string;
-  subModuleProgressId?: string;
-  user?: ICurrentUser;
-  moduleProgress: IModuleProgress[];
-  subModuleProgress: ISubModuleProgress[];
+  nextAttemptAt?: Date | string | null;
+  moduleProgressId?: string | null;
+  subModuleProgressId?: string | null;
+  users?: ICurrentUser[];
+  moduleProgress?: IModuleProgress[];
+  subModuleProgress?: ISubModuleProgress[];
 }
 
 export interface IProject {
@@ -163,8 +152,7 @@ export interface IProject {
   title: string;
   slug: string;
   status: string;
-  userId: string;
-  user?: ICurrentUser;
+  constributors?: ICurrentUser[];
   courseProgress?: ICourseProgress[];
 }
 

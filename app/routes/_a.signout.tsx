@@ -18,7 +18,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { userId } = await getUser(request);
+  const { id } = await getUser(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
   const currentUrl = String(formData.get("currentUrl"));
@@ -41,12 +41,12 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     const user = await prisma.user.findFirst({
-      where: { id: userId },
+      where: { id },
     });
 
     if (user) {
       await prisma.user.update({
-        where: { id: userId },
+        where: { id },
         data: { currentUrl },
       });
     }

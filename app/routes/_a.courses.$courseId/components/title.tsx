@@ -1,10 +1,10 @@
 import React from "react";
 import { Await } from "@remix-run/react";
 import { PageTitle } from "~/components/page-title";
-import { ISubmoduleProgress } from "~/constants/types";
+import { ISubModuleProgress } from "~/constants/types";
 
 type TitleProps = {
-  subModules: Promise<ISubmoduleProgress[]>;
+  subModules: Promise<ISubModuleProgress[]>;
 };
 
 export function Title({ subModules }: TitleProps) {

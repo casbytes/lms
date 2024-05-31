@@ -1,15 +1,13 @@
-import { ISubmoduleProgress } from "~/constants/types";
+import { IModuleProgress } from "~/constants/types";
 import { Checkpoint } from "./checkpoint";
 import { Test } from "./test";
 
 type AssessmentProps = {
-  subModules: ISubmoduleProgress[];
+  module: IModuleProgress;
 };
 
-export function Assessment({ subModules }: AssessmentProps) {
-  const test = subModules[0]?.moduleProgress?.test;
-  const checkpoint = subModules[0]?.moduleProgress?.checkpoint;
-
+export function Assessment({ module }: AssessmentProps) {
+  const { test, checkpoint } = module;
   return (
     <div className="flex flex-col gap-6">
       {test ? (

@@ -1,16 +1,25 @@
-import { ICourse } from "~/constants/types";
+import { ICourse, ICourseProgress } from "~/constants/types";
 import { getUser } from "../sessions.server";
 import { prisma } from "~/libs/prisma.server";
+import { InternalServerError, NotFoundError } from "~/errors";
 
 /**
  * Get user courses
  * @param {Request} request
  * @returns {Promise<ICourseProgress[]>}
  */
-export async function getUserCourses(request: Request): Promise<any> {
+export async function getUserCourses(
+  request: Request
+): Promise<ICourseProgress[]> {
   const { id: userId } = await getUser(request);
   const userCourses = await prisma.courseProgress.findMany({
-    where: { userId },
+    where: {
+      users: {
+        some: {
+          id: userId,
+        },
+      },
+    },
   });
   return userCourses;
 }
@@ -23,7 +32,11 @@ export async function getUserCourses(request: Request): Promise<any> {
 export async function checkCatalog(userId: string): Promise<boolean> {
   const courses = await prisma.courseProgress.findMany({
     where: {
-      userId,
+      users: {
+        some: {
+          id: userId,
+        },
+      },
       NOT: {
         status: "COMPLETED",
       },
@@ -71,7 +84,7 @@ export async function addCourseToCatalog(userId: string, courseId: string) {
     });
 
     if (!course) {
-      throw new Error(`No course found with given ID: ${courseId}`);
+      throw new NotFoundError("Course not found.");
     }
 
     /**
@@ -85,12 +98,14 @@ export async function addCourseToCatalog(userId: string, courseId: string) {
         data: {
           title: course.title,
           slug: course.slug,
-          user: { connect: { id: userId } },
+          users: {
+            connect: { id: userId },
+          },
           project: {
             create: {
               title: `${course.title} project`,
               slug: course.slug,
-              user: { connect: { id: userId } },
+              contributors: { connect: { id: userId } },
             },
           },
         },
@@ -108,18 +123,18 @@ export async function addCourseToCatalog(userId: string, courseId: string) {
             data: {
               title: module.title,
               slug: module.slug,
-              user: { connect: { id: userId } },
+              users: { connect: { id: userId } },
               courseProgress: { connect: { id: courseProgress.id } },
               test: {
                 create: {
                   title: `${module.title} test`,
-                  user: { connect: { id: userId } },
+                  users: { connect: { id: userId } },
                 },
               },
               checkpoint: {
                 create: {
                   title: `${module.title} checkpoint`,
-                  user: { connect: { id: userId } },
+                  users: { connect: { id: userId } },
                 },
               },
             },
@@ -134,18 +149,18 @@ export async function addCourseToCatalog(userId: string, courseId: string) {
                 data: {
                   title: subModule.title,
                   slug: subModule.slug,
-                  user: { connect: { id: userId } },
+                  users: { connect: { id: userId } },
                   moduleProgress: { connect: { id: moduleProgress.id } },
                   test: {
                     create: {
                       title: `${subModule.title} test`,
-                      user: { connect: { id: userId } },
+                      users: { connect: { id: userId } },
                     },
                   },
                   checkpoint: {
                     create: {
                       title: `${subModule.title} checkpoint`,
-                      user: { connect: { id: userId } },
+                      users: { connect: { id: userId } },
                     },
                   },
                 },
@@ -160,7 +175,7 @@ export async function addCourseToCatalog(userId: string, courseId: string) {
                     data: {
                       title: lesson.title,
                       slug: lesson.slug,
-                      user: { connect: { id: userId } },
+                      users: { connect: { id: userId } },
                       subModuleProgress: {
                         connect: { id: subModuleProgress.id },
                       },
@@ -178,16 +193,16 @@ export async function addCourseToCatalog(userId: string, courseId: string) {
             await txn.test.create({
               data: {
                 title: `${moduleProgress.title} test`,
-                user: { connect: { id: userId } },
                 moduleProgress: { connect: { id: moduleProgress.id } },
+                users: { connect: { id: userId } },
               },
             });
 
             await txn.checkpoint.create({
               data: {
                 title: `${moduleProgress.title} checkpoint`,
-                user: { connect: { id: userId } },
                 moduleProgress: { connect: { id: moduleProgress.id } },
+                users: { connect: { id: userId } },
               },
             });
 
@@ -220,8 +235,8 @@ export async function addCourseToCatalog(userId: string, courseId: string) {
                 locked_description: badge.locked_description,
                 unlocked_description: badge.unlocked_description,
                 level: badge.title.toUpperCase(),
-                userId: userId,
                 moduleProgressId: moduleProgress.id,
+                userId,
               })),
             });
           }
@@ -230,6 +245,8 @@ export async function addCourseToCatalog(userId: string, courseId: string) {
     });
   } catch (error) {
     console.error(error);
-    throw new Error("Failed to add course to your catalog, please try again.");
+    throw new InternalServerError(
+      "An error occurred while adding course to catalog, please try again."
+    );
   }
 }

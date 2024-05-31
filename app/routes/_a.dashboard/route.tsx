@@ -18,7 +18,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const user = await getUser(request);
     return defer({ data, userCourses, user });
   } catch (error) {
-    throw new InternalServerError();
+    throw new InternalServerError("Error getting courses.");
   }
 }
 

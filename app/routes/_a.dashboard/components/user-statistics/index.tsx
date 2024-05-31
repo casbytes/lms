@@ -1,13 +1,13 @@
+import React from "react";
+import { Await } from "@remix-run/react";
+import { ImSpinner2 } from "react-icons/im";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { CourseCatalogCard } from "~/components/course-catalog";
 import { Chart } from "./chart";
 import { ICourseProgress } from "~/constants/types";
-import React from "react";
-import { Await } from "@remix-run/react";
-import { ImSpinner2 } from "react-icons/im";
 
 type StatisticsProps = {
-  userCourses: Promise<ICourseProgress[]>;
+  userCourses: Promise<any>;
 };
 
 export function Statistics({ userCourses }: StatisticsProps) {

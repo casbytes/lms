@@ -1,21 +1,26 @@
-import { useNavigation, useSubmit } from "@remix-run/react";
+import React from "react";
+import { Await, useNavigation, useSubmit } from "@remix-run/react";
 import { SlLock } from "react-icons/sl";
 import { FiCheckCircle } from "react-icons/fi";
 import { CourseTitle } from "~/components/course-title";
-import { Status } from "~/components/status";
+import { PendingStatus, Status } from "~/components/status";
 import { Button } from "~/components/ui/button";
 import { FaSpinner } from "react-icons/fa6";
 import { capitalizeFirstLetter } from "~/utils/cs";
 
-export function ModuleSideContent({ lessons }: any) {
+export function ModuleSideContent({ lessons, subModule }: any) {
   const submit = useSubmit();
   const navigation = useNavigation();
   const isLoading = navigation.formData?.get("intent") === "some";
 
   return (
     <>
-      <CourseTitle title="Functions" />
-      <Status status={lessons} />
+      <CourseTitle title={capitalizeFirstLetter(subModule.title)} />
+      <React.Suspense fallback={<PendingStatus />}>
+        <Await resolve={lessons}>
+          {(lessons) => <Status status={lessons} />}
+        </Await>
+      </React.Suspense>
       <ul className="grid grid-cols-1 gap-4 p-2">
         {lessons && lessons?.length > 0 ? (
           lessons.map((lesson: any, index: number) => (

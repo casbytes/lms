@@ -4,17 +4,17 @@ import { FaProjectDiagram } from "react-icons/fa";
 import { LuCircleDotDashed } from "react-icons/lu";
 import { SlLock } from "react-icons/sl";
 import { Button } from "~/components/ui/button";
-import { IModuleProgress, Status } from "~/constants/types";
+import { IProject, Status } from "~/constants/types";
 import { cn } from "~/libs/shadcn";
 import { capitalizeFirstLetter } from "~/utils/cs";
 
 type ProjectProps = {
-  modules: IModuleProgress[];
+  project: IProject | null;
 };
 
-export function Project({ modules }: ProjectProps) {
+export function Project({ project }: ProjectProps) {
   const index = 2;
-  const project = modules[0]?.courseProgress?.project;
+  console.log("project", project);
 
   const completed = project?.status === Status.COMPLETED;
   const inProgress = project?.status === Status.IN_PROGRESS;
@@ -31,7 +31,7 @@ export function Project({ modules }: ProjectProps) {
           }
         )}
       >
-        <Link to="/courses/project" className="flex gap-4 items-center">
+        <Link to="/courses/project/1" className="flex gap-4 items-center">
           <div className="sr-only">project status</div>
           {locked ? (
             <FaProjectDiagram size={20} />

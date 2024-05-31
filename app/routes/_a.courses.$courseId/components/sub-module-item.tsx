@@ -8,15 +8,14 @@ import { MdQuiz } from "react-icons/md";
 import { LuCircleDotDashed } from "react-icons/lu";
 import { FiCheckCircle } from "react-icons/fi";
 import { SlLock } from "react-icons/sl";
-import { ISubmoduleProgress, Status } from "~/constants/types";
+import { ISubModuleProgress, Status } from "~/constants/types";
 
 type SubModuleItemProps = {
-  item: ISubmoduleProgress;
+  item: ISubModuleProgress;
   index: number;
 };
 
 export function SubModuleItem({ item, index }: SubModuleItemProps) {
-  const [searchParams, setSearchParams] = useSearchParams();
   const locked = item.status === Status.LOCKED;
   const inProgress = item.status === Status.IN_PROGRESS;
   const completed = item.status === Status.COMPLETED;
@@ -28,6 +27,7 @@ export function SubModuleItem({ item, index }: SubModuleItemProps) {
         className="rounded-md text-black bg-stone-200 hover:bg-stone-300 py-4 relative border-b-2 border-zinc-600"
       >
         <Link
+          prefetch="intent"
           to={`/sub-modules/${item.id}`}
           className="flex flex-1 justify-between items-center p-2"
         >

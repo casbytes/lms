@@ -1,8 +1,7 @@
-import { useLoaderData, useRouteError } from "@remix-run/react";
+import { useLoaderData } from "@remix-run/react";
 import { Container } from "~/components/container";
 import { CourseCatalogCard } from "../../components/course-catalog";
 import { DiscordCard } from "~/components/discord-card";
-import { ErrorUI } from "~/components/error-ui";
 import { MembershipCard } from "~/components/membership-card";
 import { PageTitle } from "~/components/page-title";
 import { Separator } from "~/components/ui/separator";
@@ -20,7 +19,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     const user = await getUser(request);
     const userCourses = await prisma.courseProgress.findMany({
-      where: { userId: user.id },
+      where: { users: { some: { id: user.id } } },
       include: { moduleProgress: true },
     });
     return json({ user, userCourses });
@@ -34,7 +33,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const intent = formData.get("intent");
   const userId = String(formData.get("userId"));
   try {
-    if (intent !== "deleteAccount" && !userId) {
+    if (intent !== "deleteAccount" || !userId) {
       throw new BadRequestError("Invalid form data.");
     }
 
@@ -50,7 +49,8 @@ export async function action({ request }: ActionFunctionArgs) {
     /**
      * !Send googbye email
      */
-    return signOut(request);
+    await signOut(request);
+    return null;
   } catch (error) {
     throw new InternalServerError();
   }
@@ -61,7 +61,7 @@ export default function Profile() {
   return (
     <Container className="bg-2 bg-no-repeat">
       <div className="mx-auto max-w-5xl">
-        <PageTitle title="profile" />
+        <PageTitle title="profile" className="-mb-10" />
         <UserOverview user={user} />
         <Separator className="mt-2" />
         <div className="grid grid-cols-1 md:grid-cols-2 mx-auto gap-6 mt-8">

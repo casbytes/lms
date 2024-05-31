@@ -1,11 +1,11 @@
 import { Link } from "@remix-run/react";
 import { BiReset } from "react-icons/bi";
+import { FiCheckCircle } from "react-icons/fi";
+import { LuCircleDotDashed } from "react-icons/lu";
+import { ICourseProgress, Status } from "~/constants/types";
 import { Table, TableBody, TableCell, TableRow } from "./ui/table";
 import { Button } from "./ui/button";
 import { capitalizeFirstLetter } from "~/utils/cs";
-import { ICourseProgress, Status } from "~/constants/types";
-import { FiCheckCircle } from "react-icons/fi";
-import { LuCircleDotDashed } from "react-icons/lu";
 
 type CCCProps = {
   userCourses: ICourseProgress[];

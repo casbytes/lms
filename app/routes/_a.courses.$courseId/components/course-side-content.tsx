@@ -6,16 +6,18 @@ import { PendingStatus, Status } from "~/components/status";
 import { BadgeGallery } from "./badge-gallery";
 import { Project } from "./project";
 import { Separator } from "~/components/ui/separator";
-import { IBadge, IModuleProgress } from "~/constants/types";
+import { IBadge, IModuleProgress, IProject } from "~/constants/types";
 
 type CourseSideContentProps = {
   modules: Promise<IModuleProgress[]>;
   moduleBadges: Promise<IBadge[]>;
+  project: IProject | null;
 };
 
 export function CourseSideContent({
   modules,
   moduleBadges,
+  project,
 }: CourseSideContentProps) {
   return (
     <>
@@ -34,13 +36,7 @@ export function CourseSideContent({
         </React.Suspense>
 
         <Separator className="bg-sky-700 h-2 rounded-tl-md rounded-br-md" />
-
-        <React.Suspense fallback={<PendingModules />}>
-          <Await resolve={modules}>
-            {(modules) => <Project modules={modules} />}
-          </Await>
-        </React.Suspense>
-
+        <Project project={project} />
         <Separator className="bg-sky-700 h-2 rounded-tl-md rounded-br-md" />
 
         <React.Suspense fallback={<PendingModules />}>

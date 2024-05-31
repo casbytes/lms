@@ -9,92 +9,55 @@ import { LoaderFunctionArgs, defer, json } from "@remix-run/node";
 import {
   Await,
   ClientLoaderFunctionArgs,
+  Params,
   useLoaderData,
   useLocation,
 } from "@remix-run/react";
 import { Markdown } from "~/components/markdown";
-import axios from "axios";
-import { prisma } from "~/libs/prisma.server";
-import { getContentFromGithub } from "~/utils/octokit.server";
-import invariant from "tiny-invariant";
 import { cacheOptions, getUser } from "../sessions.server";
 import { VideoIframe } from "~/components/video-iframe";
-
-const libraryId = "230663";
+import { BadRequestError, InternalServerError } from "~/errors";
+import { getLessonContent, getLessons, getSubModule } from "./utils";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  invariant(params.subModuleId, "subModule ID is required.");
-  const url = new URL(request.url);
-  const previousUrl = url.href;
-  const user = await getUser(request);
-
-  const subModuleId = params.subModuleId;
-
-  // const url = new URL(request.url);
-  // const moduleParams = new URLSearchParams(url.search);
-  // const moduleId = moduleParams.get("moduleId");
-
-  // let subModule;
-  // if (!moduleId) {
-  //   subModule = await prisma.lessonProgress.findFirst({
-  //     where: {
-  //       subModuleProgressId: subModuleId,
-  //     },
-  //   });
-  // }
-
-  const { userId } = await getUser(request);
-  const lessons = await prisma.lessonProgress.findMany({
-    where: { subModuleProgressId: subModuleId, userId },
-    include: {
-      subModuleProgress: {
-        include: {
-          moduleProgress: {
-            include: {
-              courseProgress: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  // const content = await getContentFromGithub({
-  //   repo: courseSlug as string,
-  //   path: `${moduleSlug}/${subModuleSlug}/${lessons[0].slug}.mdx`,
-  // });
-
-  // console.log(content);
-
-  // const content = lessons.
-
-  // const data = {
-  //   content: `# Javascript`,
-  //   videoId: "8ee7ba95-7386-4c18-8639-6a0a185d3fe5",
-  // };
-
-  return json({ lessons, previousUrl }, cacheOptions);
+  const lessons = getLessons(request, params);
+  const lessonContent = getLessonContent(request, params);
+  const subModule = await getSubModule(request, params);
+  return defer({ lessons, lessonContent, subModule }, cacheOptions);
 }
 
 export default function ModulesRoute() {
-  const { lessons } = useLoaderData<typeof loader>();
+  const { lessons, lessonContent, subModule } = useLoaderData<typeof loader>();
+  const libraryId = "230663";
 
   return (
     <Container className="max-w-3xl lg:max-w-7xl">
-      <BackButton to="#" buttonText="Introduction to SE" />
-      <PageTitle title="Javascript" className="mb-8" />
+      {subModule?.moduleProgress ? (
+        <BackButton to="#" buttonText={subModule.moduleProgress.title} />
+      ) : null}
+      <PageTitle
+        title={subModule?.title ?? "Matters choke!"}
+        className="mb-8"
+      />
       <div className="lg:grid lg:grid-cols md:grid-cols-6 gap-6">
         <div className="col-span-4 flex flex-col gap-6 overflow-y-auto h-auto max-h-screen">
           <div className="col-span-3">
-            {/* <Markdown source={data.content} /> */}
-            {/* <DiagramIframe /> */}
-            {/* {data?.videoId ? (
-              <VideoIframe
-                className="mt-8"
-                libraryId={libraryId}
-                videoId={data.videoId}
-              />
-            ) : null} */}
+            {/* <React.Suspense fallback={<>loading...</>}>
+              <Await resolve={lessonContent}>
+                {(lessonContent) => (
+                  <>
+                    <Markdown source={lessonContent.content} />
+                    {lessonContent?.data?.videoId ? (
+                      <VideoIframe
+                        className="mt-8"
+                        libraryId={libraryId}
+                        videoId={lessonContent.data.videoId}
+                      />
+                    ) : null}
+                  </>
+                )}
+              </Await>
+            </React.Suspense> */}
           </div>
           <hr />
           {/* <Pagination /> */}
@@ -102,12 +65,12 @@ export default function ModulesRoute() {
 
         {/* mobile screens */}
         <SheetContent className="lg:hidden overflow-y-auto w-full sm:w-auto">
-          <ModuleSideContent lessons={lessons} />
+          <ModuleSideContent lessons={lessons} subModule={subModule} />
         </SheetContent>
 
         {/* large screens */}
         <aside className="hidden lg:block col-span-2 border bg-zinc-100 max-h-screen overflow-y-auto">
-          <ModuleSideContent lessons={lessons} />
+          <ModuleSideContent lessons={lessons} subModule={subModule} />
         </aside>
       </div>
     </Container>
