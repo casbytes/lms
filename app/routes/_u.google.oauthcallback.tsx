@@ -1,7 +1,7 @@
 import { LoaderFunctionArgs, redirect } from "@remix-run/node";
 import JWT from "jsonwebtoken";
 import { oauth2Client } from "~/services/google";
-import { commitSession, getUserSession } from "./sessions.server";
+import { commitSession, getUserSession } from "../utils/sessions.server";
 import { sendWelcomeEmail } from "~/services/mailtrap";
 import { prisma } from "~/libs/prisma.server";
 import { useRouteError } from "@remix-run/react";

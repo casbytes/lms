@@ -3,7 +3,7 @@ import matter from "gray-matter";
 import { Params } from "@remix-run/react";
 import { InternalServerError, NotFoundError } from "~/errors";
 import { getContentFromGithub } from "~/utils/octokit.server";
-import { getUser } from "../sessions.server";
+import { getUser } from "../../utils/sessions.server";
 import { prisma } from "~/libs/prisma.server";
 import {
   ILessonProgress,

@@ -13,7 +13,7 @@ import { Separator } from "~/components/ui/separator";
 import { SubModules } from "./components/sub-modules";
 import { Assessment } from "~/components/assessment";
 import { CourseSideContent } from "./components/course-side-content";
-import { cacheOptions } from "../sessions.server";
+import { cacheOptions } from "../../utils/sessions.server";
 import { PageTitle } from "~/components/page-title";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {

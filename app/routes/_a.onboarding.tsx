@@ -16,7 +16,7 @@ import { CgSpinnerTwo } from "react-icons/cg";
 import { FaArrowRightLong } from "react-icons/fa6";
 import { prisma } from "~/libs/prisma.server";
 import { readContent } from "~/utils/read-mdx-content.server";
-import { getUser } from "./sessions.server";
+import { getUser } from "../utils/sessions.server";
 import { Container } from "~/components/container";
 import { ErrorUI } from "~/components/error-ui";
 import { Markdown } from "~/components/markdown";

@@ -3,7 +3,11 @@ import {
   LoaderFunctionArgs,
   redirect,
 } from "@remix-run/node";
-import { destroySession, getUser, getUserSession } from "./sessions.server";
+import {
+  destroySession,
+  getUser,
+  getUserSession,
+} from "../utils/sessions.server";
 import { prisma } from "~/libs/prisma.server";
 import { useRouteError } from "@remix-run/react";
 import { RootErrorUI } from "~/components/root-error-ui";

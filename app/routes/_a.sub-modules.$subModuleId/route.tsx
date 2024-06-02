@@ -5,7 +5,7 @@ import {
   ShouldRevalidateFunctionArgs,
   useLoaderData,
 } from "@remix-run/react";
-import { cacheOptions } from "../sessions.server";
+import { cacheOptions } from "../../utils/sessions.server";
 import { getLessonContent, getLessons, getSubModule } from "./utils.server";
 import { PiSpinnerGap } from "react-icons/pi";
 import { BackButton } from "~/components/back-button";

@@ -1,5 +1,5 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
-import { checkUser } from "./sessions.server";
+import { checkUser } from "../utils/sessions.server";
 import { Outlet, useRouteError } from "@remix-run/react";
 import { ErrorUI } from "~/components/error-ui";
 import { InternalServerError } from "~/errors";
