@@ -1,6 +1,10 @@
 import React from "react";
-import { LoaderFunctionArgs, defer } from "@remix-run/node";
-import { Await, useLoaderData } from "@remix-run/react";
+import { ActionFunctionArgs, LoaderFunctionArgs, defer } from "@remix-run/node";
+import {
+  Await,
+  ShouldRevalidateFunctionArgs,
+  useLoaderData,
+} from "@remix-run/react";
 import { cacheOptions } from "../sessions.server";
 import { getLessonContent, getLessons, getSubModule } from "./utils.server";
 import { PiSpinnerGap } from "react-icons/pi";
@@ -13,21 +17,34 @@ import { Markdown } from "~/components/markdown";
 import { VideoIframe } from "~/components/video-iframe";
 import { Pagination } from "./components/pagination";
 import { Separator } from "~/components/ui/separator";
+import { Assessment } from "~/components/assessment";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
+  const { BUNNY_IFRAME_URL: iframeUrl, BUNNY_VIDEO_LIBRARY_ID: libraryId } =
+    process.env as Record<string, string>;
+  const videoCredentials = { iframeUrl, libraryId };
+
   const lessons = getLessons(request, params);
-  const lessonContent = getLessonContent(request, params);
+  const currentLesson = getLessonContent(request, params);
   const subModule = await getSubModule(request, params);
-  return defer({ lessons, lessonContent, subModule }, cacheOptions);
+
+  return defer(
+    { lessons, currentLesson, subModule, videoCredentials },
+    cacheOptions
+  );
 }
 
 export default function ModulesRoute() {
-  const { lessons, lessonContent, subModule } = useLoaderData<typeof loader>();
+  const { lessons, currentLesson, subModule, videoCredentials } =
+    useLoaderData<typeof loader>();
+
+  const redirectUrl = `/courses/${subModule?.moduleProgress?.courseProgressId}?moduleId=${subModule?.moduleProgressId}`;
+  const buttonText = subModule?.moduleProgress?.title;
 
   return (
     <Container className="max-w-3xl lg:max-w-7xl">
       {subModule?.moduleProgress ? (
-        <BackButton to="#" buttonText={subModule.moduleProgress.title} />
+        <BackButton to={redirectUrl} buttonText={buttonText} />
       ) : null}
       <PageTitle
         title={subModule?.title ?? "Matters choke!"}
@@ -36,30 +53,46 @@ export default function ModulesRoute() {
       <div className="lg:grid lg:grid-cols md:grid-cols-6 gap-6">
         <div className="col-span-4 flex flex-col gap-6 overflow-y-auto h-auto max-h-screen">
           <div className="col-span-3 min-h-full">
-            {/* <React.Suspense
+            <Assessment item={subModule} />
+            <Separator className="bg-sky-700 h-2 my-4 rounded-tl-md rounded-br-md" />
+            <React.Suspense
               fallback={
-                <div className="w-full h-full flex items-center justify-center rounded-md bg-slate-300 animate-pulse">
-                  <PiSpinnerGap size={100} className="animate-spin" />
+                <div className="w-full h-auto md:h-[calc(100vh-20rem)] flex items-center justify-center rounded-md bg-slate-300 animate-pulse">
+                  <PiSpinnerGap
+                    size={100}
+                    className="animate-spin text-slate-700"
+                  />
                 </div>
               }
             >
-              <Await resolve={lessonContent}>
-                {(lessonContent) => (
+              <Await resolve={currentLesson}>
+                {(currentLesson) => (
                   <>
-                    <Markdown source={lessonContent.content} />
-                    {lessonContent?.data?.videoId ? (
+                    <Markdown source={currentLesson.mdx.content} />
+                    {currentLesson?.mdx?.data?.videoId ? (
                       <VideoIframe
                         className="mt-8"
-                        videoId={lessonContent.data.videoId}
+                        videoCredentials={videoCredentials}
+                        videoId={currentLesson.mdx.data.videoId}
                       />
                     ) : null}
                   </>
                 )}
               </Await>
-            </React.Suspense> */}
+            </React.Suspense>
+            <Separator className="bg-sky-700 h-2 my-4 rounded-tl-md rounded-br-md" />
 
-            <Separator className="h-1 bg-slate-600" />
-            <Pagination />
+            <React.Suspense
+              fallback={
+                <div className="w-full h-8 rounded-md bg-slate-300 animate-pulse" />
+              }
+            >
+              <Await resolve={currentLesson}>
+                {(currentLesson) => (
+                  <Pagination currentLessonData={currentLesson} />
+                )}
+              </Await>
+            </React.Suspense>
           </div>
         </div>
 
@@ -69,7 +102,7 @@ export default function ModulesRoute() {
         </SheetContent>
 
         {/* large screens */}
-        <aside className="hidden lg:block col-span-2 border bg-zinc-100 max-h-screen overflow-y-auto">
+        <aside className="hidden lg:block col-span-2 border bg-zinc-100 h-auto max-h-screen overflow-y-auto">
           <ModuleSideContent lessons={lessons} subModule={subModule} />
         </aside>
       </div>

@@ -11,7 +11,7 @@ import { Container } from "~/components/container";
 import { SheetContent } from "~/components/ui/sheet";
 import { Separator } from "~/components/ui/separator";
 import { SubModules } from "./components/sub-modules";
-import { Assessment } from "./components/assessment";
+import { Assessment } from "~/components/assessment";
 import { CourseSideContent } from "./components/course-side-content";
 import { cacheOptions } from "../sessions.server";
 import { PageTitle } from "~/components/page-title";
@@ -35,7 +35,7 @@ export default function CoursesRoute() {
         <ul className="col-span-3 flex flex-col gap-6 overflow-y-auto h-auto max-h-screen">
           <div className="bg-[url('https://cdn.casbytes.com/assets/elearning2.png')] bg-no-repeat bg-contain">
             <div className="flex flex-col gap-6 bg-slate-100/90">
-              <Assessment module={module} />
+              <Assessment item={module} />
               <Separator className="bg-sky-700 h-2 rounded-tl-md rounded-br-md" />
               <SubModules subModules={subModules} />
             </div>

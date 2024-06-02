@@ -1,10 +1,10 @@
 import React from "react";
 import { Await } from "@remix-run/react";
 import { SubModuleItem } from "./sub-module-item";
-import { ISubmoduleProgress } from "~/constants/types";
+import { ISubModuleProgress } from "~/constants/types";
 
 type SubModulesProps = {
-  subModules: Promise<ISubmoduleProgress[]>;
+  subModules: Promise<ISubModuleProgress[]>;
 };
 
 export function SubModules({ subModules }: SubModulesProps) {

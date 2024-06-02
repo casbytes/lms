@@ -92,6 +92,7 @@ model ModuleProgress {
   slug              String
   score             Int                 @default(0)
   status            String              @default("LOCKED") //LOCKED, IN_PROGRESS, COMPLETED
+  order             Int
   courseProgressId  String
   users             User[]
   courseProgress    CourseProgress      @relation(fields: [courseProgressId], references: [id])
@@ -107,6 +108,7 @@ model SubModuleProgress {
   slug             String
   score            Int              @default(0)
   status           String           @default("LOCKED") //LOCKED, IN_PROGRESS, COMPLETED
+  order            Int
   moduleProgressId String
   users            User[]
   moduleProgress   ModuleProgress   @relation(fields: [moduleProgressId], references: [id])
@@ -154,7 +156,7 @@ model Checkpoint {
 model Test {
   id                  String             @id @default(uuid())
   title               String
-  status              String             @default("LOCKED") //LOCKED,  COMPLETED
+  status              String             @default("LOCKED") //LOCKED, AVAILABLE  COMPLETED
   score               Int                @default(0)
   attempts            Int                @default(0)
   attempted           Boolean            @default(false)

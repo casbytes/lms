@@ -14,17 +14,19 @@ export function Modules({ modules }: ModulesProps) {
     true
   );
 
-  const [, setSearchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   React.useEffect(() => {
     if (firstRender) {
-      setSearchParams((params) => {
-        params.set("moduleId", modules[0]?.id);
-        return params;
-      });
+      if (!searchParams.get("moduleId") && modules[0]?.id) {
+        setSearchParams((params) => {
+          params.set("moduleId", modules[0].id);
+          return params;
+        });
+      }
       setFirstRender(false);
     }
-  }, []);
+  }, [firstRender, setFirstRender, searchParams, setSearchParams, modules]);
 
   return (
     <ul className="space-y-3">

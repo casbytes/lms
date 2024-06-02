@@ -118,11 +118,13 @@ export async function addCourseToCatalog(userId: string, courseId: string) {
        * Create module progress, sub module progress, lesson progress, test * * * checkpoint
        */
       await Promise.all(
-        course.modules.map(async (module) => {
+        course.modules.map(async (module, index) => {
+          const currentOrder = index + 1;
           const moduleProgress = await txn.moduleProgress.create({
             data: {
               title: module.title,
               slug: module.slug,
+              order: currentOrder,
               users: { connect: { id: userId } },
               courseProgress: { connect: { id: courseProgress.id } },
               test: {
@@ -144,11 +146,13 @@ export async function addCourseToCatalog(userId: string, courseId: string) {
            * Create sub module progress, lesson progress, test, and checkpoint
            */
           await Promise.all(
-            module?.subModules?.map(async (subModule) => {
+            module?.subModules?.map(async (subModule, index) => {
+              const currentOrder = index + 1;
               const subModuleProgress = await txn.subModuleProgress.create({
                 data: {
                   title: subModule.title,
                   slug: subModule.slug,
+                  order: currentOrder,
                   users: { connect: { id: userId } },
                   moduleProgress: { connect: { id: moduleProgress.id } },
                   test: {

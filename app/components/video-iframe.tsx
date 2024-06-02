@@ -5,9 +5,13 @@ import { cn } from "~/libs/shadcn";
 type IframeProps = {
   videoId: string;
   className?: string;
+  videoCredentials: {
+    iframeUrl: string;
+    libraryId: string;
+  };
 };
 
-export function IFrame({ videoId, className }: IframeProps) {
+export function IFrame({ videoId, videoCredentials, className }: IframeProps) {
   const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
@@ -29,8 +33,8 @@ export function IFrame({ videoId, className }: IframeProps) {
     <div className={cn("relative pt-[56.25%]", className)}>
       <iframe
         id="iframe"
-        src={`${process.env.BUNNY_IFRAME_URL}/embed/${Number(
-          process.env.BUNNY_VIDEO_LIBRARY_ID
+        src={`${videoCredentials.iframeUrl}/embed/${Number(
+          videoCredentials.libraryId
         )}/${videoId}?autoplay=false&loop=false&muted=false&preload=true&responsive=true`}
         loading="lazy"
         className={cn(
@@ -42,10 +46,10 @@ export function IFrame({ videoId, className }: IframeProps) {
         allowFullScreen
       ></iframe>
       {isLoading ? (
-        <div className="bg-2 bg-no-repeat bg-cover absolute top-0 left-0 w-full h-full rounded-md animate-pulse bg-slate-800 bg-opacity-50 flex items-center justify-center">
+        <div className="absolute top-0 left-0 w-full h-full rounded-md animate-pulse bg-slate-400 bg-opacity-50 flex items-center justify-center">
           <AiOutlineLoading3Quarters
             size={50}
-            className="text-slate-100 animate-spin"
+            className="text-slate-500 animate-spin"
           />
         </div>
       ) : null}

@@ -67,6 +67,9 @@ export async function getModules(
         users: { some: { id: userId } },
         courseProgressId: courseProgressId,
       },
+      orderBy: {
+        order: "asc",
+      },
     });
 
     /**
@@ -160,6 +163,9 @@ export async function getSubModules(
       where: {
         users: { some: { id: userId } },
         moduleProgressId: moduleIdToUse,
+      },
+      orderBy: {
+        order: "asc",
       },
       include: {
         moduleProgress: {

@@ -74,6 +74,7 @@ export interface IModuleProgress {
   slug: string;
   score: number;
   status: string;
+  order: number;
   courseProgressId: string;
   users?: ICurrentUser[];
   courseProgress?: ICourseProgress;
@@ -89,6 +90,7 @@ export interface ISubModuleProgress {
   slug: string;
   score: number;
   status: string;
+  order: number;
   moduleProgressId?: string;
   users?: ICurrentUser[];
   moduleProgress?: IModuleProgress;
@@ -102,6 +104,7 @@ export interface ILessonProgress {
   title: string;
   slug: string;
   status: string;
+  order: number;
   subModuleProgressId: string;
   users?: ICurrentUser[];
   subModuleProgress?: ISubModuleProgress;
@@ -169,6 +172,7 @@ export enum Status {
 
 export enum TestStatus {
   LOCKED = "LOCKED",
+  AVAILABLE = "AVAILABLE",
   COMPLETED = "COMPLETED",
 }
 

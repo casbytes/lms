@@ -23,7 +23,7 @@ export function SubModuleItem({ item, index }: SubModuleItemProps) {
   return (
     <>
       <Button
-        disabled={locked}
+        // disabled={locked}
         className="rounded-md text-black bg-stone-200 hover:bg-stone-300 py-4 relative border-b-2 border-zinc-600"
       >
         <Link

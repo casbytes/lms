@@ -17,9 +17,7 @@ export function ModuleSideContent({
 }: ModuleSideContentProps) {
   return (
     <>
-      {subModule ? (
-        <CourseTitle title={capitalizeFirstLetter(subModule.title)} />
-      ) : null}
+      {subModule ? <CourseTitle title="Lessons" /> : null}
       <React.Suspense fallback={<PendingStatus />}>
         <Await resolve={lessons}>
           {(lessons) => <Status status={lessons} />}

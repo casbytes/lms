@@ -1,4 +1,4 @@
-import { useNavigation, useSubmit } from "@remix-run/react";
+import { useNavigation, useSearchParams, useSubmit } from "@remix-run/react";
 import { BsLockFill, BsUnlockFill } from "react-icons/bs";
 import { CgSpinnerTwo } from "react-icons/cg";
 import { FiCheckCircle } from "react-icons/fi";
@@ -15,9 +15,11 @@ type ModuleItemProps = {
 };
 
 export function ModuleItem({ module, index }: ModuleItemProps) {
+  const [searchParams] = useSearchParams();
   const submit = useSubmit();
   const navigation = useNavigation();
   const moduleId = navigation.formData?.get("moduleId");
+  const currentModuleId = searchParams.get("moduleId");
 
   const completed = module.status === Status.COMPLETED;
   const inProgress = module.status === Status.IN_PROGRESS;
@@ -33,6 +35,8 @@ export function ModuleItem({ module, index }: ModuleItemProps) {
           "overflow-x-auto flex border-l-8 border-b-2 text-zinc-700 border-zinc-500 bg-zinc-200 hover:bg-zinc-300 justify-between w-full text-lg",
           {
             "border-sky-600": completed,
+            "border-sky-700 text-sky-800 bg-zinc-200/50":
+              currentModuleId === module.id,
           }
         )}
       >
