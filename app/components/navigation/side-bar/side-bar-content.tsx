@@ -1,5 +1,6 @@
-import { ChevronLeft, ChevronRight, LogOut } from "lucide-react";
 import { Link } from "@remix-run/react";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
+import { FiLogOut } from "react-icons/fi";
 import { cn } from "~/libs/shadcn";
 import { useSideBar } from "./side-bar-context";
 import { SignOutButton } from "~/components/signout-form";
@@ -28,9 +29,9 @@ export function SideBarContent({ ...props }) {
           aria-label={isOpen ? "close sidebar" : "open sidebar"}
         >
           {isOpen ? (
-            <ChevronLeft size={35} className="text-red-500" />
+            <FaChevronLeft size={35} className="text-red-500" />
           ) : (
-            <ChevronRight size={35} className="text-black" />
+            <FaChevronRight size={35} className="text-black" />
           )}
         </Button>
       </div>
@@ -42,7 +43,7 @@ export function SideBarContent({ ...props }) {
         <Separator />
         <SignOutButton
           icon={
-            <LogOut
+            <FiLogOut
               size={30}
               className="text-red-500 hover:opacity-70 duration-300"
             />

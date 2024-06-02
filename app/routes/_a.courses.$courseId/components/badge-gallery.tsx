@@ -1,14 +1,18 @@
-import { CircleCheckBig, LockKeyhole } from "lucide-react";
 import { Badge } from "~/components/ui/badge";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
+import { BadgeStatus, IBadge } from "~/constants/types";
 import { cn } from "~/libs/shadcn";
 import { capitalizeFirstLetter } from "~/utils/cs";
 
-export function BadgeGallery({ badges }: any) {
+type BadgeGalleryProps = {
+  badges: IBadge[];
+};
+
+export function BadgeGallery({ badges }: BadgeGalleryProps) {
   return (
     <>
       <p className="mx-4 text-sm opacity-80">
@@ -16,8 +20,8 @@ export function BadgeGallery({ badges }: any) {
       </p>
       <ul className="flex justify-evenly flex-wrap gap-4 p-2 mb-2">
         {badges.map((badge: any) => {
-          const LOCKED = badge.status === "LOCKED";
-          const UNLOCKED = badge.status === "UNLOCKED";
+          const LOCKED = badge.status === BadgeStatus.LOCKED;
+          const UNLOCKED = badge.status === BadgeStatus.UNLOCKED;
 
           return (
             <Popover key={badge.id}>

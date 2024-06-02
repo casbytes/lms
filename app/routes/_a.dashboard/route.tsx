@@ -1,15 +1,15 @@
-import React from "react";
 import { ActionFunctionArgs, LoaderFunctionArgs, defer } from "@remix-run/node";
 import { Container } from "~/components/container";
 import { PageTitle } from "~/components/page-title";
-import { Await, useLoaderData } from "@remix-run/react";
-import { CoursesCard } from "./components/courses-card";
+import { useLoaderData } from "@remix-run/react";
 import { MembershipCard } from "~/components/membership-card";
 import { DiscordCard } from "~/components/discord-card";
 import { UserCard } from "./components/user-card";
 import { Statistics } from "./components/user-statistics";
-import { addCourseToCatalog, getCourses, getUserCourses } from "./utils";
-import { getUser } from "../sessions";
+import { addCourseToCatalog, getCourses, getUserCourses } from "./utils.server";
+import { getUser } from "../sessions.server";
+import { BadRequestError, InternalServerError } from "~/errors";
+import { Courses } from "./components/courses";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   try {
@@ -18,7 +18,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const user = await getUser(request);
     return defer({ data, userCourses, user });
   } catch (error) {
-    throw new Error("Failed to load dashboard data, please try again.");
+    throw new InternalServerError("Error getting courses.");
   }
 }
 
@@ -26,20 +26,17 @@ export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
   const intent = formData.get("intent");
   const courseId = String(formData.get("courseId"));
-  const { userId } = await getUser(request);
+  const { id: userId } = await getUser(request);
 
   try {
-    if (intent === "addCourseToCatalog") {
-      await addCourseToCatalog(userId, courseId);
-    } else {
-      throw new Error("Invalid catalog intent");
+    if (intent !== "addCourseToCatalog") {
+      throw new BadRequestError("Invalid form data.");
     }
+    await addCourseToCatalog(userId, courseId);
+    return null;
   } catch (error) {
-    console.error(error);
-
-    throw new Error("Failed to add course to catalog");
+    throw new InternalServerError();
   }
-  return null;
 }
 
 export default function Dashboard() {
@@ -51,20 +48,12 @@ export default function Dashboard() {
         <PageTitle title="Dashboard" className="mb-12" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white p-4 rounded-md drop-shadow-sm">
           <div className="flex gap-10 flex-col">
-            <React.Suspense fallback={<>Loading...</>}>
-              <Await resolve={data}>
-                {(data) => <CoursesCard data={data} />}
-              </Await>
-            </React.Suspense>
+            <Courses data={data} />
             <DiscordCard />
           </div>
           <div className="flex flex-col gap-10 order-first md:order-last">
             <UserCard user={user} />
-            <React.Suspense fallback={<>Loading...</>}>
-              <Await resolve={userCourses}>
-                {(userCourses) => <Statistics userCourses={userCourses} />}
-              </Await>
-            </React.Suspense>
+            <Statistics userCourses={userCourses} />
             <MembershipCard />
           </div>
         </div>

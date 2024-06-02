@@ -16,7 +16,8 @@ export function RootLayout() {
     (match) =>
       match.id.includes("signout") ||
       match.id.includes("google") ||
-      match.id.includes("github")
+      match.id.includes("github") ||
+      match.id.includes("healthcheck")
   );
   const menuItems = auth ? authMenuItems : unAuthMenuItems;
   return (

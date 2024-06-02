@@ -1,5 +1,5 @@
 import { Link } from "@remix-run/react";
-import { ArrowLeft } from "lucide-react";
+import { FaArrowLeft } from "react-icons/fa6";
 import { cn } from "~/libs/shadcn";
 import { Button } from "./ui/button";
 
@@ -23,7 +23,7 @@ export function BackButton({
       asChild
     >
       <Link to={to}>
-        <ArrowLeft size={30} className="mr-2" />
+        <FaArrowLeft size={30} className="mr-2" />
         {buttonText}
         {children}
       </Link>

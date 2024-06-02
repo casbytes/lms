@@ -28,7 +28,6 @@ async function go() {
 
   console.log("Starting server...");
   await exec("remix-serve ./build/server/index.js");
-  console.log("Server started!");
 }
 go();
 

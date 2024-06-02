@@ -1,5 +1,4 @@
 import { useNavigate, useNavigation } from "@remix-run/react";
-import { XCircle } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -8,6 +7,7 @@ import {
   CardTitle,
 } from "./ui/card";
 import { Button } from "./ui/button";
+import { BsXCircle } from "react-icons/bs";
 
 type ErrorUIProps = {
   error: Error | null | undefined | unknown;
@@ -20,7 +20,7 @@ export function ErrorUI({ error }: ErrorUIProps) {
   return (
     <Card className="flex flex-col gap-4 max-w-3xl mx-auto bg-red-200 overflow-x-auto mt-10">
       <CardHeader>
-        <XCircle size={100} className="text-red-500  mx-auto font-bold" />
+        <BsXCircle size={100} className="text-red-500  mx-auto font-bold" />
         <CardTitle className="capitalize text-4xl font-medium text-center">
           Error!
         </CardTitle>

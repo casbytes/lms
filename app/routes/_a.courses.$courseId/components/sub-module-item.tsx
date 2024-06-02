@@ -1,25 +1,33 @@
 import { Link, useSearchParams } from "@remix-run/react";
-import { CircleCheckBig, CircleDotDashed, Lock } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/libs/shadcn";
 import { capitalizeFirstLetter } from "~/utils/cs";
 import { FaCheckSquare } from "react-icons/fa";
 import { IoShieldCheckmarkSharp } from "react-icons/io5";
 import { MdQuiz } from "react-icons/md";
+import { LuCircleDotDashed } from "react-icons/lu";
+import { FiCheckCircle } from "react-icons/fi";
+import { SlLock } from "react-icons/sl";
+import { ISubModuleProgress, Status } from "~/constants/types";
 
-export function SubModuleItem({ item, index }: any) {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const locked = item.status === "LOCKED";
-  const inProgress = item.status === "IN_PROGRESS";
-  const completed = item.status === "COMPLETED";
+type SubModuleItemProps = {
+  item: ISubModuleProgress;
+  index: number;
+};
+
+export function SubModuleItem({ item, index }: SubModuleItemProps) {
+  const locked = item.status === Status.LOCKED;
+  const inProgress = item.status === Status.IN_PROGRESS;
+  const completed = item.status === Status.COMPLETED;
 
   return (
     <>
       <Button
-        disabled={locked}
+        // disabled={locked}
         className="rounded-md text-black bg-stone-200 hover:bg-stone-300 py-4 relative border-b-2 border-zinc-600"
       >
         <Link
+          prefetch="intent"
           to={`/sub-modules/${item.id}`}
           className="flex flex-1 justify-between items-center p-2"
         >
@@ -34,30 +42,23 @@ export function SubModuleItem({ item, index }: any) {
             {index + 1}
           </div>
           <div className="text-lg pl-6 overflow-x-auto flex gap-4 items-center">
-            {capitalizeFirstLetter(item.title)}
-            {item.title === "checkpoint" ? (
-              <IoShieldCheckmarkSharp className="text-green-700" />
-            ) : item.title === "test" ? (
-              <MdQuiz className="text-blue-700" />
-            ) : null}
+            {capitalizeFirstLetter(item?.title)}
           </div>
           {locked ? (
-            <Lock size={20} className="absolute sm:static right-2" />
+            <SlLock size={20} className="absolute sm:static right-2" />
           ) : inProgress ? (
-            <CircleDotDashed
+            <LuCircleDotDashed
               size={20}
               className="text-sky-700 absolute sm:static right-2"
             />
           ) : (
-            <CircleCheckBig
+            <FiCheckCircle
               size={20}
               className="text-sky-700 absolute sm:static right-2"
             />
           )}
         </Link>
       </Button>
-
-      {/* <TestItem test={test} index={index} /> */}
     </>
   );
 }
