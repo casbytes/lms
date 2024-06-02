@@ -2,7 +2,6 @@ import axios from "axios";
 import { LoaderFunctionArgs, redirect } from "@remix-run/node";
 import { useRouteError } from "@remix-run/react";
 import { commitSession, getUserSession } from "../utils/sessions.server";
-import { sendWelcomeEmail } from "~/services/mailtrap";
 import { prisma } from "~/libs/prisma.server";
 import { RootErrorUI } from "~/components/root-error-ui";
 

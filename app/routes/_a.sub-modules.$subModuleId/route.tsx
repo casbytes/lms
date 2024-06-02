@@ -1,11 +1,7 @@
 import React from "react";
-import { ActionFunctionArgs, LoaderFunctionArgs, defer } from "@remix-run/node";
-import {
-  Await,
-  ShouldRevalidateFunctionArgs,
-  useLoaderData,
-} from "@remix-run/react";
-import { cacheOptions } from "../../utils/sessions.server";
+import { LoaderFunctionArgs, defer } from "@remix-run/node";
+import { Await, useLoaderData } from "@remix-run/react";
+import { cacheOptions } from "~/utils/sessions.server";
 import { getLessonContent, getLessons, getSubModule } from "./utils.server";
 import { PiSpinnerGap } from "react-icons/pi";
 import { BackButton } from "~/components/back-button";
