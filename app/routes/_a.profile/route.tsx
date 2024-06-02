@@ -11,7 +11,7 @@ import { ActionFunctionArgs, LoaderFunctionArgs, json } from "@remix-run/node";
 import { Dialog } from "~/components/ui/dialog";
 import { AccountDeleteDialog } from "./components/account-delete-dialog";
 import { prisma } from "~/libs/prisma.server";
-import { getUser, signOut } from "../sessions.server";
+import { getUser, signOut } from "../../utils/sessions.server";
 import { Cv } from "./components/cv";
 import { BadRequestError, InternalServerError } from "~/errors";
 

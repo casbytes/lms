@@ -1,5 +1,5 @@
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
-import { ICurrentUser, ISessionUser, IUser } from "~/constants/types";
+import { ICurrentUser, ISessionUser } from "~/constants/types";
 import {
   InternalServerError,
   NotFoundError,

@@ -7,7 +7,7 @@ import { DiscordCard } from "~/components/discord-card";
 import { UserCard } from "./components/user-card";
 import { Statistics } from "./components/user-statistics";
 import { addCourseToCatalog, getCourses, getUserCourses } from "./utils.server";
-import { getUser } from "../sessions.server";
+import { getUser } from "../../utils/sessions.server";
 import { BadRequestError, InternalServerError } from "~/errors";
 import { Courses } from "./components/courses";
 
