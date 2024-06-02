@@ -1,15 +1,15 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
-import { getUser } from "./sessions";
+import { checkUser } from "./sessions.server";
 import { Outlet, useRouteError } from "@remix-run/react";
 import { ErrorUI } from "~/components/error-ui";
+import { InternalServerError } from "~/errors";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
-    await getUser(request);
+    return checkUser(request);
   } catch (error) {
-    throw new Error("Unauthorized");
+    throw new InternalServerError();
   }
-  return null;
 };
 
 export default function AuthApp() {

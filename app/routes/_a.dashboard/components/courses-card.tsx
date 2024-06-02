@@ -13,11 +13,11 @@ import {
 } from "~/components/ui/table";
 import { Button } from "~/components/ui/button";
 
-export function CoursesCard({
-  data,
-}: {
+type CoursesCardProps = {
   data: { courses: ICourse[]; inCatalog: boolean };
-}) {
+};
+
+export function CoursesCard({ data }: CoursesCardProps) {
   const { inCatalog, courses } = data;
   const fetcher = useFetcher();
   const navigation = useNavigation();

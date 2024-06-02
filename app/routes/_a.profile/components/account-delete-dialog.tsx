@@ -1,7 +1,7 @@
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { Form, useNavigation } from "@remix-run/react";
-import { AlertCircle } from "lucide-react";
 import { CgSpinnerTwo } from "react-icons/cg";
+import { IoAlertCircleOutline } from "react-icons/io5";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
 import {
@@ -21,7 +21,7 @@ export function AccountDeleteDialog({ user }: any) {
           Are you sure you want to delete your account?
         </DialogTitle>
         <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
+          <IoAlertCircleOutline className="h-4 w-4" />
           <AlertTitle>Warning</AlertTitle>
           <AlertDescription>
             This action is irreversible. All your data will be lost.

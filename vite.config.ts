@@ -1,4 +1,3 @@
-/// <reference types="vitest" />
 import { vitePlugin as remix } from "@remix-run/dev";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 import { installGlobals } from "@remix-run/node";

@@ -1,5 +1,4 @@
 import { LuLayoutDashboard } from "react-icons/lu";
-import { FaRegCalendarAlt } from "react-icons/fa";
 import { GoProjectRoadmap } from "react-icons/go";
 import {
   FaRegCalendarCheck,

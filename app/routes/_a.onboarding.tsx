@@ -11,17 +11,18 @@ import {
   useRouteError,
   useNavigation,
 } from "@remix-run/react";
-import { CheckCircle } from "lucide-react";
+import { FiCheckCircle } from "react-icons/fi";
 import { CgSpinnerTwo } from "react-icons/cg";
 import { FaArrowRightLong } from "react-icons/fa6";
 import { prisma } from "~/libs/prisma.server";
 import { readContent } from "~/utils/read-mdx-content.server";
-import { getUser } from "./sessions";
+import { getUser } from "./sessions.server";
 import { Container } from "~/components/container";
 import { ErrorUI } from "~/components/error-ui";
 import { Markdown } from "~/components/markdown";
 import { PageTitle } from "~/components/page-title";
 import { Button } from "~/components/ui/button";
+import { BadRequestError, InternalServerError } from "~/errors";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   try {
@@ -29,9 +30,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
       getUser(request),
       readContent("onboarding.mdx"),
     ]);
+    if (!user) throw new BadRequestError("User not found.");
     return json({ content, user });
   } catch (error) {
-    throw new Error("Failed to load onboarding content, please try again.");
+    throw new InternalServerError();
   }
 }
 
@@ -39,26 +41,24 @@ export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
   const intent = formData.get("intent");
   const userId = String(formData.get("userId"));
+
+  if (intent !== "markAsCompleted" || !userId) {
+    throw new BadRequestError("Invalid form data.");
+  }
+
   try {
-    if (intent === "markAsCompleted" && userId) {
-      await prisma.user.update({
-        where: { id: userId },
-        data: { completedOnboarding: true },
-      });
-      return redirect("/dashboard");
-    } else {
-      throw new Error("Unknown onboarding intent.");
-    }
+    await prisma.user.update({
+      where: { id: userId },
+      data: { completedOnboarding: true },
+    });
+    return redirect("/dashboard");
   } catch (error) {
-    throw new Error(
-      "Failed to mark onboarding as completed, please try again."
-    );
+    throw new InternalServerError();
   }
 }
 
 export default function Onboarding() {
   const { user, content } = useLoaderData<typeof loader>();
-
   const navigation = useNavigation();
   const isLoading = navigation.formData?.get("intent") === "markAsCompleted";
 
@@ -75,7 +75,7 @@ export default function Onboarding() {
           </Button>
         ) : (
           <Form method="post" className="block">
-            <input type="hidden" name="userId" value={user.userId} required />
+            <input type="hidden" name="userId" value={user.id} required />
             <Button
               type="submit"
               name="intent"
@@ -85,7 +85,7 @@ export default function Onboarding() {
               {isLoading ? (
                 <CgSpinnerTwo className="mr-4 animate-spin" />
               ) : (
-                <CheckCircle className="mr-4" />
+                <FiCheckCircle className="mr-4" />
               )}
               mark as completed
             </Button>

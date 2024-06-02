@@ -1,16 +1,25 @@
 import { ICourse, ICourseProgress } from "~/constants/types";
-import { getUser } from "../sessions";
+import { getUser } from "../sessions.server";
 import { prisma } from "~/libs/prisma.server";
+import { InternalServerError, NotFoundError } from "~/errors";
 
 /**
  * Get user courses
  * @param {Request} request
  * @returns {Promise<ICourseProgress[]>}
  */
-export async function getUserCourses(request: Request): Promise<any> {
-  const { userId } = await getUser(request);
+export async function getUserCourses(
+  request: Request
+): Promise<ICourseProgress[]> {
+  const { id: userId } = await getUser(request);
   const userCourses = await prisma.courseProgress.findMany({
-    where: { userId },
+    where: {
+      users: {
+        some: {
+          id: userId,
+        },
+      },
+    },
   });
   return userCourses;
 }
@@ -23,7 +32,11 @@ export async function getUserCourses(request: Request): Promise<any> {
 export async function checkCatalog(userId: string): Promise<boolean> {
   const courses = await prisma.courseProgress.findMany({
     where: {
-      userId,
+      users: {
+        some: {
+          id: userId,
+        },
+      },
       NOT: {
         status: "COMPLETED",
       },
@@ -41,7 +54,7 @@ export async function checkCatalog(userId: string): Promise<boolean> {
 export async function getCourses(
   request: Request
 ): Promise<{ courses: ICourse[]; inCatalog: boolean }> {
-  const { userId } = await getUser(request);
+  const { id: userId } = await getUser(request);
   const inCatalog = await checkCatalog(userId);
   const courses = await prisma.course.findMany({ where: { published: true } });
   return { courses, inCatalog };
@@ -71,7 +84,7 @@ export async function addCourseToCatalog(userId: string, courseId: string) {
     });
 
     if (!course) {
-      throw new Error(`No course found with given ID: ${courseId}`);
+      throw new NotFoundError("Course not found.");
     }
 
     /**
@@ -85,7 +98,16 @@ export async function addCourseToCatalog(userId: string, courseId: string) {
         data: {
           title: course.title,
           slug: course.slug,
-          user: { connect: { id: userId } },
+          users: {
+            connect: { id: userId },
+          },
+          project: {
+            create: {
+              title: `${course.title} project`,
+              slug: course.slug,
+              contributors: { connect: { id: userId } },
+            },
+          },
         },
         include: {
           moduleProgress: true,
@@ -96,42 +118,55 @@ export async function addCourseToCatalog(userId: string, courseId: string) {
        * Create module progress, sub module progress, lesson progress, test * * * checkpoint
        */
       await Promise.all(
-        course.modules.map(async (module) => {
+        course.modules.map(async (module, index) => {
+          const currentOrder = index + 1;
           const moduleProgress = await txn.moduleProgress.create({
             data: {
               title: module.title,
               slug: module.slug,
-              user: { connect: { id: userId } },
-              course: { connect: { id: courseProgress.id } },
+              order: currentOrder,
+              users: { connect: { id: userId } },
+              courseProgress: { connect: { id: courseProgress.id } },
+              test: {
+                create: {
+                  title: `${module.title} test`,
+                  users: { connect: { id: userId } },
+                },
+              },
+              checkpoint: {
+                create: {
+                  title: `${module.title} checkpoint`,
+                  users: { connect: { id: userId } },
+                },
+              },
             },
           });
-
-          /**
-           * Update the first module to be in progress
-           * This is to ensure the user starts from the first module
-           */
-          // if (moduleProgress.id === courseProgress.moduleProgress[0].id) {
-          //   await prisma.moduleProgress.update({
-          //     where: {
-          //       id: moduleProgress.id,
-          //     },
-          //     data: {
-          //       status: "IN_PROGRESS",
-          //     },
-          //   });
-          // }
 
           /**
            * Create sub module progress, lesson progress, test, and checkpoint
            */
           await Promise.all(
-            module?.subModules?.map(async (subModule) => {
+            module?.subModules?.map(async (subModule, index) => {
+              const currentOrder = index + 1;
               const subModuleProgress = await txn.subModuleProgress.create({
                 data: {
                   title: subModule.title,
                   slug: subModule.slug,
-                  user: { connect: { id: userId } },
-                  module: { connect: { id: moduleProgress.id } },
+                  order: currentOrder,
+                  users: { connect: { id: userId } },
+                  moduleProgress: { connect: { id: moduleProgress.id } },
+                  test: {
+                    create: {
+                      title: `${subModule.title} test`,
+                      users: { connect: { id: userId } },
+                    },
+                  },
+                  checkpoint: {
+                    create: {
+                      title: `${subModule.title} checkpoint`,
+                      users: { connect: { id: userId } },
+                    },
+                  },
                 },
               });
 
@@ -139,42 +174,21 @@ export async function addCourseToCatalog(userId: string, courseId: string) {
                * Create lesson progress
                */
               await Promise.all(
-                subModule?.lessons?.map(async (lesson) => {
+                subModule?.lessons?.map(async (lesson, index) => {
+                  const currentOrder = index + 1;
                   await txn.lessonProgress.create({
                     data: {
                       title: lesson.title,
                       slug: lesson.slug,
-                      user: { connect: { id: userId } },
-                      subModule: { connect: { id: subModuleProgress.id } },
+                      order: currentOrder,
+                      users: { connect: { id: userId } },
+                      subModuleProgress: {
+                        connect: { id: subModuleProgress.id },
+                      },
                     },
                   });
                 })
               );
-
-              /**
-               * Create test, trophies, and checkpoint for sub module
-               */
-              if (subModuleProgress) {
-                await txn.test.create({
-                  data: {
-                    title: `${subModuleProgress.title} test`,
-                    user: { connect: { id: userId } },
-                    subModuleProgress: {
-                      connect: { id: subModuleProgress.id },
-                    },
-                  },
-                });
-
-                await txn.checkpoint.create({
-                  data: {
-                    title: `${subModuleProgress.title} checkpoint`,
-                    user: { connect: { id: userId } },
-                    subModuleProgress: {
-                      connect: { id: subModuleProgress.id },
-                    },
-                  },
-                });
-              }
             })
           );
 
@@ -185,16 +199,16 @@ export async function addCourseToCatalog(userId: string, courseId: string) {
             await txn.test.create({
               data: {
                 title: `${moduleProgress.title} test`,
-                user: { connect: { id: userId } },
                 moduleProgress: { connect: { id: moduleProgress.id } },
+                users: { connect: { id: userId } },
               },
             });
 
             await txn.checkpoint.create({
               data: {
                 title: `${moduleProgress.title} checkpoint`,
-                user: { connect: { id: userId } },
                 moduleProgress: { connect: { id: moduleProgress.id } },
+                users: { connect: { id: userId } },
               },
             });
 
@@ -227,28 +241,18 @@ export async function addCourseToCatalog(userId: string, courseId: string) {
                 locked_description: badge.locked_description,
                 unlocked_description: badge.unlocked_description,
                 level: badge.title.toUpperCase(),
-                userId: userId,
                 moduleProgressId: moduleProgress.id,
+                userId,
               })),
             });
           }
         })
       );
-
-      /**
-       * Create project for the course
-       */
-      await txn.project.create({
-        data: {
-          title: `${courseProgress.title} project`,
-          slug: course.slug,
-          user: { connect: { id: userId } },
-          courseProgress: { connect: { id: courseProgress.id } },
-        },
-      });
     });
   } catch (error) {
     console.error(error);
-    throw new Error("Failed to add course to your catalog, please try again.");
+    throw new InternalServerError(
+      "An error occurred while adding course to catalog, please try again."
+    );
   }
 }

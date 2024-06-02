@@ -2,21 +2,31 @@ import React from "react";
 import { useSearchParams } from "@remix-run/react";
 import { ModuleItem } from "./module-item";
 import { useLocalStorageState } from "~/utils/hooks";
+import { IModuleProgress } from "~/constants/types";
 
-export function Modules({ modules }: any) {
-  const [fR, setFR] = useLocalStorageState("fR", true);
+type ModulesProps = {
+  modules: IModuleProgress[];
+};
 
-  const [, setSearchParams] = useSearchParams();
+export function Modules({ modules }: ModulesProps) {
+  const [firstRender, setFirstRender] = useLocalStorageState(
+    "moduleFirstRender",
+    true
+  );
+
+  const [searchParams, setSearchParams] = useSearchParams();
 
   React.useEffect(() => {
-    if (fR) {
-      setSearchParams((params) => {
-        params.set("moduleId", modules[0]?.id);
-        return params;
-      });
-      setFR(false);
+    if (firstRender) {
+      if (!searchParams.get("moduleId") && modules[0]?.id) {
+        setSearchParams((params) => {
+          params.set("moduleId", modules[0].id);
+          return params;
+        });
+      }
+      setFirstRender(false);
     }
-  }, []);
+  }, [firstRender, setFirstRender, searchParams, setSearchParams, modules]);
 
   return (
     <ul className="space-y-3">

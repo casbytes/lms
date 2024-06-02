@@ -1,10 +1,10 @@
 import { Link } from "@remix-run/react";
-import { ArrowRight } from "lucide-react";
 import { Container } from "../container";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { cn } from "~/libs/shadcn";
 import { Fade, Slide } from "react-awesome-reveal";
+import { FaArrowRight } from "react-icons/fa6";
 
 export function CoursesOverview() {
   return (
@@ -43,7 +43,8 @@ export function CoursesOverview() {
                       </h2>
                       <Button variant="ghost" asChild>
                         <Link to={`/courses${item.href}`} className="mt-4">
-                          Learn more <ArrowRight className="ml-4 h-4 w-4" />
+                          Learn more
+                          <FaArrowRight className="ml-4 h-4 w-4" />
                         </Link>
                       </Button>
                     </CardContent>

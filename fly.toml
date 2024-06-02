@@ -11,6 +11,14 @@ kill_timeout = "5s"
 [build]
   dockerfile = "Dockerfile"
 
+[mounts]
+  source="data"
+  destination="/data"
+
+[experimental]
+  auto_rollback = true
+  enable_consul = true
+
 [http_service]
   internal_port = 8080
   force_https = true
@@ -27,14 +35,6 @@ kill_timeout = "5s"
   handlers = ["http"]
   port = 80
   force_https = true
-
-[mounts]
-  source="data"
-  destination="/data"
-
-[experimental]
-  auto_rollback = true
-  enable_consul = true
 
 [[services.tcp_checks]]
   grace_period = "10s"

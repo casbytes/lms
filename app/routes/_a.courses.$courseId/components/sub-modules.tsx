@@ -1,8 +1,13 @@
 import React from "react";
 import { Await } from "@remix-run/react";
 import { SubModuleItem } from "./sub-module-item";
+import { ISubModuleProgress } from "~/constants/types";
 
-export function SubModules({ subModules }: any) {
+type SubModulesProps = {
+  subModules: Promise<ISubModuleProgress[]>;
+};
+
+export function SubModules({ subModules }: SubModulesProps) {
   return (
     <React.Suspense fallback={<PendingSubModules />}>
       <Await resolve={subModules}>
@@ -25,7 +30,7 @@ export function SubModules({ subModules }: any) {
 function PendingSubModules() {
   return (
     <ul className="space-y-3">
-      {Array(10).map((_, i) => (
+      {Array.from({ length: 10 }).map((_, i) => (
         <li key={i} className="bg-gray-300 h-8 rounded-md animate-pulse"></li>
       ))}
     </ul>
