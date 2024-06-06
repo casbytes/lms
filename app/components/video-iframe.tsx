@@ -30,7 +30,7 @@ export function IFrame({ videoId, videoSource, className }: IframeProps) {
         );
       }
     };
-  }, [iframeRef]);
+  }, []);
 
   return (
     <div className={cn("relative pt-[56.25%]", className)}>
@@ -45,6 +45,7 @@ export function IFrame({ videoId, videoSource, className }: IframeProps) {
         )}
         allow="accelerometer;gyroscope;encrypted-media;picture-in-picture;"
         allowFullScreen
+        onLoad={handleLoad}
       ></iframe>
       {isLoading ? (
         <div className="absolute top-0 left-0 w-full h-full">

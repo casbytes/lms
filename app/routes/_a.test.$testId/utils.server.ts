@@ -181,7 +181,7 @@ async function scheduleStatusUpdate(testId: string, nextAttemptAt: Date) {
 //################
 const CUT_OFF_SCORE = 80;
 
-export async function handleTestSubmit(request: Request) {
+export async function updateTest(request: Request) {
   const formData = await request.formData();
   const score = Number(formData.get("score"));
   const intent = String(formData.get("intent"));
@@ -266,11 +266,9 @@ export async function handleTestSubmit(request: Request) {
       data: updateData,
     });
 
-    if (!testResponse) {
+    if (!testResponse || testResponse === undefined) {
       throw new NotFoundError("Failed to update task.");
     }
-
-    console.log("Response", testResponse);
 
     return testResponse;
   } catch (error) {

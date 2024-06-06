@@ -1,6 +1,7 @@
 import React from "react";
-import { ActionFunctionArgs, LoaderFunctionArgs, json } from "@remix-run/node";
-import { useActionData, useFetcher, useLoaderData } from "@remix-run/react";
+import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
+import { json } from "@remix-run/node";
+import { useActionData, useSubmit, useLoaderData } from "@remix-run/react";
 import { BackButton } from "~/components/back-button";
 import { Container } from "~/components/container";
 import { PageTitle } from "~/components/page-title";
@@ -9,56 +10,33 @@ import { TestDialog } from "./components/test-dialog";
 import { useLocalStorageState } from "~/utils/hooks";
 import { FullPagePendingUI } from "~/components/full-page-pending-ui";
 import { Options } from "./components/options";
-import { getTest, handleTestSubmit, questions } from "./utils.server";
+import { getTest, questions, updateTest } from "./utils.server";
 import { Pagination } from "./components/pagination";
 import { TestHeader } from "./components/header";
 import { Question } from "./components/question";
 import { calculateScores, getTotalScore } from "./utils.client";
 import { getUser } from "~/utils/sessions.server";
-import { ITest } from "~/constants/types";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const user = await getUser(request);
   const test = await getTest(request, params);
   return json({ questions, test, user });
 }
-
 export async function action({ request }: ActionFunctionArgs) {
-  try {
-    const testResponse = await handleTestSubmit(request);
-    console.log("Client res;", testResponse);
-
-    return json(testResponse);
-  } catch (error) {}
+  const testResponse = await updateTest(request);
+  return json({ testResponse });
 }
 
 export default function TestRoute() {
   const { questions, user, test } = useLoaderData<typeof loader>();
-  const testResponse = useActionData<typeof action>() as ITest;
-  console.log("TR", testResponse);
+  const data = useActionData<typeof action>();
 
   const [isServer, setIsServer] = React.useState(true);
-  const testFetcher = useFetcher();
+  const submit = useSubmit();
   const dialogButtonRef = React.useRef<HTMLButtonElement>(null);
 
   let moduleProgressId = test?.moduleProgressId;
   let subModuleProgressId = test?.subModuleProgressId;
-
-  function handleSubmit() {
-    testFetcher.submit(
-      {
-        testId: test.id,
-        userId: user.id,
-        intent: "submit",
-        moduleProgressId: moduleProgressId ?? null,
-        subModuleProgressId: subModuleProgressId ?? null,
-        score: getUserScore().toFixed(0),
-      },
-      { method: "POST" }
-    );
-    window.localStorage.removeItem("currentQuestionIndex");
-    window.localStorage.removeItem("userAnswers");
-  }
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useLocalStorageState(
     "currentQuestionIndex",
@@ -73,6 +51,22 @@ export default function TestRoute() {
   const [scores, setScores] = React.useState<number[]>(
     Array(questions.length).fill(0)
   );
+
+  function handleSubmit() {
+    submit(
+      {
+        testId: test.id,
+        userId: user.id,
+        intent: "submit",
+        moduleProgressId: moduleProgressId ?? null,
+        subModuleProgressId: subModuleProgressId ?? null,
+        score: getUserScore().toFixed(0),
+      },
+      { method: "POST" }
+    );
+    window.localStorage.removeItem("currentQuestionIndex");
+    window.localStorage.removeItem("userAnswers");
+  }
 
   /**
    * Calculates the total score of the user and returns it
@@ -140,10 +134,10 @@ export default function TestRoute() {
           setCurrentQuestionIndex={setCurrentQuestionIndex}
         />
         <TestDialog
-          testResponse={testResponse}
-          testFetcher={testFetcher}
+          redirectUrl={moduleOrSubModuleUrl}
           handleSubmit={handleSubmit}
           dialogButtonRef={dialogButtonRef}
+          testResponse={data?.testResponse ? data.testResponse : undefined}
         />
 
         {/* Because the dialog trigger button is only rendered when a student is on the last question,

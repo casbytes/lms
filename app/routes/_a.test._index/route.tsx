@@ -6,6 +6,7 @@ import { PageTitle } from "~/components/page-title";
 import { Button } from "~/components/ui/button";
 import { Rules } from "./components/rules";
 import { getTest } from "./utils.server";
+import { TestStatus } from "~/constants/types";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const test = await getTest(request);
@@ -54,7 +55,11 @@ export default function TestIndexRoute() {
             />
           </div>
         </div>
-        <Button className="mt-4 w-full text-lg" size="lg">
+        <Button
+          disabled={test.status === TestStatus.LOCKED}
+          className="mt-4 w-full text-lg"
+          size="lg"
+        >
           <Link
             to={`/test/${test.id}?${
               test?.moduleProgressId

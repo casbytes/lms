@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { useBlocker, useFetcher } from "@remix-run/react";
+import { useBlocker, useNavigation, useNavigate } from "@remix-run/react";
 import { FaSpinner } from "react-icons/fa6";
 import {
   DialogClose,
@@ -13,39 +13,43 @@ import { Button } from "~/components/ui/button";
 import { ITest, TestStatus } from "~/constants/types";
 
 type TestDialogProps = {
-  testResponse: ITest | undefined;
+  redirectUrl: string;
   handleSubmit: () => void;
-  testFetcher: ReturnType<typeof useFetcher>;
+  testResponse: ITest | undefined;
   dialogButtonRef: ReturnType<typeof useRef>;
 };
 
 export function TestDialog({
-  testFetcher,
+  redirectUrl,
   testResponse,
   handleSubmit,
   dialogButtonRef,
 }: TestDialogProps) {
   const [isFormSubmitted, setIsFormSubmitted] = React.useState(false);
-  console.log(testResponse);
+  const [redirectCountdown, setRedirectCountdown] = React.useState(10);
+  const navigate = useNavigate();
+  const navigation = useNavigation();
 
   const COMPLETED = testResponse?.status === TestStatus.COMPLETED;
   const LOCKED = testResponse?.status === TestStatus.LOCKED;
 
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) =>
-      !COMPLETED && currentLocation.pathname !== nextLocation.pathname
+      currentLocation.pathname !== nextLocation.pathname
   );
 
   const BLOCKED = blocker.state === "blocked";
   const PROCEEDING = blocker.state === "proceeding";
 
-  const isSubmitting = testFetcher.formData?.get("intent") === "submit";
+  const isSubmitting = navigation.formData?.get("intent") === "submit";
 
   function handleButtonClick() {
     if (BLOCKED) {
       blocker.proceed();
+      setIsFormSubmitted(true);
     } else {
       handleSubmit();
+      setIsFormSubmitted(true);
     }
   }
 
@@ -83,14 +87,33 @@ export function TestDialog({
     }
   }, [blocker.state]);
 
+  const INTERVAL = 1000;
+  React.useEffect(() => {
+    if (redirectCountdown > 0 && isFormSubmitted) {
+      const timer = window.setTimeout(() => {
+        setRedirectCountdown((prev) => prev - 1);
+      }, INTERVAL);
+
+      return () => window.clearTimeout(timer);
+    } else if (redirectCountdown === 0 && isFormSubmitted) {
+      navigate(redirectUrl, { replace: true });
+    }
+  }, [redirectCountdown, isFormSubmitted]);
+
   return (
     <DialogContent className="max-w-lg">
       {BLOCKED ? (
         <BlockerDialogContent />
       ) : COMPLETED ? (
-        <SuccessDialogContent testResponse={testResponse} />
+        <SuccessDialogContent
+          testResponse={testResponse}
+          redirectCountdown={redirectCountdown}
+        />
       ) : LOCKED ? (
-        <FailureDialogContent testResponse={testResponse} />
+        <FailureDialogContent
+          testResponse={testResponse}
+          redirectCountdown={redirectCountdown}
+        />
       ) : (
         <BeforeSubmissionDialogContent />
       )}
@@ -126,8 +149,10 @@ function BeforeSubmissionDialogContent() {
     </DialogHeader>
   );
 }
+
 type TestResponseProps = {
   testResponse: ITest | undefined;
+  redirectCountdown: number;
 };
 
 function BlockerDialogContent() {
@@ -140,21 +165,32 @@ function BlockerDialogContent() {
     </DialogHeader>
   );
 }
-function SuccessDialogContent({ testResponse }: TestResponseProps) {
+function SuccessDialogContent({
+  testResponse,
+  redirectCountdown,
+}: TestResponseProps) {
   return testResponse && testResponse.status === TestStatus.COMPLETED ? (
     <DialogHeader>
       <DialogTitle>Success!</DialogTitle>
-      <DialogDescription>Score: {testResponse.score}%</DialogDescription>
+      <DialogDescription>
+        Score: {testResponse.score}%<span>Score: {testResponse.score}%</span>{" "}
+        <br />
+        <span>Redirecting in {redirectCountdown} seconds...</span>
+      </DialogDescription>
     </DialogHeader>
   ) : null;
 }
-function FailureDialogContent({ testResponse }: TestResponseProps) {
-  return testResponse &&
-    testResponse &&
-    testResponse.status === TestStatus.LOCKED ? (
+function FailureDialogContent({
+  testResponse,
+  redirectCountdown,
+}: TestResponseProps) {
+  return testResponse && testResponse.status === TestStatus.LOCKED ? (
     <DialogHeader>
       <DialogTitle>Well tried!</DialogTitle>
-      <DialogDescription>Score: {testResponse.score}%</DialogDescription>
+      <DialogDescription>
+        <span>Score: {testResponse.score}%</span> <br />
+        <span>Redirecting in {redirectCountdown} seconds...</span>
+      </DialogDescription>
     </DialogHeader>
   ) : null;
 }
