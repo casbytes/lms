@@ -1,9 +1,14 @@
 import invariant from "tiny-invariant";
 import { Params } from "@remix-run/react";
 import { prisma } from "~/libs/prisma.server";
-import { getUser } from "../../utils/sessions.server";
+import { getUser } from "~/utils/sessions.server";
 import { InternalServerError, NotFoundError } from "~/errors";
-import { IBadge, IModuleProgress, ISubModuleProgress } from "~/constants/types";
+import {
+  IBadge,
+  IModuleProgress,
+  ISubModuleProgress,
+  Status,
+} from "~/constants/types";
 
 /**
  *
@@ -41,6 +46,9 @@ export async function getTestCheckpointProject(
     }
     return moduleProgress;
   } catch (error) {
+    if (error instanceof NotFoundError) {
+      throw error;
+    }
     throw new InternalServerError(
       "An error occured while fetching module, please try again."
     );
@@ -97,16 +105,25 @@ async function ensureFirstSubModuleInProgress(
   userId: string
 ) {
   const updatePromises = modules.map(async (module) => {
-    const subModules = await prisma.subModuleProgress.findMany({
-      where: { users: { some: { id: userId } }, moduleProgressId: module.id },
-    });
-
-    if (subModules.length > 0) {
-      const firstSubModuleId = subModules[0].id;
-      return prisma.subModuleProgress.update({
-        where: { id: firstSubModuleId },
-        data: { status: "IN_PROGRESS" },
+    try {
+      const subModules = await prisma.subModuleProgress.findMany({
+        where: { users: { some: { id: userId } }, moduleProgressId: module.id },
+        orderBy: {
+          order: "asc",
+        },
       });
+
+      if (subModules.length > 0) {
+        const firstSubModuleId = subModules[0].id;
+        return prisma.subModuleProgress.update({
+          where: { id: firstSubModuleId },
+          data: { status: Status.IN_PROGRESS },
+        });
+      }
+    } catch (error) {
+      throw new InternalServerError(
+        "An error occured while updating submodules, please try again."
+      );
     }
   });
   await Promise.all(updatePromises);
@@ -204,6 +221,9 @@ async function getModule(
     }
     return module;
   } catch (error) {
+    if (error instanceof NotFoundError) {
+      throw error;
+    }
     throw new InternalServerError(
       "An error occured while fetching module, please try again."
     );

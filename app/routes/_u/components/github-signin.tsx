@@ -13,7 +13,8 @@ export function GitHubSignIn({ ...props }) {
       <input type="hidden" name="intent" value="github-signin" required />
       <Button
         type="submit"
-        className="uppercase bg-zinc-600 hover:bg-zinc-500 w-full"
+        size="lg"
+        className="uppercase text-lg bg-zinc-600 hover:bg-zinc-500 w-full"
         aria-label="continue with github"
         {...props}
         disabled={isLoading}

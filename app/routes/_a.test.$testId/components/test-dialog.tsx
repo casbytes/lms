@@ -1,47 +1,62 @@
-import React from "react";
-import { useFetcher } from "@remix-run/react";
+import React, { useRef } from "react";
+import { useBlocker, useFetcher } from "@remix-run/react";
 import { FaSpinner } from "react-icons/fa6";
 import {
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
+import { ITest, TestStatus } from "~/constants/types";
 
 type TestDialogProps = {
-  getScore: () => number;
+  testResponse: ITest | undefined;
+  handleSubmit: () => void;
+  testFetcher: ReturnType<typeof useFetcher>;
+  dialogButtonRef: ReturnType<typeof useRef>;
 };
 
-export function TestDialog({ getScore }: TestDialogProps) {
+export function TestDialog({
+  testFetcher,
+  testResponse,
+  handleSubmit,
+  dialogButtonRef,
+}: TestDialogProps) {
   const [isFormSubmitted, setIsFormSubmitted] = React.useState(false);
+  console.log(testResponse);
 
-  const test = useFetcher();
+  const COMPLETED = testResponse?.status === TestStatus.COMPLETED;
+  const LOCKED = testResponse?.status === TestStatus.LOCKED;
 
-  function handleSubmit() {
-    test.submit(
-      { score: getScore().toFixed(0), userId: "" },
-      { method: "POST" }
-    );
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      !COMPLETED && currentLocation.pathname !== nextLocation.pathname
+  );
+
+  const BLOCKED = blocker.state === "blocked";
+  const PROCEEDING = blocker.state === "proceeding";
+
+  const isSubmitting = testFetcher.formData?.get("intent") === "submit";
+
+  function handleButtonClick() {
+    if (BLOCKED) {
+      blocker.proceed();
+    } else {
+      handleSubmit();
+    }
   }
 
-  const isSubmitting =
-    test.formData?.get("userId") !== (null || undefined) &&
-    test.formData?.get("score") !== (null || undefined);
-
   /**
-   * After the dialog is open, we can now call the handleSubmit function
-   * to submit the form programmatically
+   * useEffect to handle window or tab change
    */
   React.useEffect(() => {
     function handleTabChange() {
-      const dialogButtonTrigger = document.getElementById(
-        "dialog-button-trigger"
-      );
-      if (document.hidden && dialogButtonTrigger) {
+      if (document.hidden && dialogButtonRef.current) {
         if (!isFormSubmitted) {
-          dialogButtonTrigger.click();
+          (dialogButtonRef.current as HTMLButtonElement).click();
           handleSubmit();
           setIsFormSubmitted(true);
         }
@@ -54,63 +69,92 @@ export function TestDialog({ getScore }: TestDialogProps) {
     };
   }, [isFormSubmitted]);
 
+  /**
+   * useEffect to handle user navigation while taking the test
+   */
+  React.useEffect(() => {
+    if (BLOCKED) {
+      if (dialogButtonRef.current) {
+        (dialogButtonRef.current as HTMLButtonElement).click();
+      }
+    }
+    if (PROCEEDING) {
+      handleSubmit();
+    }
+  }, [blocker.state]);
+
   return (
     <DialogContent className="max-w-lg">
-      <DialogHeader>
-        <DialogTitle>
-          Are you sure you want to submit?
-          {/* Success! */}
-          {/* Sorry! */}
-        </DialogTitle>
-        {/* <DialogDescription>Score: 70%</DialogDescription> */}
-      </DialogHeader>
+      {BLOCKED ? (
+        <BlockerDialogContent />
+      ) : COMPLETED ? (
+        <SuccessDialogContent testResponse={testResponse} />
+      ) : LOCKED ? (
+        <FailureDialogContent testResponse={testResponse} />
+      ) : (
+        <BeforeSubmissionDialogContent />
+      )}
 
-      {/* {score ? (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Ooops!</AlertTitle>
-                <AlertDescription>
-                  You scored below 80% and can only retake the test after 24
-                  hours.
-                </AlertDescription>
-              </Alert>
-            ) : (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Ooops!</AlertTitle>
-                <AlertDescription>
-                  You scored below 60% and can only retake the test after 24
-                  hours.
-                </AlertDescription>
-              </Alert>
-            )} */}
-
-      {/* <p>
-              Within the next 24 hours, please review this module thoroughly to
-              ensure a deep understanding. Thank you.
-            </p> */}
-      {/* <Button variant="outline" asChild>
-              <Link to="/modules/1" className="flex gap-6">
-                <ArrowLeft className="h-6 w-6" /> Javascript functions
-              </Link>
-            </Button> */}
-
-      {/* <Button variant="outline" asChild>
-              <Link to="/modules/checkpoint/1" className="flex gap-6">
-                <ArrowLeft className="h-6 w-6" /> Checkpoint
-              </Link>
-            </Button> */}
       <DialogFooter className="justify-between">
         <DialogClose asChild>
-          <Button type="button" variant="destructive">
+          <Button
+            onClick={() => (BLOCKED ? blocker.reset() : null)}
+            type="button"
+            variant="destructive"
+          >
             No
           </Button>
         </DialogClose>
-        <Button type="button" onClick={handleSubmit} disabled={isSubmitting}>
+        <Button
+          type="button"
+          value="test-submit"
+          onClick={handleButtonClick}
+          disabled={isSubmitting || isFormSubmitted}
+        >
           {isSubmitting ? <FaSpinner className="mr-2 animate-spin" /> : null}
           Yes
         </Button>
       </DialogFooter>
     </DialogContent>
   );
+}
+
+function BeforeSubmissionDialogContent() {
+  return (
+    <DialogHeader>
+      <DialogTitle>Are you sure you want to submit?</DialogTitle>
+    </DialogHeader>
+  );
+}
+type TestResponseProps = {
+  testResponse: ITest | undefined;
+};
+
+function BlockerDialogContent() {
+  return (
+    <DialogHeader>
+      <DialogTitle>Are you sure you want to leave this page?</DialogTitle>
+      <DialogDescription>
+        {/* <DialogDescription>Score: 70%</DialogDescription> */}
+      </DialogDescription>
+    </DialogHeader>
+  );
+}
+function SuccessDialogContent({ testResponse }: TestResponseProps) {
+  return testResponse && testResponse.status === TestStatus.COMPLETED ? (
+    <DialogHeader>
+      <DialogTitle>Success!</DialogTitle>
+      <DialogDescription>Score: {testResponse.score}%</DialogDescription>
+    </DialogHeader>
+  ) : null;
+}
+function FailureDialogContent({ testResponse }: TestResponseProps) {
+  return testResponse &&
+    testResponse &&
+    testResponse.status === TestStatus.LOCKED ? (
+    <DialogHeader>
+      <DialogTitle>Well tried!</DialogTitle>
+      <DialogDescription>Score: {testResponse.score}%</DialogDescription>
+    </DialogHeader>
+  ) : null;
 }

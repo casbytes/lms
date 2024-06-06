@@ -15,12 +15,9 @@ type TestProps = {
 };
 
 export function Test({ test }: TestProps) {
-  const CUT_OFF_SCORE = 80;
-  const locked =
-    test.status === TestStatus.LOCKED ||
-    (test.attempted === true && test.score < CUT_OFF_SCORE);
-
+  const locked = test.status === TestStatus.LOCKED;
   const available = test.status === TestStatus.AVAILABLE;
+  const completed = test.status === TestStatus.COMPLETED;
 
   return (
     <Button
@@ -39,7 +36,7 @@ export function Test({ test }: TestProps) {
           <MdQuiz
             size={20}
             className={cn("text-zinc-700", {
-              "bg-sky-700": test?.attempted && test.score >= CUT_OFF_SCORE,
+              "bg-sky-700": completed,
             })}
           />
         </div>
@@ -47,8 +44,10 @@ export function Test({ test }: TestProps) {
           {capitalizeFirstLetter(test.title)} <Badge>{test.score} %</Badge>{" "}
           {test?.nextAttemptAt ? (
             <span className="text-sm ml-4">
-              Retake in:{" "}
-              <Badge>{format(test?.nextAttemptAt as Date, "do, MMMM")}</Badge>
+              Retake on:{" "}
+              <Badge>
+                {format(new Date(test.nextAttemptAt), "do MMMM, 'at' h:mm a")}
+              </Badge>
             </span>
           ) : null}
         </div>
