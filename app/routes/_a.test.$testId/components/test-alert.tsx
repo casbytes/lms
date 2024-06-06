@@ -35,6 +35,10 @@ export function TestAlert() {
                 24 hours for each attempt (e.g., 48 hours for the second try, 72
                 hours for the third try, and so on).
               </li>
+              <li>
+                This is to enable you to review the material and improve your
+                knowledge before retaking the test.
+              </li>
             </ul>
           </li>
         </ul>

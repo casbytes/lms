@@ -1,22 +1,24 @@
 import React from "react";
+import { useNavigate } from "@remix-run/react";
 import { format, addSeconds } from "date-fns";
 import { TestAlert } from "./test-alert";
 import { Progress } from "~/components/ui/progress";
 import { Badge } from "~/components/ui/badge";
-import { Question } from "../utils.server";
 import { cn } from "~/libs/shadcn";
 import { Separator } from "~/components/ui/separator";
 
 type TestHeaderProps = {
   progress: number;
   questionsLength: number;
-  handleSubmit: () => void;
+  submitForm: () => void;
+  redirectUrl: string;
   currentQuestionIndex: number;
 };
 
 export function TestHeader({
   progress,
-  handleSubmit,
+  submitForm,
+  redirectUrl,
   questionsLength,
   currentQuestionIndex,
 }: TestHeaderProps) {
@@ -25,6 +27,8 @@ export function TestHeader({
   const timePerQuestion = 1.5 * 60;
   const totalTime = timePerQuestion * questionsLength;
   const [timeLeft, setTimeLeft] = React.useState(totalTime);
+
+  const navigate = useNavigate();
 
   const ALERT_INTERVAL = 30000;
   const INTERVAL = 1000;
@@ -46,9 +50,10 @@ export function TestHeader({
       }, INTERVAL);
       return () => window.clearInterval(timer);
     } else {
-      handleSubmit();
+      submitForm();
+      navigate(redirectUrl);
     }
-  }, [timeLeft]);
+  }, [timeLeft, navigate, redirectUrl]);
 
   function formatTime(seconds: number) {
     const time = addSeconds(new Date(LEAST_TIME), seconds);

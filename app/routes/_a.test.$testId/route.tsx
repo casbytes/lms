@@ -14,7 +14,6 @@ import { getTest, questions, updateTest } from "./utils.server";
 import { Pagination } from "./components/pagination";
 import { TestHeader } from "./components/header";
 import { Question } from "./components/question";
-import { calculateScores, getTotalScore } from "./utils.client";
 import { getUser } from "~/utils/sessions.server";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
@@ -22,6 +21,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const test = await getTest(request, params);
   return json({ questions, test, user });
 }
+
 export async function action({ request }: ActionFunctionArgs) {
   const testResponse = await updateTest(request);
   return json({ testResponse });
@@ -31,27 +31,62 @@ export default function TestRoute() {
   const { questions, user, test } = useLoaderData<typeof loader>();
   const data = useActionData<typeof action>();
 
-  const [isServer, setIsServer] = React.useState(true);
   const submit = useSubmit();
   const dialogButtonRef = React.useRef<HTMLButtonElement>(null);
 
-  let moduleProgressId = test?.moduleProgressId;
-  let subModuleProgressId = test?.subModuleProgressId;
-
+  const [isServer, setIsServer] = React.useState(true);
+  const [isFormSubmitted, setIsFormSubmitted] = React.useState(false);
+  const [scores, setScores] = React.useState<number[]>(
+    Array(questions.length).fill(0)
+  );
   const [currentQuestionIndex, setCurrentQuestionIndex] = useLocalStorageState(
     "currentQuestionIndex",
     0
   );
-
   const [userAnswers, setUserAnswers] = useLocalStorageState(
     "userAnswers",
     Array(questions.length).fill([])
   );
 
-  const [scores, setScores] = React.useState<number[]>(
-    Array(questions.length).fill(0)
-  );
+  let moduleProgressId = test?.moduleProgressId;
+  let subModuleProgressId = test?.subModuleProgressId;
 
+  /**
+   * Calculates the scores of the user based on the answers provided
+   */
+  function calculateScores() {
+    const newScores = userAnswers.map((answer, index) => {
+      const correctAnswerIds = questions[index].correctAnswer;
+      return answer.length === correctAnswerIds.length &&
+        answer.every((id: number) => correctAnswerIds?.includes(id))
+        ? 1
+        : 0;
+    });
+    setScores(newScores);
+  }
+
+  /**
+   *  Calculates the total score of the user score and returns it
+   * @returns {Number} The total score of the user in percent
+   */
+  function getTotalScore(): number {
+    return (
+      (scores.reduce((acc, score) => acc + score, 0) / questions.length) * 100
+    );
+  }
+
+  /**
+   * Calculates the total score of the user score and returns it
+   * @returns {Number} The total score of the user in percent
+   */
+  function getUserScore(): number {
+    calculateScores();
+    return getTotalScore();
+  }
+
+  /**
+   * Programmatically submits the test form
+   */
   function handleSubmit() {
     submit(
       {
@@ -66,19 +101,10 @@ export default function TestRoute() {
     );
     window.localStorage.removeItem("currentQuestionIndex");
     window.localStorage.removeItem("userAnswers");
-  }
-
-  /**
-   * Calculates the total score of the user and returns it
-   * @returns {Number} The total score of the user in percent
-   */
-  function getUserScore(): number {
-    calculateScores(userAnswers, questions, setScores);
-    return getTotalScore(scores, questions);
+    setIsFormSubmitted(true);
   }
 
   const moduleTest = test?.moduleProgressId ? true : false;
-
   const defaultTitle = "Matters choke!";
   const testTitle = test.title ?? defaultTitle;
 
@@ -97,10 +123,16 @@ export default function TestRoute() {
   const checkNext = currentQuestionIndex < questions.length - 1;
   const progress = ((currentQuestionIndex + 1) / questionsLength) * 100;
 
+  /**
+   * useEffect to update the user score when the user answers a question
+   */
   React.useEffect(() => {
     getUserScore();
   }, [userAnswers]);
 
+  /**
+   * useEffect to check for hydration
+   */
   React.useEffect(() => {
     setIsServer(false);
   }, []);
@@ -113,8 +145,9 @@ export default function TestRoute() {
         <PageTitle title={`${moduleOrSubModuleTitle} 👀`} />
         <TestHeader
           progress={progress}
+          submitForm={handleSubmit}
           questionsLength={questionsLength}
-          handleSubmit={handleSubmit}
+          redirectUrl={moduleOrSubModuleUrl}
           currentQuestionIndex={currentQuestionIndex}
         />
         <Question currentQuestion={currentQuestion} />
@@ -134,10 +167,11 @@ export default function TestRoute() {
           setCurrentQuestionIndex={setCurrentQuestionIndex}
         />
         <TestDialog
-          redirectUrl={moduleOrSubModuleUrl}
-          handleSubmit={handleSubmit}
+          submitForm={handleSubmit}
+          isFormSubmitted={isFormSubmitted}
           dialogButtonRef={dialogButtonRef}
-          testResponse={data?.testResponse ? data.testResponse : undefined}
+          redirectUrl={moduleOrSubModuleUrl}
+          testResponse={data?.testResponse ?? undefined}
         />
 
         {/* Because the dialog trigger button is only rendered when a student is on the last question,

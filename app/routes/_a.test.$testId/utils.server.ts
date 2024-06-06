@@ -161,7 +161,7 @@ export async function getTest(request: Request, params: Params<string>) {
  * @returns {Promise<void>}
  */
 async function scheduleStatusUpdate(testId: string, nextAttemptAt: Date) {
-  if (!nextAttemptAt) return null;
+  if (!nextAttemptAt) return;
   schedule.scheduleJob(nextAttemptAt, async () => {
     try {
       await prisma.test.update({
@@ -272,7 +272,6 @@ export async function updateTest(request: Request) {
 
     return testResponse;
   } catch (error) {
-    console.error(error);
     if (error instanceof NotFoundError || error instanceof BadRequestError) {
       throw error;
     }

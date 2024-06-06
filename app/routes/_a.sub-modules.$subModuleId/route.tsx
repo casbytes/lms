@@ -1,6 +1,6 @@
 import React from "react";
 import { ActionFunctionArgs, LoaderFunctionArgs, defer } from "@remix-run/node";
-import { Await, useLoaderData } from "@remix-run/react";
+import { Await, useLoaderData, useRevalidator } from "@remix-run/react";
 import { cacheOptions } from "~/utils/sessions.server";
 import { getLessonContent, getLessons, getSubModule } from "./utils.server";
 import { PiSpinnerGap } from "react-icons/pi";
@@ -94,12 +94,12 @@ export default function ModulesRoute() {
 
         {/* mobile screens */}
         <SheetContent className="lg:hidden overflow-y-auto w-full sm:w-auto">
-          <ModuleSideContent lessons={lessons} subModule={subModule} />
+          <ModuleSideContent lessons={lessons} />
         </SheetContent>
 
         {/* large screens */}
         <aside className="hidden lg:block col-span-2 border bg-zinc-100 h-auto max-h-screen overflow-y-auto">
-          <ModuleSideContent lessons={lessons} subModule={subModule} />
+          <ModuleSideContent lessons={lessons} />
         </aside>
       </div>
     </Container>
