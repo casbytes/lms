@@ -19,17 +19,19 @@ export function Test({ test }: TestProps) {
   const available = test.status === TestStatus.AVAILABLE;
   const completed = test.status === TestStatus.COMPLETED;
 
+  const testLink = `/test?testId=${test.id}&${
+    test?.moduleProgressId
+      ? `moduleId=${test.moduleProgressId}`
+      : `submoduleId=${test.subModuleProgressId}`
+  }`;
+
   return (
     <Button
       disabled={locked}
       className="rounded-md text-black bg-stone-200 hover:bg-stone-300 py-4 relative border-b-2 border-zinc-600 w-full"
     >
       <Link
-        to={`/test?testId=${test.id}&${
-          test?.moduleProgressId
-            ? `moduleId=${test.moduleProgressId}`
-            : `submoduleId=${test.subModuleProgressId}`
-        }`}
+        to={testLink}
         className="flex flex-1 justify-between items-center p-2"
       >
         <div className="absolute p-1 left-0">

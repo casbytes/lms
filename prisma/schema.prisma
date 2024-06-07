@@ -145,7 +145,7 @@ model Checkpoint {
   id                  String             @id @default(uuid())
   title               String
   score               Int                @default(0)
-  status              String             @default("LOCKED") //LOCKED, IN_PROGRESS, COMPLETED
+  status              String             @default("LOCKED") //LOCKED, IN_PROGRESS, SUBMITTED, GRADED, COMPLETED
   moduleProgressId    String?            @unique
   subModuleProgressId String?            @unique
   users               User[]

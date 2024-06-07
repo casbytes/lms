@@ -15,6 +15,7 @@ import { Pagination } from "./components/pagination";
 import { TestHeader } from "./components/header";
 import { Question } from "./components/question";
 import { getUser } from "~/utils/sessions.server";
+import { Button } from "~/components/ui/button";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const user = await getUser(request);
@@ -141,7 +142,8 @@ export default function TestRoute() {
   return (
     <Dialog>
       <Container className="max-w-4xl">
-        <BackButton to={moduleOrSubModuleUrl} buttonText={testTitle} />
+        {/* <BackButton to={moduleOrSubModuleUrl} buttonText={testTitle} /> */}
+        <Button>back</Button>
         <PageTitle title={`${moduleOrSubModuleTitle} 👀`} />
         <TestHeader
           progress={progress}

@@ -1,7 +1,7 @@
 import invariant from "tiny-invariant";
 import schedule from "node-schedule";
 import { Params } from "@remix-run/react";
-import { ITest, TestStatus } from "~/constants/types";
+import { ITest, Status, TestStatus } from "~/constants/types";
 import { BadRequestError, InternalServerError, NotFoundError } from "~/errors";
 import { prisma } from "~/libs/prisma.server";
 import { getUser } from "~/utils/sessions.server";
@@ -268,6 +268,27 @@ export async function updateTest(request: Request) {
 
     if (!testResponse || testResponse === undefined) {
       throw new NotFoundError("Failed to update task.");
+    }
+
+    /**
+     * Update the checkpoint status to in progress if the test is completed
+     */
+    if (
+      testResponse.score >= CUT_OFF_SCORE &&
+      testResponse.status === TestStatus.COMPLETED
+    ) {
+      const id =
+        testResponse?.moduleProgressId ??
+        (testResponse?.subModuleProgressId as string);
+
+      await prisma.checkpoint.update({
+        where: {
+          id,
+        },
+        data: {
+          status: Status.IN_PROGRESS,
+        },
+      });
     }
 
     return testResponse;
