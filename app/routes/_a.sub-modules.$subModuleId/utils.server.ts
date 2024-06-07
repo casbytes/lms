@@ -163,21 +163,23 @@ export async function getLessonContent(
      * The repo name is the slug of the associated module progress
      * Path: subModuleSlug/lessons/lessonSlug.mdx
      */
-    const data = await getContentFromGithub({
-      repo: `${currentLesson!.subModuleProgress.moduleProgress.slug}`,
-      path: `${currentLesson!.subModuleProgress.slug}/lessons/${
-        currentLesson!.slug
-      }.mdx`,
+    const repo = `${currentLesson!.subModuleProgress.moduleProgress.slug}`;
+    const path = `${currentLesson!.subModuleProgress.slug}/lessons/${
+      currentLesson!.slug
+    }.mdx`;
+
+    const { content: mdxContent } = await getContentFromGithub({
+      repo,
+      path,
     });
 
-    if (!data?.content) {
+    if (!mdxContent) {
       throw new NotFoundError("Empty lesson content.");
     }
 
-    const { content } = data;
-    const mdx = matter(content);
+    const { data, content } = matter(mdxContent);
     return {
-      mdx,
+      mdx: { data, content },
       previousLesson,
       currentLesson,
       nextLesson,

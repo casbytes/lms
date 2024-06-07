@@ -1,3 +1,4 @@
+import React from "react";
 import { Link } from "@remix-run/react";
 import { MdDelete } from "react-icons/md";
 import { Button } from "~/components/ui/button";
@@ -13,7 +14,7 @@ export function LinkList({ links, deleteLink }: LinkListProps) {
     <ul className="space-y-2 list-disc w-full">
       {links?.length
         ? links.map((link, index) => (
-            <>
+            <React.Fragment key={`${link}-${index}`}>
               <li
                 key={`${link}-${index}`}
                 className="flex justify-between items-center"
@@ -30,10 +31,9 @@ export function LinkList({ links, deleteLink }: LinkListProps) {
                 </Button>
               </li>
               {index < links.length - 1 ? <Separator /> : null}
-            </>
+            </React.Fragment>
           ))
         : null}
-      {/* <Separator /> */}
     </ul>
   );
 }

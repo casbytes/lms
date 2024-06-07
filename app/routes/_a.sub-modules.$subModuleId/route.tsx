@@ -14,6 +14,7 @@ import { VideoIframe } from "~/components/video-iframe";
 import { Pagination } from "./components/pagination";
 import { Separator } from "~/components/ui/separator";
 import { Assessment } from "~/components/assessment";
+import { ContentPendingUI } from "~/components/content-pending-ui";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const { BUNNY_IFRAME_URL: iframeUrl, BUNNY_VIDEO_LIBRARY_ID: libraryId } =
@@ -51,16 +52,7 @@ export default function ModulesRoute() {
           <div className="col-span-3 min-h-full">
             <Assessment item={subModule} />
             <Separator className="bg-sky-700 h-2 my-4 rounded-tl-md rounded-br-md" />
-            <React.Suspense
-              fallback={
-                <div className="w-full h-auto md:h-[calc(100vh-20rem)] flex items-center justify-center rounded-md bg-black bg-opacity-80 animate-pulse">
-                  <PiSpinnerGap
-                    size={100}
-                    className="animate-spin text-sky-300"
-                  />
-                </div>
-              }
-            >
+            <React.Suspense fallback={<ContentPendingUI />}>
               <Await resolve={currentLesson}>
                 {(currentLesson) => (
                   <>

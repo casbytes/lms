@@ -43,7 +43,7 @@ export function ProjectDialog({
         <Separator />
         <LinkList links={links} deleteLink={deleteLink} />
       </DialogHeader>
-      <DialogFooter>
+      <DialogFooter className="gap-4">
         <DialogClose asChild>
           <Button variant="destructive">Close</Button>
         </DialogClose>

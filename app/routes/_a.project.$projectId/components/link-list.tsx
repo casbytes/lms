@@ -1,4 +1,5 @@
 import { Link } from "@remix-run/react";
+import React from "react";
 import { MdDelete } from "react-icons/md";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
@@ -13,11 +14,8 @@ export function LinkList({ links, deleteLink }: LinkListProps) {
     <ul className="space-y-2 list-disc w-full">
       {links?.length
         ? links.map((link, index) => (
-            <>
-              <li
-                key={`${link}-${index}`}
-                className="flex justify-between items-center"
-              >
+            <React.Fragment key={`${link}-${index}`}>
+              <li className="flex justify-between items-center">
                 <Link target="_blank" className="text-blue-600" to={link}>
                   {link}
                 </Link>
@@ -30,7 +28,7 @@ export function LinkList({ links, deleteLink }: LinkListProps) {
                 </Button>
               </li>
               {index < links.length - 1 ? <Separator /> : null}
-            </>
+            </React.Fragment>
           ))
         : null}
     </ul>

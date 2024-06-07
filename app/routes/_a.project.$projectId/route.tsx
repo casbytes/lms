@@ -55,7 +55,7 @@ export default function ProjectRoute() {
 
   const projectTitle = project.title ?? "Matters choke!";
   return (
-    <Container className="max-w-4xl">
+    <Container className="max-w-5xl">
       <PageTitle title={projectTitle} />
       <BackButton
         to="/dashboard"
@@ -74,7 +74,7 @@ export default function ProjectRoute() {
           ) : null}
         </>
         <Button
-          className="rounded-full fixed bottom-20 right-20 drop-shadow-2xl px-5 py-10"
+          className="rounded-full fixed bottom-5 right-5 md:bottom-10 md:right-10 drop-shadow-2xl px-5 py-10"
           asChild
         >
           <DialogTrigger>

@@ -28,7 +28,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const checkpointResponse = await updateCheckpoint(request);
+  const checkpointResponse = updateCheckpoint(request);
   return json({ checkpointResponse });
 }
 
@@ -56,7 +56,7 @@ export default function CheckPointRoute() {
     : checkpoint?.subModuleProgress?.title ?? defaultTitle;
 
   const moduleOrSubModuleUrl = moduleTest
-    ? `/courses/${checkpoint?.moduleProgressId}`
+    ? `/courses/${checkpoint?.moduleProgress?.courseProgressId}?moduleId=${checkpoint?.moduleProgressId}`
     : `/sub-modules/${checkpoint?.subModuleProgressId}`;
 
   function handleSubmit() {
@@ -74,7 +74,7 @@ export default function CheckPointRoute() {
   }
 
   return (
-    <Container className="max-w-4xl">
+    <Container className="max-w-5xl">
       <PageTitle title={checkpointTitle} />
       <BackButton
         to={moduleOrSubModuleUrl}
@@ -93,7 +93,7 @@ export default function CheckPointRoute() {
           ) : null}
         </div>
         <Button
-          className="rounded-full fixed bottom-20 right-20 drop-shadow-2xl px-5 py-10"
+          className="rounded-full fixed bottom-5 right-5 md:bottom-10 md:right-10 drop-shadow-2xl px-5 py-10"
           asChild
         >
           <DialogTrigger>

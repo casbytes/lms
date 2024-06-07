@@ -38,10 +38,18 @@ export async function getCheckpoint(request: Request, params: Params<string>) {
         users: { some: { id: user.id } },
       },
       include: {
-        moduleProgress: true,
+        moduleProgress: {
+          include: {
+            courseProgress: true,
+          },
+        },
         subModuleProgress: {
           include: {
-            moduleProgress: true,
+            moduleProgress: {
+              include: {
+                courseProgress: true,
+              },
+            },
           },
         },
       },
@@ -70,8 +78,6 @@ export async function getCheckpoint(request: Request, params: Params<string>) {
       checkpointContent: { data, mdx },
     };
   } catch (error) {
-    console.error(error);
-
     if (error instanceof NotFoundError) {
       throw error;
     }
