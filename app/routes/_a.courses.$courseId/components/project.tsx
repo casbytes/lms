@@ -21,7 +21,7 @@ export function Project({ project }: ProjectProps) {
   return (
     <div className="w-full">
       <Button
-        disabled={locked}
+        // disabled={locked}
         aria-label={project?.title}
         className={cn(
           "overflow-x-auto flex border-l-8 border-b-2 text-zinc-700 border-zinc-500 bg-zinc-200 hover:bg-zinc-300 justify-between w-full text-lg",
@@ -30,7 +30,10 @@ export function Project({ project }: ProjectProps) {
           }
         )}
       >
-        <Link to="/courses/project/1" className="flex gap-4 items-center">
+        <Link
+          to={`/project/${project?.id}`}
+          className="flex gap-4 items-center"
+        >
           <div className="sr-only">project status</div>
           {locked ? (
             <FaProjectDiagram size={20} />

@@ -9,6 +9,12 @@ export default defineConfig({
   test: {
     include: ["**/__tests__/**.{js,jsx,ts,tsx}"],
     environment: "jsdom",
-    setupFiles: ["./test/setup-tests.ts"],
+    setupFiles: ["./test/setup-tests-env.ts"],
+    restoreMocks: true,
+    coverage: {
+      exclude: ["**/__tests__/**"],
+      include: ["app/**/*.{ts,tsx}"],
+      all: true,
+    },
   },
 });

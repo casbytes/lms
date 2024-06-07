@@ -15,12 +15,15 @@ type TestProps = {
 };
 
 export function Test({ test }: TestProps) {
-  const CUT_OFF_SCORE = 80;
-  const locked =
-    test.status === TestStatus.LOCKED ||
-    (test.attempted === true && test.score < CUT_OFF_SCORE);
-
+  const locked = test.status === TestStatus.LOCKED;
   const available = test.status === TestStatus.AVAILABLE;
+  const completed = test.status === TestStatus.COMPLETED;
+
+  const testLink = `/test?testId=${test.id}&${
+    test?.moduleProgressId
+      ? `moduleId=${test.moduleProgressId}`
+      : `submoduleId=${test.subModuleProgressId}`
+  }`;
 
   return (
     <Button
@@ -28,18 +31,14 @@ export function Test({ test }: TestProps) {
       className="rounded-md text-black bg-stone-200 hover:bg-stone-300 py-4 relative border-b-2 border-zinc-600 w-full"
     >
       <Link
-        to={`/test?testId=${test.id}&${
-          test?.moduleProgressId
-            ? `moduleId=${test.moduleProgressId}`
-            : `submoduleId=${test.subModuleProgressId}`
-        }`}
+        to={testLink}
         className="flex flex-1 justify-between items-center p-2"
       >
         <div className="absolute p-1 left-0">
           <MdQuiz
             size={20}
             className={cn("text-zinc-700", {
-              "bg-sky-700": test?.attempted && test.score >= CUT_OFF_SCORE,
+              "bg-sky-700": completed,
             })}
           />
         </div>
@@ -47,8 +46,10 @@ export function Test({ test }: TestProps) {
           {capitalizeFirstLetter(test.title)} <Badge>{test.score} %</Badge>{" "}
           {test?.nextAttemptAt ? (
             <span className="text-sm ml-4">
-              Retake in:{" "}
-              <Badge>{format(test?.nextAttemptAt as Date, "do, MMMM")}</Badge>
+              Retake on:{" "}
+              <Badge>
+                {format(new Date(test.nextAttemptAt), "do MMMM, 'at' h:mm a")}
+              </Badge>
             </span>
           ) : null}
         </div>

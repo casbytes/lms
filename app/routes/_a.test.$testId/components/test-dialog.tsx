@@ -1,49 +1,53 @@
 import React from "react";
-import { useFetcher } from "@remix-run/react";
+import { useBlocker, useNavigation, useNavigate } from "@remix-run/react";
 import { FaSpinner } from "react-icons/fa6";
 import {
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
+import { ITest, TestStatus } from "~/constants/types";
 
 type TestDialogProps = {
-  getScore: () => number;
+  submitForm: () => void;
+  isFormSubmitted: boolean;
+  testResponse: ITest | undefined;
+  redirectUrl: string;
+  dialogButtonRef: ReturnType<typeof React.useRef>;
 };
 
-export function TestDialog({ getScore }: TestDialogProps) {
-  const [isFormSubmitted, setIsFormSubmitted] = React.useState(false);
+export function TestDialog({
+  submitForm,
+  testResponse,
+  dialogButtonRef,
+  redirectUrl,
+  isFormSubmitted,
+}: TestDialogProps) {
+  const navigate = useNavigate();
+  const navigation = useNavigation();
 
-  const test = useFetcher();
+  const COMPLETED = testResponse?.status === TestStatus.COMPLETED;
+  const LOCKED = testResponse?.status === TestStatus.LOCKED;
 
-  function handleSubmit() {
-    test.submit(
-      { score: getScore().toFixed(0), userId: "" },
-      { method: "POST" }
-    );
+  const isSubmitting = navigation.formData?.get("intent") === "submit";
+
+  function handleButtonClick() {
+    submitForm();
   }
 
-  const isSubmitting =
-    test.formData?.get("userId") !== (null || undefined) &&
-    test.formData?.get("score") !== (null || undefined);
-
   /**
-   * After the dialog is open, we can now call the handleSubmit function
-   * to submit the form programmatically
+   * useEffect to handle window or tab change
    */
   React.useEffect(() => {
     function handleTabChange() {
-      const dialogButtonTrigger = document.getElementById(
-        "dialog-button-trigger"
-      );
-      if (document.hidden && dialogButtonTrigger) {
+      if (document.hidden && dialogButtonRef.current) {
         if (!isFormSubmitted) {
-          dialogButtonTrigger.click();
-          handleSubmit();
-          setIsFormSubmitted(true);
+          (dialogButtonRef.current as HTMLButtonElement).click();
+          submitForm();
         }
       }
     }
@@ -56,61 +60,77 @@ export function TestDialog({ getScore }: TestDialogProps) {
 
   return (
     <DialogContent className="max-w-lg">
-      <DialogHeader>
-        <DialogTitle>
-          Are you sure you want to submit?
-          {/* Success! */}
-          {/* Sorry! */}
-        </DialogTitle>
-        {/* <DialogDescription>Score: 70%</DialogDescription> */}
-      </DialogHeader>
+      {COMPLETED ? (
+        <SuccessDialogContent testResponse={testResponse} />
+      ) : LOCKED ? (
+        <FailureDialogContent testResponse={testResponse} />
+      ) : (
+        <BeforeSubmissionDialogContent />
+      )}
 
-      {/* {score ? (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Ooops!</AlertTitle>
-                <AlertDescription>
-                  You scored below 80% and can only retake the test after 24
-                  hours.
-                </AlertDescription>
-              </Alert>
-            ) : (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Ooops!</AlertTitle>
-                <AlertDescription>
-                  You scored below 60% and can only retake the test after 24
-                  hours.
-                </AlertDescription>
-              </Alert>
-            )} */}
-
-      {/* <p>
-              Within the next 24 hours, please review this module thoroughly to
-              ensure a deep understanding. Thank you.
-            </p> */}
-      {/* <Button variant="outline" asChild>
-              <Link to="/modules/1" className="flex gap-6">
-                <ArrowLeft className="h-6 w-6" /> Javascript functions
-              </Link>
-            </Button> */}
-
-      {/* <Button variant="outline" asChild>
-              <Link to="/modules/checkpoint/1" className="flex gap-6">
-                <ArrowLeft className="h-6 w-6" /> Checkpoint
-              </Link>
-            </Button> */}
       <DialogFooter className="justify-between">
         <DialogClose asChild>
-          <Button type="button" variant="destructive">
+          <Button
+            // onClick={() => (BLOCKED ? blocker.reset() : null)}
+            type="button"
+            variant="destructive"
+            disabled={isSubmitting || isFormSubmitted}
+          >
             No
           </Button>
         </DialogClose>
-        <Button type="button" onClick={handleSubmit} disabled={isSubmitting}>
+        <Button
+          type="button"
+          onClick={handleButtonClick}
+          disabled={isSubmitting || isFormSubmitted}
+        >
           {isSubmitting ? <FaSpinner className="mr-2 animate-spin" /> : null}
           Yes
         </Button>
       </DialogFooter>
     </DialogContent>
   );
+}
+
+function BeforeSubmissionDialogContent() {
+  return (
+    <DialogHeader>
+      <DialogTitle>Are you sure you want to submit?</DialogTitle>
+    </DialogHeader>
+  );
+}
+
+type TestResponseProps = {
+  testResponse: ITest | undefined;
+};
+
+function BlockerDialogContent() {
+  return (
+    <DialogHeader>
+      <DialogTitle>Are you sure you want to leave this page?</DialogTitle>
+      <DialogDescription>
+        {/* <DialogDescription>Score: 70%</DialogDescription> */}
+      </DialogDescription>
+    </DialogHeader>
+  );
+}
+function SuccessDialogContent({ testResponse }: TestResponseProps) {
+  return testResponse && testResponse.status === TestStatus.COMPLETED ? (
+    <DialogHeader>
+      <DialogTitle>Success!</DialogTitle>
+      <DialogDescription>
+        Score: {testResponse.score}%<span>Score: {testResponse.score}%</span>{" "}
+      </DialogDescription>
+    </DialogHeader>
+  ) : null;
+}
+function FailureDialogContent({ testResponse }: TestResponseProps) {
+  return testResponse && testResponse.status === TestStatus.LOCKED ? (
+    <DialogHeader>
+      <DialogTitle>Well tried!</DialogTitle>
+      <DialogDescription>
+        <span>Score: {testResponse.score}%</span> <br />
+      </DialogDescription>
+    </DialogHeader>
+  ) : null;
 }
