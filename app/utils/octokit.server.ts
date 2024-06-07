@@ -11,9 +11,9 @@ interface GCFProps {
 
 /**
  * Fetch lesson content from Github using Octokit.
- * @param {String} repo
- * @param {String} path
- * @returns {String} content
+ * @param {String} repo - Github repository name
+ * @param {String} path - Path to the file in the repository
+ * @returns {String} - content
  */
 export async function getContentFromGithub({
   repo,
@@ -33,9 +33,12 @@ export async function getContentFromGithub({
       }
       return { content };
     } else {
-      throw new BadRequestError("Invalid content.");
+      throw new BadRequestError("Invalid lesson content.");
     }
   } catch (error) {
+    if (error instanceof NotFoundError || error instanceof BadRequestError) {
+      throw error;
+    }
     throw new InternalServerError(
       "An error occured while fetching lesson content. Please try again."
     );

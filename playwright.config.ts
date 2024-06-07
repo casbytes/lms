@@ -3,7 +3,7 @@ import { defineConfig, devices } from "@playwright/test";
 // require('dotenv').config();
 
 export default defineConfig({
-  testDir: "./e2e",
+  testDir: "./tests/e2e",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
