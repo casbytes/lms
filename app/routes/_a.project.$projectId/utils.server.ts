@@ -34,6 +34,7 @@ export async function getProject(request: Request, params: Params<string>) {
     });
 
     const { data, content: mdx } = matter(content);
+
     return { project, projectContent: { data, mdx } };
   } catch (error) {
     throw new InternalServerError();
