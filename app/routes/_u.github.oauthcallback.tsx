@@ -45,7 +45,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       where: { githubId },
     });
 
-    let user;
+    let user = null;
 
     /**
      * If there is no existing user, create one and welcome them

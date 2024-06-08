@@ -10,7 +10,7 @@ import { PageTitle } from "~/components/page-title";
 import { SheetContent } from "~/components/ui/sheet";
 import { ModuleSideContent } from "./components/module-side-content";
 import { Markdown } from "~/components/markdown";
-import { VideoIframe } from "~/components/video-iframe";
+import { IFrame } from "~/components/iframe";
 import { Pagination } from "./components/pagination";
 import { Separator } from "~/components/ui/separator";
 import { Assessment } from "~/components/assessment";
@@ -29,6 +29,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     { lessons, currentLesson, subModule, videoSource },
     cacheOptions
   );
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+  return request.url;
 }
 
 export default function ModulesRoute() {
@@ -58,9 +62,8 @@ export default function ModulesRoute() {
                   <>
                     <Markdown source={currentLesson.mdx.content} />
                     {currentLesson?.mdx?.data?.videoId ? (
-                      <VideoIframe
-                        className="mt-8"
-                        videoSource={videoSource}
+                      <IFrame
+                        src={videoSource}
                         videoId={currentLesson.mdx.data.videoId}
                       />
                     ) : null}

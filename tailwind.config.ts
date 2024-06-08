@@ -28,8 +28,8 @@ const config = {
         "accordion-up": "accordion-up 0.2s ease-out",
       },
       backgroundImage: {
-        "1": "url('https://cdn.casbytes.com/bg1.svg')",
-        "2": "url('https://cdn.casbytes.com/bg2.svg')",
+        "1": "url('https://cdn.casbytes.com/assets/bg1.svg')",
+        "2": "url('https://cdn.casbytes.com/assets/bg2.svg')",
       },
     },
   },

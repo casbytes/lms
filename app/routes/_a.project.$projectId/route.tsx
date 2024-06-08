@@ -17,7 +17,7 @@ import { getProject } from "./utils.server";
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { getUser } from "~/utils/sessions.server";
 import { Markdown } from "~/components/markdown";
-import { VideoIframe } from "~/components/video-iframe";
+import { IFrame } from "~/components/iframe";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const { BUNNY_IFRAME_URL: iframeUrl, BUNNY_VIDEO_LIBRARY_ID: libraryId } =
@@ -66,11 +66,7 @@ export default function ProjectRoute() {
         <>
           <Markdown source={projectContent.mdx} />
           {projectContent?.data?.videoId ? (
-            <VideoIframe
-              className="mt-8"
-              videoSource={videoSource}
-              videoId={projectContent.data.videoId}
-            />
+            <IFrame src={videoSource} videoId={projectContent.data.videoId} />
           ) : null}
         </>
         <Button

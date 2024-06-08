@@ -10,7 +10,7 @@ import { Separator } from "~/components/ui/separator";
 type TestHeaderProps = {
   progress: number;
   questionsLength: number;
-  submitForm: () => void;
+  submitForm: () => Promise<void>;
   redirectUrl: string;
   currentQuestionIndex: number;
 };
@@ -24,9 +24,9 @@ export function TestHeader({
 }: TestHeaderProps) {
   const [alert, setAlert] = React.useState(true);
 
-  const timePerQuestion = 1.5 * 60;
-  const totalTime = timePerQuestion * questionsLength;
-  const [timeLeft, setTimeLeft] = React.useState(totalTime);
+  // const timePerQuestion = 1.5 * 60;
+  // const totalTime = timePerQuestion * questionsLength;
+  const [timeLeft, setTimeLeft] = React.useState(20);
 
   const navigate = useNavigate();
 
@@ -50,10 +50,13 @@ export function TestHeader({
       }, INTERVAL);
       return () => window.clearInterval(timer);
     } else {
-      submitForm();
-      navigate(redirectUrl);
+      async function sAN() {
+        await submitForm();
+        navigate(-2);
+      }
+      sAN();
     }
-  }, [timeLeft, navigate, redirectUrl]);
+  }, [timeLeft, navigate]);
 
   function formatTime(seconds: number) {
     const time = addSeconds(new Date(LEAST_TIME), seconds);

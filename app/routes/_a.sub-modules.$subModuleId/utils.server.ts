@@ -63,7 +63,12 @@ export async function getLessons(
 
   try {
     const user = await getUser(request);
-    const lessons = await prisma.lessonProgress.findMany({
+
+    /**
+     * Fetch the first lesson of the sub module
+     * to update its status to in progress if it is locked
+     */
+    const firstLesson = await prisma.lessonProgress.findFirst({
       where: {
         subModuleProgressId: subModuleId,
         users: { some: { id: user.id } },
@@ -73,11 +78,25 @@ export async function getLessons(
       },
     });
 
-    /**
-     * Update the status of the first lesson to in progress if it is locked
-     */
-    await updateFirstLessonStatus(user.id, lessons);
+    if (!firstLesson) {
+      throw new NotFoundError("First lesson not found.");
+    }
 
+    const [lessons] = await Promise.all([
+      prisma.lessonProgress.findMany({
+        where: {
+          subModuleProgressId: subModuleId,
+          users: { some: { id: user.id } },
+        },
+        orderBy: {
+          order: "asc",
+        },
+      }),
+      /**
+       * Update the status of the first lesson to in progress if it is locked
+       */
+      updateFirstLessonStatus(user.id, firstLesson),
+    ]);
     return lessons;
   } catch (error) {
     throw new InternalServerError(
@@ -88,20 +107,20 @@ export async function getLessons(
 
 /**
  * Update the status of the first lesson to in progress if it is locked
- * @param {String} userId
- * @param {ILessonProgress[]} lessons
- * @returns {Promise<void>}
+ * @param {String} userId - User ID
+ * @param {ILessonProgress} lessonProgress - Lesson Progress
+ * @returns {Promise<ILessonProgress>} - Promise
  */
 async function updateFirstLessonStatus(
   userId: string,
-  lessons: ILessonProgress[]
-): Promise<void> {
-  if (lessons?.[0].status !== Status.LOCKED) {
+  lessonProgress: ILessonProgress
+): Promise<ILessonProgress | void> {
+  if (lessonProgress.status !== Status.LOCKED) {
     return;
   }
-  await prisma.lessonProgress.update({
+  return prisma.lessonProgress.update({
     where: {
-      id: lessons[0].id,
+      id: lessonProgress.id,
       users: { some: { id: userId } },
     },
     data: {
@@ -147,6 +166,16 @@ export async function getLessonContent(
     if (!currentLesson) {
       throw new NotFoundError("Lesson not found.");
     }
+
+    // await prisma.lessonProgress.update({
+    //   where: {
+    //     id: currentLesson.id,
+    //     users: { some: { id: user.id } },
+    //   },
+    //   data: {
+    //     status: Status.IN_PROGRESS,
+    //   },
+    // });
 
     const [previousLesson, nextLesson] = await getPreviousAndNextLessons(
       user.id,

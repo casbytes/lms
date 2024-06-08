@@ -264,31 +264,49 @@ export async function updateTest(request: Request) {
         id: testId,
       },
       data: updateData,
+      include: {
+        moduleProgress: {
+          include: {
+            checkpoint: true,
+          },
+        },
+        subModuleProgress: {
+          include: {
+            checkpoint: true,
+          },
+        },
+      },
     });
 
-    if (!testResponse || testResponse === undefined) {
+    if (!testResponse) {
       throw new NotFoundError("Failed to update task.");
     }
 
     /**
-     * Update the checkpoint status to in progress if the test is completed
+     * Grab the checkpoint id from the module or sub module,
+     * use it to update the checkpoint status
      */
     if (
       testResponse.score >= CUT_OFF_SCORE &&
       testResponse.status === TestStatus.COMPLETED
     ) {
-      const id =
-        testResponse?.moduleProgressId ??
-        (testResponse?.subModuleProgressId as string);
+      let checkpointId: string | null = null;
+      if (testResponse.moduleProgress) {
+        checkpointId = testResponse.moduleProgress?.checkpoint?.id ?? null;
+      } else if (testResponse.subModuleProgress) {
+        checkpointId = testResponse.subModuleProgress.checkpoint?.id ?? null;
+      }
 
-      await prisma.checkpoint.update({
-        where: {
-          id,
-        },
-        data: {
-          status: Status.IN_PROGRESS,
-        },
-      });
+      if (checkpointId) {
+        await prisma.checkpoint.update({
+          where: {
+            id: checkpointId,
+          },
+          data: {
+            status: Status.IN_PROGRESS,
+          },
+        });
+      }
     }
 
     return testResponse;
