@@ -17,7 +17,7 @@ export function CourseCatalogCard({ userCourses }: CCCProps) {
       <h2 className="text-xl font-bold mb-4 text-teal-600">Course catalog</h2>
       <Table>
         <TableBody className="text-slate-600 text-lg">
-          {userCourses && userCourses?.length > 0 ? (
+          {userCourses && userCourses?.length ? (
             userCourses.map((course, index) => (
               <TableRow key={`${course.title}-${index}`}>
                 <TableCell className="text-blue-700">

@@ -17,13 +17,20 @@ export function Checkpoint({ checkpoint }: CheckpointProps) {
   const locked = checkpoint.status === Status.LOCKED;
   const inProgress = checkpoint.status === Status.IN_PROGRESS;
   const completed = checkpoint.status === Status.COMPLETED;
+
+  const checkpointLink = `/checkpoint/${checkpoint.id}?${
+    checkpoint?.moduleProgressId
+      ? `moduleId=${checkpoint.moduleProgressId}`
+      : `submoduleId=${checkpoint.subModuleProgressId}`
+  }`;
+
   return (
     <Button
-      disabled={locked}
+      // disabled={locked}
       className="rounded-md text-black bg-stone-200 hover:bg-stone-300 py-4 relative border-b-2 border-zinc-600 w-full"
     >
       <Link
-        to={`/checkpoint/${checkpoint.id}`}
+        to={checkpointLink}
         className="flex flex-1 justify-between items-center p-2"
       >
         <div className="absolute p-1 left-0">

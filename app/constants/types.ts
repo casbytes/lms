@@ -176,6 +176,14 @@ export enum TestStatus {
   COMPLETED = "COMPLETED",
 }
 
+export enum CheckpointStatus {
+  LOCKED = "LOCKED",
+  IN_PROGRESS = "IN_PROGRESS",
+  SUBMITTED = "SUBMITTED",
+  GRADED = "GRADED",
+  COMPLETED = "COMPLETED",
+}
+
 export enum BadgeLevel {
   NOVICE = "NOVICE",
   ADEPT = "ADEPT",

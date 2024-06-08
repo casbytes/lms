@@ -2,22 +2,17 @@ import React from "react";
 import { Await } from "@remix-run/react";
 import { CourseTitle } from "~/components/course-title";
 import { PendingStatus, Status } from "~/components/status";
-import { capitalizeFirstLetter } from "~/utils/cs";
 import { Lessons } from "./lessons";
-import { ILessonProgress, ISubModuleProgress } from "~/constants/types";
+import { ILessonProgress } from "~/constants/types";
 
 type ModuleSideContentProps = {
   lessons: Promise<ILessonProgress[]>;
-  subModule: ISubModuleProgress | null;
 };
 
-export function ModuleSideContent({
-  lessons,
-  subModule,
-}: ModuleSideContentProps) {
+export function ModuleSideContent({ lessons }: ModuleSideContentProps) {
   return (
     <>
-      {subModule ? <CourseTitle title="Lessons" /> : null}
+      <CourseTitle title="Lessons" />
       <React.Suspense fallback={<PendingStatus />}>
         <Await resolve={lessons}>
           {(lessons) => <Status status={lessons} />}

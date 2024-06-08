@@ -1,6 +1,6 @@
 import React from "react";
-import { LoaderFunctionArgs, defer } from "@remix-run/node";
-import { Await, useLoaderData } from "@remix-run/react";
+import { ActionFunctionArgs, LoaderFunctionArgs, defer } from "@remix-run/node";
+import { Await, useLoaderData, useRevalidator } from "@remix-run/react";
 import { cacheOptions } from "~/utils/sessions.server";
 import { getLessonContent, getLessons, getSubModule } from "./utils.server";
 import { PiSpinnerGap } from "react-icons/pi";
@@ -10,28 +10,33 @@ import { PageTitle } from "~/components/page-title";
 import { SheetContent } from "~/components/ui/sheet";
 import { ModuleSideContent } from "./components/module-side-content";
 import { Markdown } from "~/components/markdown";
-import { VideoIframe } from "~/components/video-iframe";
+import { IFrame } from "~/components/iframe";
 import { Pagination } from "./components/pagination";
 import { Separator } from "~/components/ui/separator";
 import { Assessment } from "~/components/assessment";
+import { ContentPendingUI } from "~/components/content-pending-ui";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const { BUNNY_IFRAME_URL: iframeUrl, BUNNY_VIDEO_LIBRARY_ID: libraryId } =
     process.env as Record<string, string>;
-  const videoCredentials = { iframeUrl, libraryId };
+  const videoSource = `${iframeUrl}/embed/${Number(libraryId)}`;
 
   const lessons = getLessons(request, params);
   const currentLesson = getLessonContent(request, params);
   const subModule = await getSubModule(request, params);
 
   return defer(
-    { lessons, currentLesson, subModule, videoCredentials },
+    { lessons, currentLesson, subModule, videoSource },
     cacheOptions
   );
 }
 
+export async function action({ request }: ActionFunctionArgs) {
+  return request.url;
+}
+
 export default function ModulesRoute() {
-  const { lessons, currentLesson, subModule, videoCredentials } =
+  const { lessons, currentLesson, subModule, videoSource } =
     useLoaderData<typeof loader>();
 
   const redirectUrl = `/courses/${subModule?.moduleProgress?.courseProgressId}?moduleId=${subModule?.moduleProgressId}`;
@@ -51,24 +56,14 @@ export default function ModulesRoute() {
           <div className="col-span-3 min-h-full">
             <Assessment item={subModule} />
             <Separator className="bg-sky-700 h-2 my-4 rounded-tl-md rounded-br-md" />
-            <React.Suspense
-              fallback={
-                <div className="w-full h-auto md:h-[calc(100vh-20rem)] flex items-center justify-center rounded-md bg-slate-300 animate-pulse">
-                  <PiSpinnerGap
-                    size={100}
-                    className="animate-spin text-slate-700"
-                  />
-                </div>
-              }
-            >
+            <React.Suspense fallback={<ContentPendingUI />}>
               <Await resolve={currentLesson}>
                 {(currentLesson) => (
                   <>
                     <Markdown source={currentLesson.mdx.content} />
                     {currentLesson?.mdx?.data?.videoId ? (
-                      <VideoIframe
-                        className="mt-8"
-                        videoCredentials={videoCredentials}
+                      <IFrame
+                        src={videoSource}
                         videoId={currentLesson.mdx.data.videoId}
                       />
                     ) : null}
@@ -80,7 +75,7 @@ export default function ModulesRoute() {
 
             <React.Suspense
               fallback={
-                <div className="w-full h-8 rounded-md bg-slate-300 animate-pulse" />
+                <div className="w-full h-8 rounded-md bg-black bg-opacity-80 animate-pulse" />
               }
             >
               <Await resolve={currentLesson}>
@@ -94,12 +89,12 @@ export default function ModulesRoute() {
 
         {/* mobile screens */}
         <SheetContent className="lg:hidden overflow-y-auto w-full sm:w-auto">
-          <ModuleSideContent lessons={lessons} subModule={subModule} />
+          <ModuleSideContent lessons={lessons} />
         </SheetContent>
 
         {/* large screens */}
         <aside className="hidden lg:block col-span-2 border bg-zinc-100 h-auto max-h-screen overflow-y-auto">
-          <ModuleSideContent lessons={lessons} subModule={subModule} />
+          <ModuleSideContent lessons={lessons} />
         </aside>
       </div>
     </Container>

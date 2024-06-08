@@ -63,7 +63,12 @@ export async function getLessons(
 
   try {
     const user = await getUser(request);
-    const lessons = await prisma.lessonProgress.findMany({
+
+    /**
+     * Fetch the first lesson of the sub module
+     * to update its status to in progress if it is locked
+     */
+    const firstLesson = await prisma.lessonProgress.findFirst({
       where: {
         subModuleProgressId: subModuleId,
         users: { some: { id: user.id } },
@@ -73,11 +78,25 @@ export async function getLessons(
       },
     });
 
-    /**
-     * Update the status of the first lesson to in progress if it is locked
-     */
-    await updateFirstLessonStatus(user.id, lessons);
+    if (!firstLesson) {
+      throw new NotFoundError("First lesson not found.");
+    }
 
+    const [lessons] = await Promise.all([
+      prisma.lessonProgress.findMany({
+        where: {
+          subModuleProgressId: subModuleId,
+          users: { some: { id: user.id } },
+        },
+        orderBy: {
+          order: "asc",
+        },
+      }),
+      /**
+       * Update the status of the first lesson to in progress if it is locked
+       */
+      updateFirstLessonStatus(user.id, firstLesson),
+    ]);
     return lessons;
   } catch (error) {
     throw new InternalServerError(
@@ -88,20 +107,20 @@ export async function getLessons(
 
 /**
  * Update the status of the first lesson to in progress if it is locked
- * @param {String} userId
- * @param {ILessonProgress[]} lessons
- * @returns {Promise<void>}
+ * @param {String} userId - User ID
+ * @param {ILessonProgress} lessonProgress - Lesson Progress
+ * @returns {Promise<ILessonProgress>} - Promise
  */
 async function updateFirstLessonStatus(
   userId: string,
-  lessons: ILessonProgress[]
-): Promise<void> {
-  if (lessons?.[0].status !== Status.LOCKED) {
+  lessonProgress: ILessonProgress
+): Promise<ILessonProgress | void> {
+  if (lessonProgress.status !== Status.LOCKED) {
     return;
   }
-  await prisma.lessonProgress.update({
+  return prisma.lessonProgress.update({
     where: {
-      id: lessons[0].id,
+      id: lessonProgress.id,
       users: { some: { id: userId } },
     },
     data: {
@@ -123,14 +142,17 @@ export async function getLessonContent(
   try {
     invariant(params.subModuleId, "Submodule ID is required to fetch lessons.");
     const subModuleId = params.subModuleId;
-    const user = await getUser(request);
     const lessonSlug = getLessonSlug(request);
+    const user = await getUser(request);
 
     const currentLesson = await prisma.lessonProgress.findFirst({
       where: {
         subModuleProgressId: subModuleId,
         users: { some: { id: user.id } },
         ...(lessonSlug && { slug: lessonSlug }),
+      },
+      orderBy: {
+        order: "asc",
       },
       include: {
         subModuleProgress: {
@@ -145,6 +167,16 @@ export async function getLessonContent(
       throw new NotFoundError("Lesson not found.");
     }
 
+    // await prisma.lessonProgress.update({
+    //   where: {
+    //     id: currentLesson.id,
+    //     users: { some: { id: user.id } },
+    //   },
+    //   data: {
+    //     status: Status.IN_PROGRESS,
+    //   },
+    // });
+
     const [previousLesson, nextLesson] = await getPreviousAndNextLessons(
       user.id,
       subModuleId,
@@ -155,31 +187,36 @@ export async function getLessonContent(
      * Update the status of the current lesson and the next lesson
      */
     await updateLessonStatuses(currentLesson, nextLesson, user.id, subModuleId);
-
     /**
      * Fetch lesson content from Github
      * The repo name is the slug of the associated module progress
      * Path: subModuleSlug/lessons/lessonSlug.mdx
      */
-    const data = await getContentFromGithub({
-      repo: `${currentLesson!.subModuleProgress.moduleProgress.slug}`,
-      path: `${currentLesson!.subModuleProgress.slug}/lessons/${
-        currentLesson!.slug
-      }.mdx`,
+    const repo = `${currentLesson!.subModuleProgress.moduleProgress.slug}`;
+    const path = `${currentLesson!.subModuleProgress.slug}/lessons/${
+      currentLesson!.slug
+    }.mdx`;
+
+    const { content: mdxContent } = await getContentFromGithub({
+      repo,
+      path,
     });
 
-    if (!data?.content) {
-      throw new NotFoundError("Lesson content not found.");
+    if (!mdxContent) {
+      throw new NotFoundError("Empty lesson content.");
     }
-    const { content } = data;
-    const mdx = matter(content);
+
+    const { data, content } = matter(mdxContent);
     return {
-      mdx,
+      mdx: { data, content },
       previousLesson,
       currentLesson,
       nextLesson,
     };
   } catch (error) {
+    if (error instanceof NotFoundError) {
+      throw error;
+    }
     throw new InternalServerError(
       "An error occured while fetching lesson content from CMS, please try again."
     );
@@ -192,66 +229,72 @@ async function updateLessonStatuses(
   userId: string,
   subModuleId: string
 ) {
-  await prisma.$transaction(async (txn) => {
-    /**
-     * If the user is viewing the lesson, mark it as completed
-     * and update the next lesson to IN_PROGRESS
-     */
-    if (currentLesson.status === Status.IN_PROGRESS) {
-      await txn.lessonProgress.update({
-        where: {
-          id: currentLesson.id,
-          users: { some: { id: userId } },
-        },
-        data: {
-          status: Status.COMPLETED,
-        },
-      });
-
+  try {
+    await prisma.$transaction(async (txn) => {
       /**
-       * Update the status of the next lesson to in progress if it is locked
+       * If the user is viewing the lesson, mark it as completed
+       * and update the next lesson to IN_PROGRESS
        */
-      if (nextLesson) {
-        if (nextLesson.status === Status.LOCKED) {
-          await txn.lessonProgress.update({
-            where: {
-              id: nextLesson.id,
-              users: { some: { id: userId } },
-            },
-            data: {
-              status: Status.IN_PROGRESS,
-            },
-          });
-        }
-      } else {
-        /**
-         * If there is no next lesson, update
-         * the status of the sub module test to available
-         */
-        const subModuleTest = await txn.test.findFirst({
+      if (currentLesson.status === Status.IN_PROGRESS) {
+        await txn.lessonProgress.update({
           where: {
-            subModuleProgressId: subModuleId,
+            id: currentLesson.id,
             users: { some: { id: userId } },
+          },
+          data: {
+            status: Status.COMPLETED,
           },
         });
 
-        if (
-          subModuleTest &&
-          subModuleTest.status === TestStatus.LOCKED &&
-          !subModuleTest.attempted
-        ) {
-          await txn.test.update({
+        /**
+         * Update the status of the next lesson to in progress if it is locked
+         */
+        if (nextLesson) {
+          if (nextLesson.status === Status.LOCKED) {
+            await txn.lessonProgress.update({
+              where: {
+                id: nextLesson.id,
+                users: { some: { id: userId } },
+              },
+              data: {
+                status: Status.IN_PROGRESS,
+              },
+            });
+          }
+        } else {
+          /**
+           * If there is no next lesson, update
+           * the status of the sub module test to available
+           */
+          const subModuleTest = await txn.test.findFirst({
             where: {
-              id: subModuleTest.id,
-            },
-            data: {
-              status: TestStatus.AVAILABLE,
+              subModuleProgressId: subModuleId,
+              users: { some: { id: userId } },
             },
           });
+
+          if (
+            subModuleTest &&
+            subModuleTest.status === TestStatus.LOCKED &&
+            !subModuleTest.attempted
+          ) {
+            await txn.test.update({
+              where: {
+                id: subModuleTest.id,
+              },
+              data: {
+                status: TestStatus.AVAILABLE,
+              },
+            });
+          }
         }
       }
-    }
-  });
+    });
+  } catch (error) {
+    throw new InternalServerError(
+      "An error occured while updating lesson statuses, please try again."
+    );
+  }
 }
 
 /**
@@ -266,28 +309,34 @@ async function getPreviousAndNextLessons(
   subModuleId: string,
   currentLesson: ILessonProgress
 ): Promise<Array<ILessonProgress | null>> {
-  return Promise.all([
-    prisma.lessonProgress.findFirst({
-      where: {
-        subModuleProgressId: subModuleId,
-        users: { some: { id: userId } },
-        order: { lt: currentLesson.order },
-      },
-      // orderBy: {
-      //   order: "asc",
-      // },
-    }),
-    prisma.lessonProgress.findFirst({
-      where: {
-        subModuleProgressId: subModuleId,
-        users: { some: { id: userId } },
-        order: { gt: currentLesson.order },
-      },
-      // orderBy: {
-      //   order: "desc",
-      // },
-    }),
-  ]);
+  try {
+    return Promise.all([
+      prisma.lessonProgress.findFirst({
+        where: {
+          subModuleProgressId: subModuleId,
+          users: { some: { id: userId } },
+          order: { lt: currentLesson.order },
+        },
+        // orderBy: {
+        //   order: "asc",
+        // },
+      }),
+      prisma.lessonProgress.findFirst({
+        where: {
+          subModuleProgressId: subModuleId,
+          users: { some: { id: userId } },
+          order: { gt: currentLesson.order },
+        },
+        // orderBy: {
+        //   order: "asc",
+        // },
+      }),
+    ]);
+  } catch (error) {
+    throw new InternalServerError(
+      "An error occured while fetching previous and next lessons, please try again."
+    );
+  }
 }
 
 /**

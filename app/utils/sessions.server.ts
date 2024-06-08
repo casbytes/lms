@@ -49,17 +49,17 @@ async function signOut(request: Request) {
 async function checkUser(request: Request) {
   try {
     const session = await getUserSession(request);
-    const currentUser = session?.get("currentUser");
+    const currentUser: ISessionUser | undefined = session?.get("currentUser");
     if (!currentUser || !currentUser.id) {
       throw redirect("/");
     }
-    const user = await prisma.user.findUnique({
+    const dbUser = await prisma.user.findUnique({
       where: { id: currentUser.id },
     });
-    if (!user) {
+    if (!dbUser) {
       throw redirect("/");
     }
-    return user;
+    return { ...currentUser, ...dbUser } as ICurrentUser;
   } catch (error) {
     throw new InternalServerError();
   }
@@ -67,21 +67,7 @@ async function checkUser(request: Request) {
 
 async function getUser(request: Request): Promise<ICurrentUser> {
   try {
-    const session = await getUserSession(request);
-    const currentUser: ISessionUser | undefined = session?.get("currentUser");
-    if (!currentUser || !currentUser.id) {
-      throw new UnAuthorizedError("User session is invalid.");
-    }
-    const dbUser = await prisma.user.findUnique({
-      where: { id: currentUser.id },
-    });
-    if (!dbUser) {
-      throw new NotFoundError("User not found.");
-    }
-    const user: ICurrentUser = {
-      ...currentUser,
-      ...dbUser,
-    };
+    const user = await checkUser(request);
     return user;
   } catch (error) {
     if (error instanceof UnAuthorizedError || error instanceof NotFoundError) {
@@ -90,12 +76,6 @@ async function getUser(request: Request): Promise<ICurrentUser> {
     throw new InternalServerError();
   }
 }
-
-// const cacheOptions = {
-//   headers: {
-//     "Cache-Control": "max-age=604800, public",
-//   },
-// };
 
 const cacheOptions = {
   headers: {
