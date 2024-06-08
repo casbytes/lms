@@ -12,7 +12,7 @@ import { getUser } from "~/utils/sessions.server";
 import { getCheckpoint, updateCheckpoint } from "./utils.server";
 import { useActionData, useLoaderData, useSubmit } from "@remix-run/react";
 import { useLocalStorageState } from "~/utils/hooks";
-import { VideoIframe } from "~/components/video-iframe";
+import { IFrame } from "~/components/iframe";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const { BUNNY_IFRAME_URL: iframeUrl, BUNNY_VIDEO_LIBRARY_ID: libraryId } =
@@ -85,9 +85,8 @@ export default function CheckPointRoute() {
         <div>
           <Markdown source={checkpointContent.mdx} />
           {checkpointContent?.data?.videoId ? (
-            <VideoIframe
-              className="mt-8"
-              videoSource={videoSource}
+            <IFrame
+              src={videoSource}
               videoId={checkpointContent.data.videoId}
             />
           ) : null}

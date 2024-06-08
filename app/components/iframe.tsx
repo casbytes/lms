@@ -1,33 +1,34 @@
 import React from "react";
-import Iframe from "react-iframe";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { cn } from "~/libs/shadcn";
 
 type IframeProps = {
   videoId: string;
   className?: string;
-  videoSource: string;
+  src: string;
 };
 
-export function IFrame({ videoId, videoSource, className }: IframeProps) {
+function IFrame({ videoId, src, className }: IframeProps) {
   const [isLoading, setIsLoading] = React.useState(true);
-  const handleLoad = () => setIsLoading(false);
+  function handleLoad() {
+    setIsLoading(false);
+  }
 
   return (
-    <div className={cn("relative pt-[56.25%]", className)}>
-      <Iframe
+    <div className={cn("relative mt-8 pt-[56.25%]", className)}>
+      <iframe
+        src={`${src}/${videoId}?autoplay=false&loop=false&muted=false&preload=true&responsive=true`}
         id="iframe"
         loading="lazy"
-        url={`${videoSource}/${videoId}?autoplay=false&loop=false&muted=false&preload=true&responsive=true`}
         className={cn(
-          "border-0 absolute top-0 h-full w-full rounded-md",
-          isLoading ? "hidden" : "block"
+          "border-0 absolute top-0 h-full w-full rounded-md"
+          // isLoading ? "hidden" : "block"
         )}
         allow="accelerometer;gyroscope;encrypted-media;picture-in-picture;"
         allowFullScreen
-        onLoad={handleLoad}
+        // onLoad={handleLoad}
       />
-      {isLoading ? (
+      {/* {isLoading ? (
         <div className="absolute top-0 left-0 w-full h-full">
           <div className="bg-black/50 bg-opacity-90 flex items-center justify-center h-full rounded-md">
             <AiOutlineLoading3Quarters
@@ -36,9 +37,9 @@ export function IFrame({ videoId, videoSource, className }: IframeProps) {
             />
           </div>
         </div>
-      ) : null}
+      ) : null} */}
     </div>
   );
 }
 
-export const VideoIframe = React.memo(IFrame);
+export { IFrame };

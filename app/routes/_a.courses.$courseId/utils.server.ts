@@ -31,6 +31,9 @@ export async function getTestCheckpointProject(
         id: moduleIdToUse,
         users: { some: { id: userId } },
       },
+      orderBy: {
+        order: "asc",
+      },
       include: {
         test: true,
         checkpoint: true,
@@ -70,7 +73,11 @@ export async function getModules(
     const courseProgressId = params.courseId;
     const { id: userId } = await getUser(request);
 
-    const modules = await prisma.moduleProgress.findMany({
+    /**
+     * Get the first module of the course
+     * This is to ensure that the first module is always in progress
+     */
+    const firstModule = await prisma.moduleProgress.findFirst({
       where: {
         users: { some: { id: userId } },
         courseProgressId: courseProgressId,
@@ -80,12 +87,45 @@ export async function getModules(
       },
     });
 
-    /**
-     * If the user have started the course, set the first sub module to IN_PROGRESS
-     * This is to ensure that the first subModule of a module is always in progress
-     * when the user starts the course
-     */
-    await ensureFirstSubModuleInProgress(modules, userId);
+    if (!firstModule) {
+      throw new NotFoundError("First Module not found.");
+    }
+
+    const firstSubModule = await prisma.subModuleProgress.findFirst({
+      where: {
+        moduleProgressId: firstModule.id,
+        users: { some: { id: userId } },
+      },
+      orderBy: {
+        order: "asc",
+      },
+    });
+
+    if (!firstSubModule) {
+      throw new NotFoundError("First Sub Module not found.");
+    }
+
+    await prisma.subModuleProgress.update({
+      where: { id: firstSubModule.id },
+      data: { status: Status.IN_PROGRESS },
+    });
+
+    const [modules] = await Promise.all([
+      prisma.moduleProgress.findMany({
+        where: {
+          users: { some: { id: userId } },
+          courseProgressId: courseProgressId,
+        },
+        orderBy: {
+          order: "asc",
+        },
+      }),
+      /**
+       * If the user have started the course, set the first module and sub module to IN_PROGRESS
+       */
+      updateFirstModule(userId, courseProgressId),
+      updateFirstSubModule(userId, firstModule.id),
+    ]);
 
     return modules;
   } catch (error) {
@@ -96,37 +136,55 @@ export async function getModules(
 }
 
 /**
- * Update first submodule on user start course
- * @param {IModuleProgress[]} modules
- * @param {String} userId
+ *  Update the first module of a given course
+ * @param userId - User ID
+ * @param courseProgressId - Course Progress ID
  */
-async function ensureFirstSubModuleInProgress(
-  modules: IModuleProgress[],
-  userId: string
-) {
-  const updatePromises = modules.map(async (module) => {
-    try {
-      const subModules = await prisma.subModuleProgress.findMany({
-        where: { users: { some: { id: userId } }, moduleProgressId: module.id },
-        orderBy: {
-          order: "asc",
-        },
-      });
-
-      if (subModules.length > 0) {
-        const firstSubModuleId = subModules[0].id;
-        return prisma.subModuleProgress.update({
-          where: { id: firstSubModuleId },
-          data: { status: Status.IN_PROGRESS },
-        });
-      }
-    } catch (error) {
-      throw new InternalServerError(
-        "An error occured while updating submodules, please try again."
-      );
-    }
+async function updateFirstModule(userId: string, courseProgressId: string) {
+  const firstModule = await prisma.moduleProgress.findFirst({
+    where: {
+      users: { some: { id: userId } },
+      courseProgressId: courseProgressId,
+    },
+    orderBy: {
+      order: "asc",
+    },
   });
-  await Promise.all(updatePromises);
+
+  if (!firstModule) {
+    throw new NotFoundError("First Module not found.");
+  }
+
+  await prisma.moduleProgress.update({
+    where: { id: firstModule.id },
+    data: { status: Status.IN_PROGRESS },
+  });
+}
+
+/**
+ *  Update the first sub module of a given module
+ * @param {String} userId - User ID
+ * @param {String} moduleProgressId - Module Progress ID
+ */
+async function updateFirstSubModule(userId: string, moduleProgressId: string) {
+  const firstSubModule = await prisma.subModuleProgress.findFirst({
+    where: {
+      moduleProgressId: moduleProgressId,
+      users: { some: { id: userId } },
+    },
+    orderBy: {
+      order: "asc",
+    },
+  });
+
+  if (!firstSubModule) {
+    throw new NotFoundError("First Sub Module not found.");
+  }
+
+  await prisma.subModuleProgress.update({
+    where: { id: firstSubModule.id },
+    data: { status: Status.IN_PROGRESS },
+  });
 }
 
 /**
@@ -215,6 +273,9 @@ async function getModule(
   try {
     const module = await prisma.moduleProgress.findFirst({
       where: { users: { some: { id: userId } }, courseProgressId: courseId },
+      orderBy: {
+        order: "asc",
+      },
     });
     if (!module) {
       throw new NotFoundError("Module not found.");

@@ -31,7 +31,9 @@ export function Lesson({ lesson }: LessonProps) {
       <SheetClose asChild>
         <Button
           variant="secondary"
-          onClick={() => submit({ lessonSlug: lesson.slug })}
+          onClick={() =>
+            submit({ lessonSlug: lesson.slug }, { method: "post" })
+          }
           disabled={locked || lessonSlug === lesson.slug}
           className={cn(
             "flex items-center justify-start bg-slate-300/50 hover:bg-slate-300 text-black w-full",

@@ -25,7 +25,7 @@ export default function TestIndexRoute() {
     : test?.subModuleProgress?.title ?? defaultTitle;
 
   const moduleOrSubModuleUrl = moduleTest
-    ? `/courses/${test?.moduleProgressId}`
+    ? `/courses/${test?.moduleProgress?.courseProgressId}?moduleId=${test?.moduleProgressId}`
     : `/sub-modules/${test?.subModuleProgressId}`;
 
   return (
@@ -56,7 +56,7 @@ export default function TestIndexRoute() {
           </div>
         </div>
         <Button
-          disabled={test.status === TestStatus.LOCKED}
+          // disabled={test.status === TestStatus.LOCKED}
           className="mt-4 w-full text-lg"
           size="lg"
         >

@@ -1,7 +1,13 @@
 import React from "react";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { useActionData, useSubmit, useLoaderData } from "@remix-run/react";
+import {
+  useActionData,
+  useSubmit,
+  useLoaderData,
+  useNavigation,
+  useNavigate,
+} from "@remix-run/react";
 import { BackButton } from "~/components/back-button";
 import { Container } from "~/components/container";
 import { PageTitle } from "~/components/page-title";
@@ -24,16 +30,18 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const testResponse = await updateTest(request);
-  return json({ testResponse });
+  await updateTest(request);
+  return null;
 }
 
 export default function TestRoute() {
   const { questions, user, test } = useLoaderData<typeof loader>();
-  const data = useActionData<typeof action>();
 
   const submit = useSubmit();
+  const navigation = useNavigation();
   const dialogButtonRef = React.useRef<HTMLButtonElement>(null);
+
+  const isSubmitting = navigation.formData?.get("intent") === "submit";
 
   const [isServer, setIsServer] = React.useState(true);
   const [isFormSubmitted, setIsFormSubmitted] = React.useState(false);
@@ -88,21 +96,24 @@ export default function TestRoute() {
   /**
    * Programmatically submits the test form
    */
-  function handleSubmit() {
-    submit(
-      {
-        testId: test.id,
-        userId: user.id,
-        intent: "submit",
-        moduleProgressId: moduleProgressId ?? null,
-        subModuleProgressId: subModuleProgressId ?? null,
-        score: getUserScore().toFixed(0),
-      },
-      { method: "POST" }
-    );
-    window.localStorage.removeItem("currentQuestionIndex");
-    window.localStorage.removeItem("userAnswers");
-    setIsFormSubmitted(true);
+  async function handleSubmit() {
+    return new Promise<void>((resolve) => {
+      submit(
+        {
+          testId: test.id,
+          userId: user.id,
+          intent: "submit",
+          moduleProgressId: moduleProgressId ?? null,
+          subModuleProgressId: subModuleProgressId ?? null,
+          score: getUserScore().toFixed(0),
+        },
+        { method: "POST" }
+      );
+      window.localStorage.removeItem("currentQuestionIndex");
+      window.localStorage.removeItem("userAnswers");
+      setIsFormSubmitted(true);
+      resolve();
+    });
   }
 
   const moduleTest = test?.moduleProgressId ? true : false;
@@ -138,12 +149,11 @@ export default function TestRoute() {
     setIsServer(false);
   }, []);
 
-  if (isServer) return <FullPagePendingUI />;
+  if (isServer || isSubmitting) return <FullPagePendingUI />;
   return (
     <Dialog>
       <Container className="max-w-4xl">
-        {/* <BackButton to={moduleOrSubModuleUrl} buttonText={testTitle} /> */}
-        <Button>back</Button>
+        <BackButton to={moduleOrSubModuleUrl} buttonText={testTitle} />
         <PageTitle title={`${moduleOrSubModuleTitle} 👀`} />
         <TestHeader
           progress={progress}
@@ -172,8 +182,6 @@ export default function TestRoute() {
           submitForm={handleSubmit}
           isFormSubmitted={isFormSubmitted}
           dialogButtonRef={dialogButtonRef}
-          redirectUrl={moduleOrSubModuleUrl}
-          testResponse={data?.testResponse ?? undefined}
         />
 
         {/* Because the dialog trigger button is only rendered when a student is on the last question,
