@@ -3,8 +3,8 @@ import {
   useNavigate,
   isRouteErrorResponse,
 } from "@remix-run/react";
+import { BsXCircle } from "react-icons/bs";
 import { Container } from "./container";
-import { XCircle } from "lucide-react";
 import { Button } from "./ui/button";
 import {
   Card,
@@ -31,7 +31,7 @@ export function RootErrorUI({ error }: ErrorUIProps) {
             className="w-40 h-8 mx-auto mb-4"
             alt="CASBytes"
           />
-          <XCircle size={100} className="text-red-500  mx-auto font-bold" />
+          <BsXCircle size={100} className="text-red-500  mx-auto font-bold" />
           <CardTitle className="capitalize text-4xl font-medium text-center">
             Error!
           </CardTitle>

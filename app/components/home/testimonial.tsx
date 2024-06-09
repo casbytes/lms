@@ -1,4 +1,3 @@
-import { Quote } from "lucide-react";
 import avatar from "~/assets/avatar.png";
 import {
   Carousel,
@@ -9,6 +8,7 @@ import {
 } from "../ui/carousel";
 import { Card, CardContent } from "../ui/card";
 import { Container } from "../container";
+import { FaQuoteLeft } from "react-icons/fa6";
 
 export function Testimonial() {
   return (
@@ -36,7 +36,7 @@ export function Testimonial() {
               <div className="p-2">
                 <Card className="border-blue-500 drop-shadow-md bg-slate-100">
                   <CardContent className="flex flex-col aspect-square items-start justify-center p-4">
-                    <Quote size={45} className="text-blue-300" />
+                    <FaQuoteLeft size={45} className="text-blue-300" />
                     <p className="mt-4 mb-10">
                       Lorem ipsum dolor sit amet consectetur adipisicing elit.
                       Labore doloremque possimus dolores ab vitae. Vero,

@@ -18,7 +18,7 @@ export function DiscordCard() {
       <Button
         // disabled
         size="lg"
-        className="mt-4 bg-blue-400 hover:bg-blue-300 text-blue-700"
+        className="mt-4 bg-blue-400/50 hover:bg-blue-400 text-blue-700"
       >
         <Link to="/subscription">Join discord</Link>
       </Button>

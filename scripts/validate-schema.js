@@ -11,8 +11,8 @@ const schema = {
   type: "object",
   properties: {
     title: { type: "string" },
-    jsonId: { type: "string" },
     published: { type: "boolean" },
+    jsonId: { type: "string" },
     modules: {
       type: "array",
       items: {
@@ -20,7 +20,6 @@ const schema = {
         properties: {
           title: { type: "string" },
           jsonId: { type: "string" },
-          // published: { type: "boolean" },
           subModules: {
             type: "array",
             items: {
@@ -36,7 +35,7 @@ const schema = {
                       title: { type: "string" },
                       jsonId: { type: "string" },
                     },
-                    required: ["title, jsonId"],
+                    required: ["title", "jsonId"],
                   },
                 },
               },
@@ -48,7 +47,7 @@ const schema = {
       },
     },
   },
-  required: ["title", "jsonId", "published", "modules"],
+  required: ["title", "published", "jsonId", "modules"],
 };
 
 /**
@@ -71,7 +70,7 @@ async function validate() {
         const isValid = validate(meta);
 
         if (!isValid) {
-          console.error(validate.errors);
+          console.error(`Invalid json schema: ${validate.errors}`);
           process.exit(1);
         }
       });

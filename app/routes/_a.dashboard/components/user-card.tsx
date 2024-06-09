@@ -1,6 +1,10 @@
 import { ICurrentUser } from "~/constants/types";
 
-export function UserCard({ user }: { user: ICurrentUser }) {
+type UserCardProps = {
+  user: ICurrentUser;
+};
+
+export function UserCard({ user }: UserCardProps) {
   return (
     <article className="bg-sky-300/50 rounded-md p-8 flex flex-col justify-center relative w-full">
       <div className="flex items-center justify-between">

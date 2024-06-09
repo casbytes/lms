@@ -1,10 +1,11 @@
 import { Link } from "@remix-run/react";
-import { CircleCheckBig, CircleDotDashed } from "lucide-react";
 import { BiReset } from "react-icons/bi";
+import { FiCheckCircle } from "react-icons/fi";
+import { LuCircleDotDashed } from "react-icons/lu";
+import { ICourseProgress, Status } from "~/constants/types";
 import { Table, TableBody, TableCell, TableRow } from "./ui/table";
 import { Button } from "./ui/button";
 import { capitalizeFirstLetter } from "~/utils/cs";
-import { ICourseProgress } from "~/constants/types";
 
 type CCCProps = {
   userCourses: ICourseProgress[];
@@ -16,26 +17,26 @@ export function CourseCatalogCard({ userCourses }: CCCProps) {
       <h2 className="text-xl font-bold mb-4 text-teal-600">Course catalog</h2>
       <Table>
         <TableBody className="text-slate-600 text-lg">
-          {userCourses && userCourses?.length > 0 ? (
+          {userCourses && userCourses?.length ? (
             userCourses.map((course, index) => (
               <TableRow key={`${course.title}-${index}`}>
                 <TableCell className="text-blue-700">
-                  <Link to={`/courses/${course.id}`}>
+                  <Link prefetch="intent" to={`/courses/${course.id}`}>
                     {capitalizeFirstLetter(course.title)}
                   </Link>
                 </TableCell>
 
                 <TableCell className="flex gap-4 items-center justify-end">
                   <span className="text-sm"> {course.score}%</span>{" "}
-                  <Link to={`/courses/${course.slug}`}>
+                  <Link prefetch="intent" to={`/courses/${course.id}`}>
                     <Button
                       className="bg-teal-500 hover:bg-teal-400 py-1 font-black"
                       size="icon"
                     >
-                      {course.status === "IN_PROGRESS" ? (
-                        <CircleDotDashed size={20} />
+                      {course.status === Status.IN_PROGRESS ? (
+                        <LuCircleDotDashed size={20} />
                       ) : (
-                        <CircleCheckBig size={20} />
+                        <FiCheckCircle size={20} />
                       )}
                     </Button>
                   </Link>

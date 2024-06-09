@@ -1,4 +1,4 @@
-import { spawn } from "child_process";
+import { spawn } from "node:child_process";
 import * as ltfs from "litefs-js";
 
 async function go() {
@@ -7,28 +7,39 @@ async function go() {
     await getInstanceInfo();
 
   if (currentIsPrimary) {
-    console.log(
+    console.info(
       `Instance (${currentInstance}) in ${process.env.FLY_REGION} is primary. Deploying migrations.`
     );
+    /**
+     * Apply  DB migrations if any
+     */
     await exec("npx prisma migrate deploy");
-    console.log("Database migrations completed!");
+    console.info("DB migrations applied!");
 
-    // console.log("Validating JSON schema...");
-    // await exec("npm run validate");
-    // console.log("JSON Schema validated!");
+    /**
+     * Validate JSON schema
+     */
+    console.info("Validating JSON schema...");
+    await exec("npm run validate");
+    console.info("JSON Schema validated!");
 
-    console.log("Updating database...");
+    /**
+     * Update DB
+     */
+    console.info("Updating database...");
     await exec("npm run update:db");
-    console.log("Database updated!");
+    console.info("Database updated!");
   } else {
-    console.log(
+    console.info(
       `Instance (${currentInstance}) in ${process.env.FLY_REGION} is not primary (the primary instance is ${primaryInstance}). Skipping migrations.`
     );
   }
 
+  /**
+   * Finally, start the app.
+   */
   console.log("Starting server...");
   await exec("remix-serve ./build/server/index.js");
-  console.log("Server started!");
 }
 go();
 

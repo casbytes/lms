@@ -1,5 +1,5 @@
 import { Link, NavLink, useMatches } from "@remix-run/react";
-import { Menu } from "lucide-react";
+import { TfiMenu } from "react-icons/tfi";
 import { RiMenuFoldFill } from "react-icons/ri";
 import { cn } from "~/libs/shadcn";
 import { Button } from "~/components/ui/button";
@@ -54,7 +54,7 @@ export function MainNav({
               id="navbar"
               asChild
             >
-              <Menu className="h-4 w-4 font-black" />
+              <TfiMenu className="h-4 w-4 font-black" />
             </Button>
           ) : null}
           <Button variant="ghost" asChild>
@@ -111,7 +111,7 @@ export function MainNav({
               id="navbar"
               asChild
             >
-              <Menu className="h-4 w-4 font-black" />
+              <TfiMenu className="h-4 w-4 font-black" />
             </Button>
           )}
 

@@ -1,7 +1,9 @@
-import { ArrowLeft, CircleHelp, LibraryBig } from "lucide-react";
+import { VscLibrary } from "react-icons/vsc";
 import { Container } from "./container";
 import { Button } from "./ui/button";
 import { Link } from "@remix-run/react";
+import { FaArrowLeft } from "react-icons/fa6";
+import { FiHelpCircle } from "react-icons/fi";
 
 export function NotFoundUI() {
   return (
@@ -13,7 +15,8 @@ export function NotFoundUI() {
           alt="CASBytes"
         />
         <div className="text-[10rem] max-w-xl mx-auto text-center flex items-center justify-around">
-          4 <CircleHelp size={120} className="text-blue-600 font-bold inline" />
+          4
+          <FiHelpCircle size={120} className="text-blue-600 font-bold inline" />
           4
         </div>
         <p className="text-3xl text-center max-w-md mx-auto">
@@ -22,12 +25,13 @@ export function NotFoundUI() {
         <div className="flex flex-col gap-6 mt-8 md:mt-20">
           <Button size="lg" asChild>
             <Link to="/">
-              <ArrowLeft className="mr-2 h-6 w-6" /> Home
+              <FaArrowLeft className="mr-2 h-6 w-6" /> Home
             </Link>
           </Button>
           <Button variant="outline" size="lg" asChild>
             <Link to="/courses">
-              Courses <LibraryBig className="ml-2 h-6 w-6" />
+              Courses
+              <VscLibrary className="ml-2 h-6 w-6" />
             </Link>
           </Button>
         </div>
