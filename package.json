@@ -4,16 +4,16 @@
   "sideEffects": false,
   "type": "module",
   "prisma": {
-    "seed": "node --loader ts-node/esm --trace-warnings ./app/utils/meta/update-db.ts"
+    "seed": "node ./scripts/update-db.js"
   },
   "scripts": {
     "build": "remix vite:build",
     "dev": "remix vite:dev",
+    "start": "node ./scripts/start.js",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "validate": "node ./scripts/validate-schema.js",
     "update:db": "node ./scripts/update-db.js",
     "update:db:dev": "npx prisma db push --force-reset && npx prisma db seed",
-    "start": "node ./scripts/start.js",
     "test:unit": "vitest",
     "test:unit:ui": "vitest --ui",
     "test:unit:coverage": "vitest run --coverage",
