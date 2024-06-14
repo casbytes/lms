@@ -7,9 +7,9 @@ import { DiscordCard } from "~/components/discord-card";
 import { UserCard } from "./components/user-card";
 import { Statistics } from "./components/user-statistics";
 import { addCourseToCatalog, getCourses, getUserCourses } from "./utils.server";
-import { getUser } from "../../utils/sessions.server";
 import { BadRequestError, InternalServerError } from "~/errors";
 import { Courses } from "./components/courses";
+import { getUser } from "~/services/sessions.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   try {
@@ -18,7 +18,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const user = await getUser(request);
     return defer({ data, userCourses, user });
   } catch (error) {
-    throw new InternalServerError("Error getting courses.");
+    console.error(error);
+
+    throw new InternalServerError();
   }
 }
 

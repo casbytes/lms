@@ -1,7 +1,6 @@
 import React from "react";
 import { ActionFunctionArgs, LoaderFunctionArgs, defer } from "@remix-run/node";
 import { Await, useLoaderData, useRevalidator } from "@remix-run/react";
-import { cacheOptions } from "~/utils/sessions.server";
 import { getLessonContent, getLessons, getSubModule } from "./utils.server";
 import { PiSpinnerGap } from "react-icons/pi";
 import { BackButton } from "~/components/back-button";
@@ -15,6 +14,7 @@ import { Pagination } from "./components/pagination";
 import { Separator } from "~/components/ui/separator";
 import { Assessment } from "~/components/assessment";
 import { ContentPendingUI } from "~/components/content-pending-ui";
+import { cacheOptions } from "~/services/sessions.server";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const { BUNNY_IFRAME_URL: iframeUrl, BUNNY_VIDEO_LIBRARY_ID: libraryId } =

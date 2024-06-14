@@ -1,7 +1,7 @@
 import invariant from "tiny-invariant";
 import { InternalServerError, NotFoundError } from "~/errors";
 import { prisma } from "~/libs/prisma.server";
-import { getUser } from "~/utils/sessions.server";
+import { getUser } from "~/services/sessions.server";
 
 export async function getTest(request: Request) {
   const url = new URL(request.url);

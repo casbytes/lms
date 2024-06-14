@@ -11,9 +11,9 @@ import { ActionFunctionArgs, LoaderFunctionArgs, json } from "@remix-run/node";
 import { Dialog } from "~/components/ui/dialog";
 import { AccountDeleteDialog } from "./components/account-delete-dialog";
 import { prisma } from "~/libs/prisma.server";
-import { getUser, signOut } from "../../utils/sessions.server";
 import { Cv } from "./components/cv";
 import { BadRequestError, InternalServerError } from "~/errors";
+import { getUser, signOut } from "~/services/sessions.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
@@ -49,9 +49,9 @@ export async function action({ request }: ActionFunctionArgs) {
     /**
      * !Send googbye email
      */
-    await signOut(request);
-    return null;
+    return signOut(request);
   } catch (error) {
+    if (error instanceof BadRequestError) throw error;
     throw new InternalServerError();
   }
 }

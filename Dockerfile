@@ -4,7 +4,7 @@ FROM node:18-bullseye-slim AS base
 # set for base and all layer that inherit from it
 ENV NODE_ENV production
 
-# Install sqlite and openssl for Prisma
+# Install sqlite and openssl for Prisma, fuse3 for litefs, and ca-certs for sqlite
 RUN apt-get update && apt-get install -y openssl sqlite3 fuse3 ca-certificates
 
 # Install all node_modules, including dev dependencies
@@ -44,8 +44,7 @@ FROM base
 ENV LITEFS_DIR="/litefs"
 ENV DATABASE_FILENAME="$LITEFS_DIR/sqlite.db"
 ENV DATABASE_URL="file:$DATABASE_FILENAME"
-ENV INTERNAL_PORT="8080"
-ENV PORT="8081"
+ENV PORT="3000"
 ENV NODE_ENV="production"
 
 # add shortcut for connecting to database CLI

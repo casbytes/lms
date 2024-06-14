@@ -16,13 +16,14 @@ import { CgSpinnerTwo } from "react-icons/cg";
 import { FaArrowRightLong } from "react-icons/fa6";
 import { prisma } from "~/libs/prisma.server";
 import { readContent } from "~/utils/read-mdx-content.server";
-import { getUser } from "../utils/sessions.server";
 import { Container } from "~/components/container";
 import { ErrorUI } from "~/components/error-ui";
 import { Markdown } from "~/components/markdown";
 import { PageTitle } from "~/components/page-title";
 import { Button } from "~/components/ui/button";
 import { BadRequestError, InternalServerError } from "~/errors";
+import { getUser } from "~/services/sessions.server";
+import matter from "gray-matter";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   try {
@@ -30,9 +31,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
       getUser(request),
       readContent("onboarding.mdx"),
     ]);
-    if (!user) throw new BadRequestError("User not found.");
-    return json({ content, user });
+    if (!user) {
+      throw redirect("/");
+    }
+    const mdx = matter(content);
+    return json({ mdx, user });
   } catch (error) {
+    console.error(error);
     throw new InternalServerError();
   }
 }
@@ -53,12 +58,13 @@ export async function action({ request }: ActionFunctionArgs) {
     });
     return redirect("/dashboard");
   } catch (error) {
-    throw new InternalServerError();
+    throw error;
+    // throw new InternalServerError();
   }
 }
 
 export default function Onboarding() {
-  const { user, content } = useLoaderData<typeof loader>();
+  const { user, mdx } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.formData?.get("intent") === "markAsCompleted";
 
@@ -66,7 +72,8 @@ export default function Onboarding() {
     <Container>
       <div className="mx-auto max-w-4xl">
         <PageTitle title="Onboarding" className="text-lg mb-6" />
-        <Markdown source={content} />
+        <Markdown source={mdx.content} />
+        {/* iframe for video */}
         {user.completedOnboarding ? (
           <Button asChild className="flex items-center mt-8 text-lg">
             <Link to="/dashboard">

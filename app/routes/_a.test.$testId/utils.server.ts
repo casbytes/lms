@@ -4,7 +4,7 @@ import { Params } from "@remix-run/react";
 import { ITest, Status, TestStatus } from "~/constants/types";
 import { BadRequestError, InternalServerError, NotFoundError } from "~/errors";
 import { prisma } from "~/libs/prisma.server";
-import { getUser } from "~/utils/sessions.server";
+import { getUser } from "~/services/sessions.server";
 
 export interface Option {
   id: number;

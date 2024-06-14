@@ -15,7 +15,7 @@ export function AccountDeleteDialog({ user }: any) {
   const navigation = useNavigation();
   const isLoading = navigation.formData?.get("intent") === "deleteAccount";
   return (
-    <DialogContent className="bg-red-100">
+    <DialogContent>
       <DialogHeader>
         <DialogTitle className="text-xl">
           Are you sure you want to delete your account?

@@ -1,13 +1,13 @@
 import { AiOutlineDollarCircle } from "react-icons/ai";
 import { FaGithub } from "react-icons/fa";
 import { FaGoogle } from "react-icons/fa6";
-import { IoPersonCircleSharp } from "react-icons/io5";
+import { HiOutlineMail } from "react-icons/hi";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { ICurrentUser } from "~/constants/types";
 
 export function UserOverview({ user }: { user: ICurrentUser }) {
   const avatarFallBack = user.name
-    .split(" ")
+    ?.split(" ")
     .map((n) => n[0])
     .join("");
   return (
@@ -25,10 +25,15 @@ export function UserOverview({ user }: { user: ICurrentUser }) {
           <div className="bg-gray-600 rounded-md p-4 text-white text-lg h-10 flex items-center">
             <FaGithub className="mr-2 h-6 w-6" /> Github
           </div>
-        ) : (
+        ) : user.authType === "google" ? (
           <div className="bg-red-400 rounded-md p-4 text-white text-lg h-10 flex items-center">
             <FaGoogle className="mr-2 h-6 w-6" />
             Google
+          </div>
+        ) : (
+          <div className="bg-blue-400 rounded-md p-4 text-white text-lg h-10 flex items-center">
+            <HiOutlineMail className="mr-2 h-6 w-6" />
+            Email
           </div>
         )}
 

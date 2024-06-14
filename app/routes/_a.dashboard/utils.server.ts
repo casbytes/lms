@@ -1,7 +1,7 @@
 import { ICourse, ICourseProgress, Status } from "~/constants/types";
-import { getUser } from "~/utils/sessions.server";
 import { prisma } from "~/libs/prisma.server";
 import { InternalServerError, NotFoundError } from "~/errors";
+import { getUser } from "~/services/sessions.server";
 
 /**
  * Get user courses

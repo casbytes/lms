@@ -11,9 +11,9 @@ proxy:
 
 lease:
   type: "consul"
-  candidate: ${FLY_REGION == "lhr"}
-  promote: true
+  candidate: ${FLY_REGION == PRIMARY_REGION}
   advertise-url: "http://${HOSTNAME}.vm.${FLY_APP_NAME}.internal:20202"
+  promote: true
 
   consul:
     url: "${FLY_CONSUL_URL}"

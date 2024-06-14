@@ -877,27 +877,5 @@
       "jsonId": "course-front-end-web-development-module-mobile-and-desktop-applications",
       "subModules": []
     }
-  ],
-  "project": {
-    "title": "project",
-    "jsonId": "course-front-end-web-development-project",
-    "modules": [
-      {
-        "title": "module 1",
-        "jsonId": "course-front-end-web-development-project-module-1",
-        "subModules": [
-          {
-            "title": "sub-module 1",
-            "jsonId": "course-front-end-web-development-project-module-1-sudmodule-submodule-1",
-            "lessons": [
-              {
-                "title": "lesson 1",
-                "jsonId": "course-front-end-web-development-project-module-1-sudmodule-submodule-1-lesson-lession-1"
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  }
+  ]
 }

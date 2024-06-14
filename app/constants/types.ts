@@ -8,6 +8,8 @@ export interface ISessionUser {
 
 export interface IUser {
   id: string;
+  name: string | null;
+  email: string | null;
   createdAt: Date | string;
   updatedAt: Date | string;
   currentUrl: string | null;

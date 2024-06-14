@@ -13,8 +13,8 @@ import { Separator } from "~/components/ui/separator";
 import { SubModules } from "./components/sub-modules";
 import { Assessment } from "~/components/assessment";
 import { CourseSideContent } from "./components/course-side-content";
-import { cacheOptions } from "../../utils/sessions.server";
 import { PageTitle } from "~/components/page-title";
+import { cacheOptions } from "~/services/sessions.server";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const modules = getModules(request, params);

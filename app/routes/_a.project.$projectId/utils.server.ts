@@ -3,8 +3,8 @@ import matter from "gray-matter";
 import invariant from "tiny-invariant";
 import { InternalServerError, NotFoundError } from "~/errors";
 import { prisma } from "~/libs/prisma.server";
+import { getUser } from "~/services/sessions.server";
 import { getContentFromGithub } from "~/utils/octokit.server";
-import { getUser } from "~/utils/sessions.server";
 
 export async function getProject(request: Request, params: Params<string>) {
   const projectId = params.projectId;

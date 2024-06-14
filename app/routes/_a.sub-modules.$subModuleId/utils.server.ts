@@ -3,7 +3,6 @@ import matter from "gray-matter";
 import { Params } from "@remix-run/react";
 import { InternalServerError, NotFoundError } from "~/errors";
 import { getContentFromGithub } from "~/utils/octokit.server";
-import { getUser } from "../../utils/sessions.server";
 import { prisma } from "~/libs/prisma.server";
 import {
   ILessonProgress,
@@ -11,6 +10,7 @@ import {
   Status,
   TestStatus,
 } from "~/constants/types";
+import { getUser } from "~/services/sessions.server";
 
 /**
  * Get sub module by given ID

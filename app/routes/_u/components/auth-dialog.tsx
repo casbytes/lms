@@ -5,13 +5,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
-import { GoogleSignIn } from "./google-signin";
-import { GitHubSignIn } from "./github-signin";
 import { Link } from "@remix-run/react";
+import { AuthForm } from "./auth-form";
+import { FaGithub, FaGoogle } from "react-icons/fa6";
 
-export function AuthDialog({ ...props }) {
+type AuthDialogProps = {
+  response: {
+    email: string | null;
+    success: boolean;
+  } | null;
+};
+
+export function AuthDialog({ response }: AuthDialogProps) {
   return (
-    <DialogContent className="max-w-sm bg-sky-600/40 gap-6">
+    <DialogContent className="max-w-md bg-sky-600/40 gap-6">
       <DialogHeader>
         <img
           src="https://cdn.casbytes.com/assets/logo.png"
@@ -20,18 +27,27 @@ export function AuthDialog({ ...props }) {
           className="w-40 h-8 mx-auto mb-6"
           alt="CASBytes"
         />
-        <DialogTitle className="mx-auto text-xl mb-4">Sign in with</DialogTitle>
+        <DialogTitle className="mx-auto text-xl mb-4">Sign in</DialogTitle>
       </DialogHeader>
 
-      {/**
-       * Google signin
-       */}
-      <GoogleSignIn />
+      <AuthForm
+        provider="magic-link"
+        label="Email a login link"
+        response={response}
+        icon={<FaGoogle className="mr-2 h-6 w-6" />}
+      />
+      <div className="flex justify-center capitalize">or continue with</div>
+      <AuthForm
+        provider="github"
+        label="Github"
+        icon={<FaGithub className="mr-2 h-6 w-6" />}
+      />
+      <AuthForm
+        provider="google"
+        label="Google"
+        icon={<FaGoogle className="mr-2 h-6 w-6" />}
+      />
 
-      {/**
-       * Github signin
-       */}
-      <GitHubSignIn />
       <DialogFooter>
         <p className="text-sm text-center mx-auto">
           By signing in, you agree to our {""}

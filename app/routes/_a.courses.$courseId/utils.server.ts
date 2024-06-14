@@ -1,7 +1,6 @@
 import invariant from "tiny-invariant";
 import { Params } from "@remix-run/react";
 import { prisma } from "~/libs/prisma.server";
-import { getUser } from "~/utils/sessions.server";
 import { InternalServerError, NotFoundError } from "~/errors";
 import {
   IBadge,
@@ -9,6 +8,7 @@ import {
   ISubModuleProgress,
   Status,
 } from "~/constants/types";
+import { getUser } from "~/services/sessions.server";
 
 /**
  *

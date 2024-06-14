@@ -1,68 +1,60 @@
-# fly.toml app configuration file generated for casbytes on 2024-04-24T00:21:48+01:00
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
 app = 'casbytes'
-primary_region = 'lhr'
+primary_region = 'ams'
 kill_signal = "SIGINT"
-kill_timeout = "5s"
+kill_timeout = 10
+swap_size_mb = 512
 
-[build]
-  dockerfile = "Dockerfile"
 
 [mounts]
   source="data"
   destination="/data"
 
 [experimental]
+  allowed_public_ports = []
   auto_rollback = true
-  enable_consul = true
 
-[http_service]
-  internal_port = 8080
-  force_https = true
-  auto_stop_machines = true
-  auto_start_machines = true
-  min_machines_running = 0
-  processes = ['app']
+[[services]]
+  internal_port = 3000
+  processes = ["app"]
+  protocol = "tcp"
+  script_checks = []
 
-[[services.ports]]
-  handlers = ["tls", "http"]
-  port = 443
+  [services.concurrency]
+    hard_limit = 25
+    soft_limit = 20
+    type = "connections"
 
-[[services.ports]]
-  handlers = ["http"]
-  port = 80
-  force_https = true
+  [[services.ports]]
+    handlers = ["http"]
+    port = 80
+    force_https = true
 
-[[services.tcp_checks]]
-  grace_period = "10s"
-  interval = "15s"
-  restart_limit = 6
-  timeout = "5s"
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 443
 
-[[services.http_checks]]
-  interval = 10000
-  grace_period = "5s"
-  method = "get"
-  path = "/"
-  protocol = "http"
-  timeout = 5000
-  tls_skip_verify = false
+  [[services.tcp_checks]]
+    grace_period = "1s"
+    interval = "15s"
+    restart_limit = 0
+    timeout = "2s"
 
-[[services.http_checks]]
-  interval = 10000
-  grace_period = "5s"
-  method = "get"
-  path = "/healthcheck"
-  protocol = "http"
-  timeout = 5000
-  tls_skip_verify = false
+  [[services.http_checks]]
+    interval = "10s"
+    grace_period = "5s"
+    method = "GET"
+    path = "/"
+    protocol = "http"
+    timeout = "2s"
+    tls_skip_verify = false
+    [services.http_checks.headers]
 
-
-[[vm]]
-  memory = '1gb'
-  cpu_kind = 'shared'
-  cpus = 1
-
+  [[services.http_checks]]
+    interval = "10s"
+    grace_period = "5s"
+    method = "get"
+    path = "/healthcheck"
+    protocol = "http"
+    timeout = "2s"
+    tls_skip_verify = false
+    [services.http_checks.headers]

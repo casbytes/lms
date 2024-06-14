@@ -20,8 +20,8 @@ import { getTest, questions, updateTest } from "./utils.server";
 import { Pagination } from "./components/pagination";
 import { TestHeader } from "./components/header";
 import { Question } from "./components/question";
-import { getUser } from "~/utils/sessions.server";
 import { Button } from "~/components/ui/button";
+import { getUser } from "~/services/sessions.server";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const user = await getUser(request);

@@ -1,24 +1,12 @@
-import {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  redirect,
-} from "@remix-run/node";
-import {
-  destroySession,
-  getUser,
-  getUserSession,
-} from "../utils/sessions.server";
+import { ActionFunctionArgs, redirect } from "@remix-run/node";
 import { prisma } from "~/libs/prisma.server";
 import { useRouteError } from "@remix-run/react";
 import { RootErrorUI } from "~/components/root-error-ui";
-import { BadRequestError, UnAuthorizedError } from "~/errors";
+import { BadRequestError, InternalServerError } from "~/errors";
+import { getUser, signOut } from "~/services/sessions.server";
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  try {
-    return getUser(request);
-  } catch (error) {
-    throw new UnAuthorizedError();
-  }
+export function loader() {
+  return redirect("/");
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -55,17 +43,13 @@ export async function action({ request }: ActionFunctionArgs) {
       });
     }
 
-    return redirect("/", {
-      headers: {
-        "Set-Cookie": await destroySession(await getUserSession(request), {
-          maxAge: 0,
-        }),
-      },
-    });
+    return signOut(request);
   } catch (error) {
-    throw new Error(
-      "An error occured while signing out, please try refreshing the page."
-    );
+    console.error(error);
+    if (error instanceof BadRequestError) {
+      throw error;
+    }
+    throw new InternalServerError();
   }
 }
 
