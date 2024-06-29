@@ -1,23 +1,24 @@
 import { Link } from "@remix-run/react";
+import { types } from "~/utils/db.server";
 import { BsLockFill, BsUnlockFill } from "react-icons/bs";
 import { FaProjectDiagram } from "react-icons/fa";
 import { LuCircleDotDashed } from "react-icons/lu";
 import { SlLock } from "react-icons/sl";
 import { Button } from "~/components/ui/button";
-import { IProject, Status } from "~/constants/types";
 import { cn } from "~/libs/shadcn";
-import { capitalizeFirstLetter } from "~/utils/cs";
+import { capitalizeFirstLetter } from "~/utils/helpers";
+import { Status } from "~/constants/enums";
 
 type ProjectProps = {
-  project: IProject | null | undefined;
+  user: types.User;
+  project: types.Project;
 };
 
-export function Project({ project }: ProjectProps) {
-  const index = 2;
-
+export function Project({ project, user }: ProjectProps) {
+  const isActive = user.subscribed;
   const completed = project?.status === Status.COMPLETED;
   const inProgress = project?.status === Status.IN_PROGRESS;
-  const locked = project?.status === Status.LOCKED;
+  const locked = project?.status === Status.LOCKED || !isActive;
   return (
     <div className="w-full">
       <Button
@@ -48,11 +49,11 @@ export function Project({ project }: ProjectProps) {
             />
           )}
           <div className="flex items-center gap-4">
-            {project?.title ? capitalizeFirstLetter(project.title) : null}{" "}
+            {capitalizeFirstLetter(project?.title ?? "Matters choke!")}{" "}
           </div>{" "}
         </Link>
 
-        {index >= 2 ? (
+        {!isActive ? (
           <BsLockFill className="text-zinc-500 absolute sm:static right-8" />
         ) : (
           <BsUnlockFill className="text-zinc-500 absolute sm:static right-8" />

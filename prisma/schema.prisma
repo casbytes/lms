@@ -13,13 +13,16 @@ datasource db {
 model User {
   id                  String              @id @default(uuid())
   name                String?
-  email               String?             @unique
-  googleId            String?             @unique
-  githubId            Int?                @unique
+  email               String              @unique
+  role                String              @default("USER")
+  stripeCustomerId    String?
+  subscribed          Boolean             @default(false)
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
-  verified            Boolean?            @default(false)
+  verified            Boolean             @default(false)
   completedOnboarding Boolean             @default(false)
+  authState           String?
+  verificationToken   String?
   currentUrl          String?
   courseProgress      CourseProgress[]
   moduleProgress      ModuleProgress[]
@@ -29,6 +32,7 @@ model User {
   checkpoints         Checkpoint[]
   projects            Project[]
   badges              Badge[]
+  comments            TaskComment[]
 }
 
 //||||||||||||||||##########||||||||||||||||//
@@ -95,7 +99,7 @@ model ModuleProgress {
   order             Int
   courseProgressId  String
   users             User[]
-  courseProgress    CourseProgress      @relation(fields: [courseProgressId], references: [id])
+  courseProgress    CourseProgress      @relation(fields: [courseProgressId], references: [id], onDelete: Cascade)
   subModuleProgress SubModuleProgress[]
   badges            Badge[]
   test              Test?
@@ -111,7 +115,7 @@ model SubModuleProgress {
   order            Int
   moduleProgressId String
   users            User[]
-  moduleProgress   ModuleProgress   @relation(fields: [moduleProgressId], references: [id])
+  moduleProgress   ModuleProgress   @relation(fields: [moduleProgressId], references: [id], onDelete: Cascade)
   lessonProgress   LessonProgress[]
   test             Test?
   checkpoint       Checkpoint?
@@ -125,7 +129,7 @@ model LessonProgress {
   subModuleProgressId String
   order               Int
   users               User[]
-  subModuleProgress   SubModuleProgress @relation(fields: [subModuleProgressId], references: [id])
+  subModuleProgress   SubModuleProgress @relation(fields: [subModuleProgressId], references: [id], onDelete: Cascade)
 }
 
 model Badge {
@@ -138,7 +142,7 @@ model Badge {
   moduleProgressId     String
   userId               String
   user                 User           @relation(fields: [userId], references: [id])
-  moduleProgress       ModuleProgress @relation(fields: [moduleProgressId], references: [id])
+  moduleProgress       ModuleProgress @relation(fields: [moduleProgressId], references: [id], onDelete: Cascade)
 }
 
 model Checkpoint {
@@ -149,8 +153,10 @@ model Checkpoint {
   moduleProgressId    String?            @unique
   subModuleProgressId String?            @unique
   users               User[]
-  moduleProgress      ModuleProgress?    @relation(fields: [moduleProgressId], references: [id])
-  subModuleProgress   SubModuleProgress? @relation(fields: [subModuleProgressId], references: [id])
+  moduleProgress      ModuleProgress?    @relation(fields: [moduleProgressId], references: [id], onDelete: Cascade)
+  subModuleProgress   SubModuleProgress? @relation(fields: [subModuleProgressId], references: [id], onDelete: Cascade)
+  links               Link[]
+  comments            TaskComment[]
 }
 
 model Test {
@@ -164,8 +170,8 @@ model Test {
   moduleProgressId    String?            @unique
   subModuleProgressId String?            @unique
   users               User[]
-  moduleProgress      ModuleProgress?    @relation(fields: [moduleProgressId], references: [id])
-  subModuleProgress   SubModuleProgress? @relation(fields: [subModuleProgressId], references: [id])
+  moduleProgress      ModuleProgress?    @relation(fields: [moduleProgressId], references: [id], onDelete: Cascade)
+  subModuleProgress   SubModuleProgress? @relation(fields: [subModuleProgressId], references: [id], onDelete: Cascade)
 }
 
 //||||||||||||||||##########||||||||||||||||//
@@ -176,8 +182,47 @@ model Project {
   id               String         @id @default(uuid())
   title            String
   slug             String
+  score            Int            @default(0)
   status           String         @default("LOCKED") //LOCKED, IN_PROGRESS, COMPLETED
   courseProgressId String         @unique
   contributors     User[]
-  courseProgress   CourseProgress @relation(fields: [courseProgressId], references: [id])
+  courseProgress   CourseProgress @relation(fields: [courseProgressId], references: [id], onDelete: Cascade)
+  links            Link[]
+  comments         TaskComment[]
+}
+
+model Link {
+  id    String @id @default(uuid())
+  title String
+  url   String
+
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  checkpointId String?
+  checkpoint   Checkpoint? @relation(fields: [checkpointId], references: [id], onDelete: Cascade)
+}
+
+model TaskComment {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  checkpointId String?
+  checkpoint   Checkpoint? @relation(fields: [checkpointId], references: [id], onDelete: Cascade)
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+}
+
+model Event {
+  id          String   @id @default(uuid())
+  title       String
+  type        String
+  description String
+  eventDate   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

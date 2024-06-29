@@ -1,4 +1,5 @@
 import { Link } from "@remix-run/react";
+import { types } from "~/utils/db.server";
 import { format } from "date-fns";
 import { FiCheckCircle } from "react-icons/fi";
 import { LuCircleDotDashed } from "react-icons/lu";
@@ -6,12 +7,12 @@ import { MdQuiz } from "react-icons/md";
 import { SlLock } from "react-icons/sl";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
-import { ITest, TestStatus } from "~/constants/types";
 import { cn } from "~/libs/shadcn";
-import { capitalizeFirstLetter } from "~/utils/cs";
+import { capitalizeFirstLetter } from "~/utils/helpers";
+import { TestStatus } from "~/constants/enums";
 
 type TestProps = {
-  test: ITest;
+  test: types.Test;
 };
 
 export function Test({ test }: TestProps) {
@@ -28,7 +29,13 @@ export function Test({ test }: TestProps) {
   return (
     <Button
       // disabled={locked}
-      className="rounded-md text-black bg-stone-200 hover:bg-stone-300 py-4 relative border-b-2 border-zinc-600 w-full"
+      className={cn(
+        "rounded-md text-black bg-stone-200 hover:bg-stone-300 py-4 relative border-b-2 border-zinc-600 w-full",
+        {
+          "border-sky-700": available,
+          // "border-stone-300": available,
+        }
+      )}
     >
       <Link
         to={testLink}
@@ -43,7 +50,14 @@ export function Test({ test }: TestProps) {
           />
         </div>
         <div className="text-lg pl-6 overflow-x-auto flex gap-2 items-center">
-          {capitalizeFirstLetter(test.title)} <Badge>{test.score} %</Badge>{" "}
+          {capitalizeFirstLetter(test.title)}{" "}
+          <Badge
+            className={cn("bg-zinc-600", {
+              "bg-sky-600": completed,
+            })}
+          >
+            {test.score} %
+          </Badge>{" "}
           {test?.nextAttemptAt ? (
             <span className="text-sm ml-4">
               Retake on:{" "}

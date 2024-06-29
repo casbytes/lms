@@ -21,7 +21,7 @@ import { Pagination } from "./components/pagination";
 import { TestHeader } from "./components/header";
 import { Question } from "./components/question";
 import { Button } from "~/components/ui/button";
-import { getUser } from "~/services/sessions.server";
+import { getUser } from "~/utils/session.server";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const user = await getUser(request);

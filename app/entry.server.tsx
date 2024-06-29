@@ -1,24 +1,13 @@
-import * as Sentry from "@sentry/remix";
-
 import { PassThrough } from "node:stream";
-
 import type { AppLoadContext, EntryContext } from "@remix-run/node";
 import { createReadableStreamFromReadable } from "@remix-run/node";
 import { RemixServer } from "@remix-run/react";
 import { isbot } from "isbot";
 import { renderToPipeableStream } from "react-dom/server";
+import { getEnv, init } from "./utils/env.server";
 
-//@ts-ignore
-export function handleError(error, { request }) {
-  Sentry.captureRemixServerException(error, "remix.server", request);
-}
-
-Sentry.init({
-  dsn: process.env.SENTRY_DSN,
-  environment: "production",
-  tracesSampleRate: 1,
-});
-
+init();
+global.ENV = getEnv();
 const ABORT_DELAY = 5_000;
 
 export default function handleRequest(

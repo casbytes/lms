@@ -5,6 +5,7 @@ import {
   FaRegCircleUser,
   FaRegCreditCard,
 } from "react-icons/fa6";
+import { FaTasks } from "react-icons/fa";
 export { RootLayout } from "./root-layout";
 
 export const unAuthMenuItems = [
@@ -13,7 +14,7 @@ export const unAuthMenuItems = [
   { label: "blog", href: "blog.casbytes.com" },
 ];
 
-export const authMenuItems = [
+export const userMenuItems = [
   {
     icon: <LuLayoutDashboard size={30} />,
     label: "dashboard",
@@ -39,5 +40,29 @@ export const authMenuItems = [
     icon: <FaRegCircleUser size={30} />,
     label: "profile",
     href: "profile",
+  },
+];
+
+export const adminMenuItems = [
+  {
+    icon: <LuLayoutDashboard size={30} />,
+    label: "dashboard",
+    href: "a",
+  },
+  {
+    icon: <FaTasks size={30} />,
+    label: "tasks",
+    href: "a/tasks",
+  },
+
+  {
+    icon: <FaRegCalendarCheck size={30} />,
+    label: "events",
+    href: "a/events",
+  },
+  {
+    icon: <FaRegCircleUser size={30} />,
+    label: "profile",
+    href: "a/profile",
   },
 ];

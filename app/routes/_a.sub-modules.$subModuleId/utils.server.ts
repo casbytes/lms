@@ -1,39 +1,30 @@
 import invariant from "tiny-invariant";
 import matter from "gray-matter";
+import { types } from "~/utils/db.server";
 import { Params } from "@remix-run/react";
 import { InternalServerError, NotFoundError } from "~/errors";
 import { getContentFromGithub } from "~/utils/octokit.server";
-import { prisma } from "~/libs/prisma.server";
-import {
-  ILessonProgress,
-  ISubModuleProgress,
-  Status,
-  TestStatus,
-} from "~/constants/types";
-import { getUser } from "~/services/sessions.server";
+import { getUserId } from "~/utils/session.server";
+import { prisma } from "~/utils/db.server";
+import { Status, TestStatus } from "~/constants/enums";
 
 /**
  * Get sub module by given ID
- * @param {Request} request
- * @param {Params<string>} params
- * @returns {Promise<ISubModuleProgress>}
+ * @param {Request} request - Request
+ * @param {Params<string>} params - Params
+ * @returns {Promise<types.SubModuleProgress>}
  */
-export async function getSubModule(
-  request: Request,
-  params: Params<string>
-): Promise<ISubModuleProgress> {
+export async function getSubModule(request: Request, params: Params<string>) {
   try {
     invariant(params.subModuleId, "Submodule ID is required.");
     const subModuleId = params.subModuleId;
-    const user = await getUser(request);
+    const userId = await getUserId(request);
     const subModule = await prisma.subModuleProgress.findFirst({
       where: {
         id: subModuleId,
-        users: { some: { id: user.id } },
+        users: { some: { id: userId } },
       },
       include: {
-        test: true,
-        checkpoint: true,
         moduleProgress: true,
       },
     });
@@ -42,8 +33,67 @@ export async function getSubModule(
     }
     return subModule;
   } catch (error) {
+    console.error(error);
     throw new InternalServerError(
       "An error occured why fetching sub modules, please try again."
+    );
+  }
+}
+
+/**
+ * Get sub module test by given submodule ID
+ * @param {Request} request
+ * @param {Params<string>} params
+ * @returns {Promise<types.Test>}
+ */
+export async function getTest(request: Request, params: Params<string>) {
+  try {
+    invariant(params.subModuleId, "Submodule ID is required.");
+    const subModuleId = params.subModuleId;
+    const userId = await getUserId(request);
+    const test = await prisma.test.findFirst({
+      where: {
+        subModuleProgressId: subModuleId,
+        users: { some: { id: userId } },
+      },
+    });
+    if (!test) {
+      throw new NotFoundError("Test not found.");
+    }
+    return test;
+  } catch (error) {
+    console.error(error);
+    throw new InternalServerError(
+      "An error occured why fetching sub module test, please try again."
+    );
+  }
+}
+
+/**
+ * Get sub module checkpoint by given submodule ID
+ * @param {Request} request
+ * @param {Params<string>} params
+ * @returns {Promise<types.Checkpoint>}
+ */
+export async function getCheckpoint(request: Request, params: Params<string>) {
+  try {
+    invariant(params.subModuleId, "Submodule ID is required.");
+    const subModuleId = params.subModuleId;
+    const userId = await getUserId(request);
+    const checkpoint = await prisma.checkpoint.findFirst({
+      where: {
+        subModuleProgressId: subModuleId,
+        users: { some: { id: userId } },
+      },
+    });
+    if (!checkpoint) {
+      throw new NotFoundError("Checkpoint not found.");
+    }
+    return checkpoint;
+  } catch (error) {
+    console.error(error);
+    throw new InternalServerError(
+      "An error occured why fetching sub module checkpoint, please try again."
     );
   }
 }
@@ -52,18 +102,17 @@ export async function getSubModule(
  * Get subModule lessons
  * @param {Request} request
  * @param {Params<string>} params
- * @returns {Promise<ILessonProgress[]>}
+ * @returns {Promise<types.LessonProgress[]>}
  */
 export async function getLessons(
   request: Request,
   params: Params<string>
-): Promise<ILessonProgress[]> {
+): Promise<types.LessonProgress[]> {
   invariant(params.subModuleId, "Submodule ID is required to fetch lessons.");
   const subModuleId = params.subModuleId;
 
   try {
-    const user = await getUser(request);
-
+    const userId = await getUserId(request);
     /**
      * Fetch the first lesson of the sub module
      * to update its status to in progress if it is locked
@@ -71,7 +120,7 @@ export async function getLessons(
     const firstLesson = await prisma.lessonProgress.findFirst({
       where: {
         subModuleProgressId: subModuleId,
-        users: { some: { id: user.id } },
+        users: { some: { id: userId } },
       },
       orderBy: {
         order: "asc",
@@ -86,7 +135,7 @@ export async function getLessons(
       prisma.lessonProgress.findMany({
         where: {
           subModuleProgressId: subModuleId,
-          users: { some: { id: user.id } },
+          users: { some: { id: userId } },
         },
         orderBy: {
           order: "asc",
@@ -95,13 +144,15 @@ export async function getLessons(
       /**
        * Update the status of the first lesson to in progress if it is locked
        */
-      updateFirstLessonStatus(user.id, firstLesson),
+      updateFirstLessonStatus(userId, firstLesson),
     ]);
     return lessons;
   } catch (error) {
-    throw new InternalServerError(
-      "An error occured while fetching lessons, please try again."
-    );
+    console.error(error);
+    throw error;
+    // throw new InternalServerError(
+    //   "An error occured while fetching lessons, please try again."
+    // );
   }
 }
 
@@ -113,8 +164,8 @@ export async function getLessons(
  */
 async function updateFirstLessonStatus(
   userId: string,
-  lessonProgress: ILessonProgress
-): Promise<ILessonProgress | void> {
+  lessonProgress: types.LessonProgress
+): Promise<types.LessonProgress | void> {
   if (lessonProgress.status !== Status.LOCKED) {
     return;
   }
@@ -143,12 +194,12 @@ export async function getLessonContent(
     invariant(params.subModuleId, "Submodule ID is required to fetch lessons.");
     const subModuleId = params.subModuleId;
     const lessonSlug = getLessonSlug(request);
-    const user = await getUser(request);
+    const userId = await getUserId(request);
 
     const currentLesson = await prisma.lessonProgress.findFirst({
       where: {
         subModuleProgressId: subModuleId,
-        users: { some: { id: user.id } },
+        users: { some: { id: userId } },
         ...(lessonSlug && { slug: lessonSlug }),
       },
       orderBy: {
@@ -170,7 +221,7 @@ export async function getLessonContent(
     // await prisma.lessonProgress.update({
     //   where: {
     //     id: currentLesson.id,
-    //     users: { some: { id: user.id } },
+    //     users: { some: { id: userId } },
     //   },
     //   data: {
     //     status: Status.IN_PROGRESS,
@@ -178,7 +229,7 @@ export async function getLessonContent(
     // });
 
     const [previousLesson, nextLesson] = await getPreviousAndNextLessons(
-      user.id,
+      userId,
       subModuleId,
       currentLesson
     );
@@ -186,7 +237,7 @@ export async function getLessonContent(
     /**
      * Update the status of the current lesson and the next lesson
      */
-    await updateLessonStatuses(currentLesson, nextLesson, user.id, subModuleId);
+    await updateLessonStatuses(currentLesson, nextLesson, userId, subModuleId);
     /**
      * Fetch lesson content from Github
      * The repo name is the slug of the associated module progress
@@ -214,18 +265,28 @@ export async function getLessonContent(
       nextLesson,
     };
   } catch (error) {
-    if (error instanceof NotFoundError) {
-      throw error;
-    }
-    throw new InternalServerError(
-      "An error occured while fetching lesson content from CMS, please try again."
-    );
+    console.error(error);
+    throw error;
+    // if (error instanceof NotFoundError) {
+    //   throw error;
+    // }
+    // throw new InternalServerError(
+    //   "An error occured while fetching lesson content from CMS, please try again."
+    // );
   }
 }
 
+/**
+ * Update lesson statuses
+ * @param {ILessonProgress} currentLesson - Current lesson
+ * @param {ILessonProgress | null} nextLesson - Next lesson
+ * @param {String} userId - User ID
+ * @param {String} subModuleId - Submodule ID
+ * @returns {Promise<void>}
+ */
 async function updateLessonStatuses(
-  currentLesson: ILessonProgress,
-  nextLesson: ILessonProgress | null,
+  currentLesson: types.LessonProgress,
+  nextLesson: types.LessonProgress | null,
   userId: string,
   subModuleId: string
 ) {
@@ -291,24 +352,26 @@ async function updateLessonStatuses(
       }
     });
   } catch (error) {
-    throw new InternalServerError(
-      "An error occured while updating lesson statuses, please try again."
-    );
+    console.error(error);
+    throw error;
+    // throw new InternalServerError(
+    //   "An error occured while updating lesson statuses, please try again."
+    // );
   }
 }
 
 /**
  * Get previous and next lessons of a current lesson
- * @param {String} subModuleId
- * @param {ILessonProgress} currentLesson
- * @param {Request} request
+ * @param {String} subModuleId - Submodule ID
+ * @param {ILessonProgress} currentLesson - Current lesson
+ * @param {Request} request - Request
  * @returns {Promise<Array<ILessonProgress|null>>}
  */
 async function getPreviousAndNextLessons(
   userId: string,
   subModuleId: string,
-  currentLesson: ILessonProgress
-): Promise<Array<ILessonProgress | null>> {
+  currentLesson: types.LessonProgress
+): Promise<Array<types.LessonProgress | null>> {
   try {
     return Promise.all([
       prisma.lessonProgress.findFirst({
@@ -333,9 +396,11 @@ async function getPreviousAndNextLessons(
       }),
     ]);
   } catch (error) {
-    throw new InternalServerError(
-      "An error occured while fetching previous and next lessons, please try again."
-    );
+    console.error(error);
+    throw error;
+    // throw new InternalServerError(
+    //   "An error occured while fetching previous and next lessons, please try again."
+    // );
   }
 }
 
@@ -358,4 +423,13 @@ function getSearchParam(request: Request, key: string): string | undefined {
   const url = new URL(request.url);
   const search = new URLSearchParams(url.search);
   return search.get(key) ?? undefined;
+}
+
+export async function getTypeformUrl(
+  request: Request
+): Promise<string | undefined> {
+  const url = new URL(request.url);
+  const type = url.searchParams.get("type");
+  if (!type) return undefined;
+  return type;
 }

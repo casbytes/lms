@@ -1,10 +1,10 @@
 import invariant from "tiny-invariant";
 import schedule from "node-schedule";
 import { Params } from "@remix-run/react";
-import { ITest, Status, TestStatus } from "~/constants/types";
 import { BadRequestError, InternalServerError, NotFoundError } from "~/errors";
-import { prisma } from "~/libs/prisma.server";
-import { getUser } from "~/services/sessions.server";
+import { getUserId } from "~/utils/session.server";
+import { prisma } from "~/utils/db.server";
+import { Status, TestStatus } from "~/constants/enums";
 
 export interface Option {
   id: number;
@@ -113,7 +113,7 @@ export async function getTest(request: Request, params: Params<string>) {
   try {
     invariant(id, "ID is required to get Test");
     invariant(testId, "Test ID is required to get Test");
-    const user = await getUser(request);
+    const userId = await getUserId(request);
 
     const test = await prisma.test.findFirst({
       where: {
@@ -130,7 +130,7 @@ export async function getTest(request: Request, params: Params<string>) {
             },
           },
         ],
-        users: { some: { id: user.id } },
+        users: { some: { id: userId } },
       },
       include: {
         moduleProgress: true,
@@ -156,8 +156,8 @@ export async function getTest(request: Request, params: Params<string>) {
 
 /**
  *  Schedule a status update for a test
- * @param {String} testId
- * @param {Date} nextAttemptAt
+ * @param {String} testId - The test id
+ * @param {Date} nextAttemptAt - The date to update the test status
  * @returns {Promise<void>}
  */
 async function scheduleStatusUpdate(testId: string, nextAttemptAt: Date) {
@@ -181,6 +181,11 @@ async function scheduleStatusUpdate(testId: string, nextAttemptAt: Date) {
 //################
 const CUT_OFF_SCORE = 80;
 
+/**
+ * Update a test
+ * @param request - The incoming request
+ * @returns {Promise<any>}
+ */
 export async function updateTest(request: Request) {
   const formData = await request.formData();
   const score = Number(formData.get("score"));
@@ -245,6 +250,10 @@ export async function updateTest(request: Request) {
       attemptIncrement;
     const nextAttemptTime = new Date(now.getTime() + daysUntilNextAttempt);
 
+    /**
+     * If the user has attempted the test before, check if the score is above the cut off score, if it is, set the next attempt time to null, else set it to the next attempt time.
+     * If the user has not attempted the test before, check if the score is below the cut off score, if it is, set the next attempt time to the next attempt time, else set it to null.
+     */
     if (existingTest?.nextAttemptAt) {
       if (score >= CUT_OFF_SCORE) {
         updateData.nextAttemptAt = null;
@@ -301,6 +310,7 @@ export async function updateTest(request: Request) {
         await prisma.checkpoint.update({
           where: {
             id: checkpointId,
+            users: { some: { id: userId } },
           },
           data: {
             status: Status.IN_PROGRESS,

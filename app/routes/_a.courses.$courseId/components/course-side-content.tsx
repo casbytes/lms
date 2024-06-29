@@ -1,31 +1,31 @@
 import React from "react";
+import { types } from "~/utils/db.server";
 import { Await } from "@remix-run/react";
 import { CourseTitle } from "~/components/course-title";
-import { Modules } from "./modules";
 import { PendingStatus, Status } from "~/components/status";
-import { BadgeGallery } from "./badge-gallery";
 import { Project } from "./project";
 import { Separator } from "~/components/ui/separator";
-import { IBadge, IModuleProgress, IProject } from "~/constants/types";
+import { BadgeGallery, Modules } from "~/components/modules";
 
 type CourseSideContentProps = {
-  modules: Promise<IModuleProgress[]>;
-  moduleBadges: Promise<IBadge[]>;
-  module: IModuleProgress;
+  user: types.User;
+  project: types.Project;
+  modules: Promise<types.ModuleProgress[]>;
+  badges: Promise<types.Badge[]>;
 };
 
 export function CourseSideContent({
+  user,
+  project,
   modules,
-  moduleBadges,
-  module,
+  badges,
 }: CourseSideContentProps) {
-  const { courseProgress } = module;
   return (
     <>
       <CourseTitle title="Module Badge Gallery" />
       <React.Suspense fallback={<PendingBadges />}>
-        <Await resolve={moduleBadges}>
-          {(moduleBadges) => <BadgeGallery badges={moduleBadges} />}
+        <Await resolve={badges}>
+          {(badges) => <BadgeGallery badges={badges} />}
         </Await>
       </React.Suspense>
       <CourseTitle title="Modules" />
@@ -37,14 +37,12 @@ export function CourseSideContent({
         </React.Suspense>
 
         <Separator className="bg-sky-700 h-2 rounded-tl-md rounded-br-md" />
-        {courseProgress?.project ? (
-          <Project project={courseProgress.project} />
-        ) : null}
+        <Project project={project} user={user} />
         <Separator className="bg-sky-700 h-2 rounded-tl-md rounded-br-md" />
 
         <React.Suspense fallback={<PendingModules />}>
           <Await resolve={modules}>
-            {(modules) => <Modules modules={modules} />}
+            {(modules) => <Modules modules={modules} user={user} />}
           </Await>
         </React.Suspense>
       </div>

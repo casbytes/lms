@@ -5,7 +5,7 @@ import { Dialog } from "../ui/dialog";
 import { Sheet } from "../ui/sheet";
 import { cn } from "~/libs/shadcn";
 import { NavBar, SideBar } from "../navigation";
-import { authMenuItems, unAuthMenuItems } from ".";
+import { adminMenuItems, userMenuItems, unAuthMenuItems } from ".";
 import { OfflineUI } from "../offline-ui";
 
 export function RootLayout() {
@@ -13,7 +13,14 @@ export function RootLayout() {
   const [isOnline, setIsOnline] = React.useState(true);
 
   const matches = useMatches();
-  const auth = matches.some((match) => match.id.includes("_a"));
+  const user = matches.some(
+    (match) =>
+      match.id === "routes/_a" && !match.id.includes("routes/_a._admin.a")
+  );
+  const admin = matches.some((match) =>
+    match.id.includes("routes/_a._admin.a")
+  );
+
   const resourceRoutes = matches.some(
     (match) =>
       match.id.includes("signout") ||
@@ -21,7 +28,13 @@ export function RootLayout() {
       match.id.includes("github") ||
       match.id.includes("healthcheck")
   );
-  const menuItems = auth ? authMenuItems : unAuthMenuItems;
+
+  const addMargin = (user || admin) && !resourceRoutes;
+  const menuItems = admin
+    ? adminMenuItems
+    : user
+    ? userMenuItems
+    : unAuthMenuItems;
 
   React.useEffect(() => {
     setIsOnline(window.navigator.onLine);
@@ -47,9 +60,9 @@ export function RootLayout() {
           isNavOpen={isNavOpen}
           setIsNavOpen={setIsNavOpen}
         />
-        {auth && !resourceRoutes ? (
+        {addMargin ? (
           <SideBar
-            menuItems={authMenuItems}
+            menuItems={menuItems}
             isOpen={isNavOpen}
             setIsOpen={setIsNavOpen}
           />
@@ -58,17 +71,17 @@ export function RootLayout() {
           className={cn(
             "duration-300",
             isNavOpen
-              ? auth && !resourceRoutes
+              ? addMargin
                 ? "ml-0 lg:ml-52"
                 : ""
-              : auth && !resourceRoutes
+              : addMargin
               ? "ml-0 lg:ml-16"
               : ""
           )}
         >
+          <Toaster />
           <Outlet />
         </div>
-        <Toaster />
       </Sheet>
     </Dialog>
   ) : (

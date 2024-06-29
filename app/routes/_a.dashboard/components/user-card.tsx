@@ -1,7 +1,7 @@
-import { ICurrentUser } from "~/constants/types";
+import type { IUser } from "~/constants/types";
 
 type UserCardProps = {
-  user: ICurrentUser;
+  user: IUser;
 };
 
 export function UserCard({ user }: UserCardProps) {

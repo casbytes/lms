@@ -1,5 +1,5 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
-import { prisma } from "~/libs/prisma.server";
+import { prisma } from "~/utils/db.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const host =

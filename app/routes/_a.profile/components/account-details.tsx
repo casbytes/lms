@@ -2,10 +2,10 @@ import { format } from "date-fns";
 import { Button } from "~/components/ui/button";
 import { DialogTrigger } from "~/components/ui/dialog";
 import { Table, TableBody, TableCell, TableRow } from "~/components/ui/table";
-import { ICurrentUser } from "~/constants/types";
+import { IUser } from "~/constants/types";
 
 type AccountDetailsProps = {
-  user: ICurrentUser;
+  user: IUser;
 };
 
 export function AccountDetails({ user }: AccountDetailsProps) {
@@ -19,10 +19,6 @@ export function AccountDetails({ user }: AccountDetailsProps) {
             <TableCell>{user.email}</TableCell>
           </TableRow>
           <TableRow>
-            <TableCell>Sign In</TableCell>
-            <TableCell className="capitalize">{user.authType}</TableCell>
-          </TableRow>
-          <TableRow>
             <TableCell>Joined On</TableCell>
             <TableCell className="capitalize">
               {format(new Date(user.createdAt), "do MMMM, yyyy")}
@@ -30,7 +26,7 @@ export function AccountDetails({ user }: AccountDetailsProps) {
           </TableRow>
           <TableRow>
             <TableCell>Membership</TableCell>
-            <TableCell>Premium</TableCell>
+            <TableCell>{user.subscribed ? "Premium" : "Free"}</TableCell>
           </TableRow>
         </TableBody>
       </Table>

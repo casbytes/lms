@@ -4,7 +4,7 @@ import matter from "gray-matter";
 import { Container } from "~/components/container";
 import { Markdown } from "~/components/markdown";
 import { PageTitle } from "~/components/page-title";
-import { readContent } from "~/utils/read-mdx-content.server";
+import { readContent } from "~/utils/helpers.server";
 
 export async function loader() {
   try {

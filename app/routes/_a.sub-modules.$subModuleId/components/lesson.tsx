@@ -1,16 +1,17 @@
 import { useNavigation, useSearchParams, useSubmit } from "@remix-run/react";
+import { types } from "~/utils/db.server";
 import { FaSpinner } from "react-icons/fa6";
 import { FiCheckCircle } from "react-icons/fi";
 import { LuCircleDotDashed } from "react-icons/lu";
 import { SlLock } from "react-icons/sl";
 import { Button } from "~/components/ui/button";
 import { SheetClose } from "~/components/ui/sheet";
-import { ILessonProgress, Status } from "~/constants/types";
 import { cn } from "~/libs/shadcn";
-import { capitalizeFirstLetter } from "~/utils/cs";
+import { capitalizeFirstLetter } from "~/utils/helpers";
+import { Status } from "~/constants/enums";
 
 type LessonProps = {
-  lesson: ILessonProgress;
+  lesson: types.LessonProgress;
 };
 
 export function Lesson({ lesson }: LessonProps) {
@@ -26,15 +27,15 @@ export function Lesson({ lesson }: LessonProps) {
   const inProgress = lesson.status === Status.IN_PROGRESS;
   const locked = lesson.status === Status.LOCKED;
 
+  const disabled = lessonSlug === lesson.slug || locked;
+
   return (
     <li className="w-full">
       <SheetClose asChild>
         <Button
           variant="secondary"
-          onClick={() =>
-            submit({ lessonSlug: lesson.slug }, { method: "post" })
-          }
-          disabled={locked || lessonSlug === lesson.slug}
+          onClick={() => submit({ lessonSlug: lesson.slug })}
+          disabled={disabled}
           className={cn(
             "flex items-center justify-start bg-slate-300/50 hover:bg-slate-300 text-black w-full",
             {

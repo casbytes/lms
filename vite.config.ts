@@ -10,6 +10,9 @@ const MODE = process.env.NODE_ENV;
 export default defineConfig({
   build: {
     cssMinify: MODE === "production",
+    rollupOptions: {
+      external: [/node:.*/, "stream", "crypto", "fsevents"],
+    },
   },
   server: {
     watch: {

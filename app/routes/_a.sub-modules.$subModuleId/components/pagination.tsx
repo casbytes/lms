@@ -1,15 +1,16 @@
 import { useSubmit, useNavigation, useNavigate } from "@remix-run/react";
+import { types } from "~/utils/db.server";
 import { FaSpinner } from "react-icons/fa6";
 import { FiCheckCircle } from "react-icons/fi";
 import { RiArrowLeftSLine, RiArrowRightSLine } from "react-icons/ri";
 import { Button } from "~/components/ui/button";
-import { ILessonProgress, Status } from "~/constants/types";
+import { Status } from "~/constants/enums";
 
 type PaginationProps = {
   currentLessonData: {
-    previousLesson: ILessonProgress;
-    currentLesson: ILessonProgress;
-    nextLesson: ILessonProgress;
+    previousLesson: types.LessonProgress;
+    currentLesson: types.LessonProgress;
+    nextLesson: types.LessonProgress;
   };
 };
 

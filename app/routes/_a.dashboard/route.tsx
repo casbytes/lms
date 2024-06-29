@@ -6,20 +6,25 @@ import { MembershipCard } from "~/components/membership-card";
 import { DiscordCard } from "~/components/discord-card";
 import { UserCard } from "./components/user-card";
 import { Statistics } from "./components/user-statistics";
-import { addCourseToCatalog, getCourses, getUserCourses } from "./utils.server";
+import {
+  addCourseToCatalog,
+  getCourses,
+  getUserCourses,
+  getUserModules,
+} from "./utils.server";
 import { BadRequestError, InternalServerError } from "~/errors";
 import { Courses } from "./components/courses";
-import { getUser } from "~/services/sessions.server";
+import { getUser } from "~/utils/session.server";
+import { Modules } from "./components/modules";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   try {
     const data = getCourses(request);
     const userCourses = getUserCourses(request);
+    const userModules = getUserModules(request);
     const user = await getUser(request);
-    return defer({ data, userCourses, user });
+    return defer({ data, userCourses, userModules, user });
   } catch (error) {
-    console.error(error);
-
     throw new InternalServerError();
   }
 }
@@ -42,7 +47,8 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function Dashboard() {
-  const { data, userCourses, user } = useLoaderData<typeof loader>();
+  const { data, userCourses, userModules, user } =
+    useLoaderData<typeof loader>();
 
   return (
     <Container className="bg-2 bg-no-repeat">
@@ -51,12 +57,13 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white p-4 rounded-md drop-shadow-sm">
           <div className="flex gap-10 flex-col">
             <Courses data={data} />
-            <DiscordCard />
+            <Modules data={data} user={user} />
+            <DiscordCard user={user} />
           </div>
           <div className="flex flex-col gap-10 order-first md:order-last">
             <UserCard user={user} />
-            <Statistics userCourses={userCourses} />
-            <MembershipCard />
+            <Statistics userCourses={userCourses} userModules={userModules} />
+            <MembershipCard user={user} />
           </div>
         </div>
       </div>

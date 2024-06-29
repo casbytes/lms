@@ -38,7 +38,7 @@ export function SideBar({
                     asChild
                   >
                     <Link
-                      to={item.label}
+                      to={item.href}
                       className="flex gap-4 capitalize text-xl items-center"
                     >
                       {item.icon}

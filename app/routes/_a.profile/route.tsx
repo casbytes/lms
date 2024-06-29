@@ -1,6 +1,5 @@
 import { useLoaderData } from "@remix-run/react";
 import { Container } from "~/components/container";
-import { CourseCatalogCard } from "../../components/course-catalog";
 import { DiscordCard } from "~/components/discord-card";
 import { MembershipCard } from "~/components/membership-card";
 import { PageTitle } from "~/components/page-title";
@@ -10,10 +9,10 @@ import { UserOverview } from "./components/user-overview";
 import { ActionFunctionArgs, LoaderFunctionArgs, json } from "@remix-run/node";
 import { Dialog } from "~/components/ui/dialog";
 import { AccountDeleteDialog } from "./components/account-delete-dialog";
-import { prisma } from "~/libs/prisma.server";
-import { Cv } from "./components/cv";
 import { BadRequestError, InternalServerError } from "~/errors";
-import { getUser, signOut } from "~/services/sessions.server";
+import { prisma } from "~/utils/db.server";
+import { getUser, signOut } from "~/utils/session.server";
+import { Courses } from "~/components/catalog";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
@@ -69,11 +68,10 @@ export default function Profile() {
             <AccountDeleteDialog user={user} />
             <AccountDetails user={user} />
           </Dialog>
-          <MembershipCard />
-          <DiscordCard />
-          <CourseCatalogCard userCourses={userCourses} />
+          <MembershipCard user={user} />
+          <DiscordCard user={user} />
+          <Courses userCourses={userCourses} />
         </div>
-        <Cv />
       </div>
     </Container>
   );

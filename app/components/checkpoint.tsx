@@ -1,16 +1,17 @@
 import { Link } from "@remix-run/react";
+import { types } from "~/utils/db.server";
 import { FiCheckCircle } from "react-icons/fi";
 import { IoShieldCheckmarkSharp } from "react-icons/io5";
 import { LuCircleDotDashed } from "react-icons/lu";
 import { SlLock } from "react-icons/sl";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
-import { ICheckpoint, Status } from "~/constants/types";
 import { cn } from "~/libs/shadcn";
-import { capitalizeFirstLetter } from "~/utils/cs";
+import { capitalizeFirstLetter } from "~/utils/helpers";
+import { Status } from "~/constants/enums";
 
 type CheckpointProps = {
-  checkpoint: ICheckpoint;
+  checkpoint: types.Checkpoint;
 };
 
 export function Checkpoint({ checkpoint }: CheckpointProps) {
@@ -43,7 +44,13 @@ export function Checkpoint({ checkpoint }: CheckpointProps) {
         </div>
         <div className="text-lg pl-6 overflow-x-auto flex gap-2 items-center">
           {capitalizeFirstLetter(checkpoint.title)}{" "}
-          <Badge>{checkpoint.score} %</Badge>
+          <Badge
+            className={cn("bg-zinc-600", {
+              "bg-sky-600": completed,
+            })}
+          >
+            {checkpoint.score} %
+          </Badge>
         </div>
         {locked ? (
           <SlLock size={20} className="absolute sm:static right-2" />

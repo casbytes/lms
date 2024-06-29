@@ -1,29 +1,23 @@
+import matter from "gray-matter";
+import invariant from "tiny-invariant";
 import {
   ActionFunctionArgs,
   LoaderFunctionArgs,
   json,
   redirect,
 } from "@remix-run/node";
-import {
-  Form,
-  Link,
-  useLoaderData,
-  useRouteError,
-  useNavigation,
-} from "@remix-run/react";
+import { Form, Link, useLoaderData, useNavigation } from "@remix-run/react";
 import { FiCheckCircle } from "react-icons/fi";
 import { CgSpinnerTwo } from "react-icons/cg";
 import { FaArrowRightLong } from "react-icons/fa6";
-import { prisma } from "~/libs/prisma.server";
-import { readContent } from "~/utils/read-mdx-content.server";
+import { readContent } from "~/utils/helpers.server";
 import { Container } from "~/components/container";
-import { ErrorUI } from "~/components/error-ui";
 import { Markdown } from "~/components/markdown";
 import { PageTitle } from "~/components/page-title";
 import { Button } from "~/components/ui/button";
-import { BadRequestError, InternalServerError } from "~/errors";
-import { getUser } from "~/services/sessions.server";
-import matter from "gray-matter";
+import { InternalServerError } from "~/errors";
+import { getUser } from "~/utils/session.server";
+import { prisma } from "~/utils/db.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   try {
@@ -31,9 +25,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
       getUser(request),
       readContent("onboarding.mdx"),
     ]);
-    if (!user) {
-      throw redirect("/");
-    }
     const mdx = matter(content);
     return json({ mdx, user });
   } catch (error) {
@@ -47,9 +38,8 @@ export async function action({ request }: ActionFunctionArgs) {
   const intent = formData.get("intent");
   const userId = String(formData.get("userId"));
 
-  if (intent !== "markAsCompleted" || !userId) {
-    throw new BadRequestError("Invalid form data.");
-  }
+  invariant(userId, "Invalid form data.");
+  invariant(intent === "markAsCompleted", "Invalid intent.");
 
   try {
     await prisma.user.update({
@@ -59,7 +49,6 @@ export async function action({ request }: ActionFunctionArgs) {
     return redirect("/dashboard");
   } catch (error) {
     throw error;
-    // throw new InternalServerError();
   }
 }
 
@@ -101,9 +90,4 @@ export default function Onboarding() {
       </div>
     </Container>
   );
-}
-
-export function ErrorBoundary() {
-  const error = useRouteError();
-  return <ErrorUI error={error} />;
 }

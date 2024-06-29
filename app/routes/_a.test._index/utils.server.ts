@@ -1,7 +1,7 @@
 import invariant from "tiny-invariant";
 import { InternalServerError, NotFoundError } from "~/errors";
-import { prisma } from "~/libs/prisma.server";
-import { getUser } from "~/services/sessions.server";
+import { prisma } from "~/utils/db.server";
+import { getUserId } from "~/utils/session.server";
 
 export async function getTest(request: Request) {
   const url = new URL(request.url);
@@ -10,7 +10,7 @@ export async function getTest(request: Request) {
 
   try {
     invariant(id, "ID is required to get Test");
-    const user = await getUser(request);
+    const userId = await getUserId(request);
 
     const test = await prisma.test.findFirst({
       where: {
@@ -26,7 +26,7 @@ export async function getTest(request: Request) {
             },
           },
         ],
-        users: { some: { id: user.id } },
+        users: { some: { id: userId } },
       },
       include: {
         moduleProgress: true,

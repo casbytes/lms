@@ -7,7 +7,6 @@ import {
   useRouteError,
   useNavigation,
 } from "@remix-run/react";
-import { captureRemixErrorBoundaryError, withSentry } from "@sentry/remix";
 import { RootLayout } from "./components/layouts";
 import dark from "highlight.js/styles/night-owl.css?url";
 import stylesheet from "./tailwind.css?url";
@@ -67,14 +66,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-function App() {
+export default function App() {
   return <RootLayout />;
 }
 
-export default withSentry(App);
-
 export function ErrorBoundary() {
   const error = useRouteError();
-  captureRemixErrorBoundaryError(error);
   return <RootErrorUI error={error} />;
 }

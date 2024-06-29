@@ -13,8 +13,8 @@ async function go() {
     /**
      * Apply  DB migrations if any
      */
-    await exec("npx prisma migrate deploy");
-    console.info("DB migrations applied!");
+    // await exec("npm run migrate:prod");
+    // console.info("DB migrations applied!");
 
     /**
      * Validate JSON schema
@@ -27,7 +27,7 @@ async function go() {
      * Update DB
      */
     console.info("Updating database...");
-    await exec("npm run update:db");
+    await exec("npm run update:prod");
     console.info("Database updated!");
   } else {
     console.info(
@@ -43,6 +43,10 @@ async function go() {
 }
 go();
 
+/**
+ * Executes a shell command
+ * @param {String} command - Command to execute
+ */
 async function exec(command) {
   const child = spawn(command, { shell: true, stdio: "inherit" });
   await new Promise((resolve, reject) => {

@@ -1,4 +1,3 @@
-import React from "react";
 import { Fade } from "react-awesome-reveal";
 import { Container } from "../container";
 import { cn } from "~/libs/shadcn";
@@ -16,25 +15,48 @@ export function ContentOverview() {
               </span>
             </h1>
 
-            <p className="opacity-80 mt-8 mb-3">
-              Embark on a captivating journey through the intricacies of
-              computer systems with our unified CASBytes curriculum. Delve into
-              the magic that fuels computers, unravel the secrets of their
-              operation, and decode the mysteries of the number system.
-            </p>
-            <p className="opacity-80 mb-3">
-              As you progress, you'll ascend to new heights, mastering software
-              engineering. Our curriculum is thoughtfully designed to take you
-              from the fundamentals to advanced concepts seamlessly.
-            </p>
-            <p className="opacity-80 mb-4">
-              Explore diverse courses covering frontend and backend development,
-              full-stack, devops, and system design. This holistic approach
-              ensures that you not only survive but thrive in the dynamic world
-              of real-world software engineering. CASBytes is your gateway to
-              comprehensive mastery, guiding you through every aspect of
-              software development.
-            </p>
+            <ul className="list-disc">
+              <li className="opacity-80 mt-8 mb-3">
+                <strong>
+                  Bridging the Gap Between Passion and Profession:{" "}
+                </strong>
+                <span className="text-sm">
+                  Software engineering doesn't just offer a career; it allows
+                  you to turn your fascination with technology into tangible
+                  solutions. Imagine creating user-friendly interfaces, crafting
+                  the backend that powers complex applications, or building the
+                  next generation of software that shapes our world. With
+                  dedication and the right learning platform, you can bridge the
+                  gap between your passion for technology and a fulfilling
+                  profession.
+                </span>
+              </li>
+              <li className="opacity-80 mb-3">
+                <strong>Empowering Growth: </strong>
+                <span className="text-sm">
+                  Continual learning is the cornerstone of success in software
+                  engineering. The field is constantly evolving, and the best
+                  engineers are lifelong learners. With a platform like
+                  CASBytes, you gain access to a comprehensive curriculum that
+                  equips you with the latest skills and knowledge. Whether
+                  you're a complete beginner or a seasoned developer seeking to
+                  expand your skillset, you can unlock new abilities and chart
+                  your own path within the vast landscape of software
+                  engineering.
+                </span>
+              </li>
+              <li className="opacity-80 mb-4">
+                <strong>Building a Rewarding Future: </strong>
+                <span className="text-sm">
+                  Explore diverse courses covering frontend and backend
+                  development, full-stack, devops, and system design. This
+                  holistic approach ensures that you not only survive but thrive
+                  in the dynamic world of real-world software engineering.
+                  CASBytes is your gateway to comprehensive mastery, guiding you
+                  through every aspect of software development.
+                </span>
+              </li>
+            </ul>
             <h2 className="text-zinc-500 text-2xl">
               Your journey starts here, with CASBytes.
             </h2>
