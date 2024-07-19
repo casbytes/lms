@@ -19,7 +19,7 @@ type ItemProps = {
 };
 
 export function MainNav({
-  isOpen,
+  // isOpen,
   menuItems,
   authApp,
   handleNavToggle,

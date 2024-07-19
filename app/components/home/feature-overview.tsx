@@ -1,7 +1,4 @@
 import { Fade } from "react-awesome-reveal";
-import { LuBrainCircuit } from "react-icons/lu";
-import { LiaBookReaderSolid } from "react-icons/lia";
-import { TbWorldBolt } from "react-icons/tb";
 import { Container } from "../container";
 import { Card, CardContent } from "../ui/card";
 import { MdQuiz } from "react-icons/md";
@@ -51,17 +48,17 @@ const items = [
       <>
         <p className="text-center text-slate-600">
           The inclusion of tests at the end of every module and sub-module in
-          CASBytes isn't just about assessment; it's a powerful tool for
-          solidifying your knowledge and propelling you further in your software
-          engineering journey. Here's why:
+          CASBytes isn&apos;t just about assessment; it&apos;s a powerful tool
+          for solidifying your knowledge and propelling you further in your
+          software engineering journey. Here&apos;s why:
         </p>
         <ul className="list-disc space-y-2 mt-2">
           <li>
             <strong>Reinforcement Through Practice:</strong>
             <span className="text-sm">
               Tests act as quizzes that challenge you to recall and apply the
-              concepts you've learned. By actively engaging with the material
-              through tests, you strengthen your understanding and move
+              concepts you&apos;ve learned. By actively engaging with the
+              material through tests, you strengthen your understanding and move
               information from short-term to long-term memory. This ensures you
               retain crucial knowledge and can confidently apply it when
               building real-world software applications.
@@ -100,9 +97,9 @@ const items = [
         <p className="text-center text-slate-600">
           CASBytes incorporates checkpoints at the end of each module and
           sub-module, acting as more than just progress markers. These
-          checkpoints serve as strategic milestones to ensure you're firmly on
-          track towards becoming a well-rounded software engineer. Here's how
-          they benefit your learning:
+          checkpoints serve as strategic milestones to ensure you&apos;re firmly
+          on track towards becoming a well-rounded software engineer.
+          Here&apos;s how they benefit your learning:
         </p>
         <ul className="list-disc space-y-2 mt-2">
           <li>
@@ -152,10 +149,10 @@ const items = [
       <>
         <p className="text-center text-slate-600">
           CASBytes takes your learning a step beyond theory with its capstone
-          projects at the end of each course. These projects aren't just
-          assessments; they're your chance to bring the acquired knowledge to
-          life by building real-world applications. Here's what makes these
-          projects so valuable:
+          projects at the end of each course. These projects aren&apos;t just
+          assessments; they&apos;re your chance to bring the acquired knowledge
+          to life by building real-world applications. Here&apos;s what makes
+          these projects so valuable:
         </p>
         <ul className="list-disc space-y-2 mt-2">
           <li>
@@ -186,13 +183,13 @@ const items = [
               Experiencing the Full Software Development Lifecycle:{" "}
             </strong>
             <span className="text-sm">
-              CASBytes' project-based approach allows you to experience the
-              entire software development lifecycle (SDLC). You'll likely go
-              through the processes of planning, design, development, testing,
-              and deployment, giving you a holistic understanding of how
-              software applications come to life. This comprehensive experience
-              prepares you for the collaborative and dynamic nature of
-              real-world software development teams.
+              CASBytes&apos; project-based approach allows you to experience the
+              entire software development lifecycle (SDLC). You&apos;ll likely
+              go through the processes of planning, design, development,
+              testing, and deployment, giving you a holistic understanding of
+              how software applications come to life. This comprehensive
+              experience prepares you for the collaborative and dynamic nature
+              of real-world software development teams.
             </span>
           </li>
         </ul>

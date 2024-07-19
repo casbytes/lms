@@ -1,7 +1,6 @@
-import Stripe from "stripe";
 import invariant from "tiny-invariant";
 import { ActionFunctionArgs, redirect } from "@remix-run/node";
-import { constructWebhookEvent } from "~/services/stripe.server";
+import { Stripe, constructWebhookEvent } from "~/services/stripe.server";
 import { prisma } from "~/utils/db.server";
 
 export function loader() {
@@ -17,7 +16,6 @@ export async function action({ request }: ActionFunctionArgs) {
     switch (event.type) {
       case "checkout.session.completed":
         const checkoutSession = event.data.object as Stripe.Checkout.Session;
-
         const customerEmail = checkoutSession.customer_details?.email;
         invariant(customerEmail, "Customer email is required");
         return await prisma.user.update({

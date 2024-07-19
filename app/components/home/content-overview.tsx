@@ -21,14 +21,14 @@ export function ContentOverview() {
                   Bridging the Gap Between Passion and Profession:{" "}
                 </strong>
                 <span className="text-sm">
-                  Software engineering doesn't just offer a career; it allows
-                  you to turn your fascination with technology into tangible
-                  solutions. Imagine creating user-friendly interfaces, crafting
-                  the backend that powers complex applications, or building the
-                  next generation of software that shapes our world. With
-                  dedication and the right learning platform, you can bridge the
-                  gap between your passion for technology and a fulfilling
-                  profession.
+                  Software engineering doesn&apos;t just offer a career; it
+                  allows you to turn your fascination with technology into
+                  tangible solutions. Imagine creating user-friendly interfaces,
+                  crafting the backend that powers complex applications, or
+                  building the next generation of software that shapes our
+                  world. With dedication and the right learning platform, you
+                  can bridge the gap between your passion for technology and a
+                  fulfilling profession.
                 </span>
               </li>
               <li className="opacity-80 mb-3">
@@ -39,9 +39,9 @@ export function ContentOverview() {
                   engineers are lifelong learners. With a platform like
                   CASBytes, you gain access to a comprehensive curriculum that
                   equips you with the latest skills and knowledge. Whether
-                  you're a complete beginner or a seasoned developer seeking to
-                  expand your skillset, you can unlock new abilities and chart
-                  your own path within the vast landscape of software
+                  you&apos;re a complete beginner or a seasoned developer
+                  seeking to expand your skillset, you can unlock new abilities
+                  and chart your own path within the vast landscape of software
                   engineering.
                 </span>
               </li>

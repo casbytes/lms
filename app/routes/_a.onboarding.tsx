@@ -15,8 +15,7 @@ import { Container } from "~/components/container";
 import { Markdown } from "~/components/markdown";
 import { PageTitle } from "~/components/page-title";
 import { Button } from "~/components/ui/button";
-import { InternalServerError } from "~/errors";
-import { getUser } from "~/utils/session.server";
+import { getUser, getUserId } from "~/utils/session.server";
 import { prisma } from "~/utils/db.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -29,16 +28,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return json({ mdx, user });
   } catch (error) {
     console.error(error);
-    throw new InternalServerError();
+    throw error;
   }
 }
 
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
   const intent = formData.get("intent");
-  const userId = String(formData.get("userId"));
-
-  invariant(userId, "Invalid form data.");
+  const userId = await getUserId(request);
   invariant(intent === "markAsCompleted", "Invalid intent.");
 
   try {
@@ -48,6 +45,8 @@ export async function action({ request }: ActionFunctionArgs) {
     });
     return redirect("/dashboard");
   } catch (error) {
+    console.error(error);
+
     throw error;
   }
 }
@@ -60,7 +59,7 @@ export default function Onboarding() {
   return (
     <Container>
       <div className="mx-auto max-w-4xl">
-        <PageTitle title="Onboarding" className="text-lg mb-6" />
+        <PageTitle title="onboarding" className="text-lg mb-6" />
         <Markdown source={mdx.content} />
         {/* iframe for video */}
         {user.completedOnboarding ? (
@@ -71,7 +70,6 @@ export default function Onboarding() {
           </Button>
         ) : (
           <Form method="post" className="block">
-            <input type="hidden" name="userId" value={user.id} required />
             <Button
               type="submit"
               name="intent"

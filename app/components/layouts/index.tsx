@@ -4,8 +4,9 @@ import {
   FaRegCalendarCheck,
   FaRegCircleUser,
   FaRegCreditCard,
+  FaUsers,
 } from "react-icons/fa6";
-import { FaTasks } from "react-icons/fa";
+import { FaProjectDiagram, FaTasks } from "react-icons/fa";
 export { RootLayout } from "./root-layout";
 
 export const unAuthMenuItems = [
@@ -53,6 +54,16 @@ export const adminMenuItems = [
     icon: <FaTasks size={30} />,
     label: "tasks",
     href: "a/tasks",
+  },
+  {
+    icon: <FaProjectDiagram size={30} />,
+    label: "projects",
+    href: "a/projects",
+  },
+  {
+    icon: <FaUsers size={30} />,
+    label: "users",
+    href: "a/users",
   },
 
   {

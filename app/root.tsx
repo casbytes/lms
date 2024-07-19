@@ -5,16 +5,11 @@ import {
   Scripts,
   ScrollRestoration,
   useRouteError,
-  useNavigation,
 } from "@remix-run/react";
 import { RootLayout } from "./components/layouts";
 import dark from "highlight.js/styles/night-owl.css?url";
 import stylesheet from "./tailwind.css?url";
-import { useWindowSize } from "./utils/hooks";
-import { cn } from "./libs/shadcn";
-
 import { RootErrorUI } from "./components/root-error-ui";
-import { FullPagePendingUI } from "./components/full-page-pending-ui";
 
 export const links = () => {
   return [
@@ -39,11 +34,6 @@ export const links = () => {
 };
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const MOBILE_BREAKPOINT = 768;
-  const navigation = useNavigation();
-  const { width } = useWindowSize();
-  const isMobile = width < MOBILE_BREAKPOINT;
-  const isLoading = navigation.state !== "idle";
   return (
     <html lang="en">
       <head>
@@ -52,12 +42,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body
-        className={cn("bg-slate-100", {
-          "cursor-wait": isLoading && !isMobile,
-        })}
-      >
-        {isLoading && isMobile ? <FullPagePendingUI /> : null}
+      <body>
         {children}
         <ScrollRestoration />
         <Scripts />

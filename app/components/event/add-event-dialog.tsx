@@ -1,4 +1,4 @@
-import React from "react";
+import type { User } from "~/utils/db.server";
 import {
   Dialog,
   DialogContent,
@@ -11,10 +11,9 @@ import { FaPlus } from "react-icons/fa6";
 import { Values } from "./event-popover";
 import { EventForm } from "./event-form";
 import { useLocalStorageState } from "~/utils/hooks";
-import { IUser } from "~/constants/types";
 
-export function AddEventDialog({ user }: { user: IUser }) {
-  const [values, setValues] = useLocalStorageState<Values>("event", {
+export function AddEventDialog({ user }: { user: User }) {
+  const [values, setValues] = useLocalStorageState<Values>("addEvent", {
     title: "",
     description: "",
     type: "",
@@ -23,7 +22,11 @@ export function AddEventDialog({ user }: { user: IUser }) {
 
   return (
     <Dialog>
-      <Button variant="secondary" size="icon" className="w-full" asChild>
+      <Button
+        size="icon"
+        className="w-full fixed bottom-5 right-5 md:bottom-10 md:right-10 drop-shadow-2xl"
+        asChild
+      >
         <DialogTrigger className="max-w-24">
           <FaPlus className="mr-2" /> Add
         </DialogTrigger>

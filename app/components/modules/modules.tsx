@@ -1,12 +1,12 @@
 import React from "react";
-import { types } from "~/utils/db.server";
+import type { User, ModuleProgress } from "~/utils/db.server";
 import { useSearchParams } from "@remix-run/react";
 import { Module } from "./module";
 import { useLocalStorageState } from "~/utils/hooks";
 
 type ModulesProps = {
-  user: types.User;
-  modules: types.ModuleProgress[];
+  user: User;
+  modules: ModuleProgress[];
 };
 
 export function Modules({ modules, user }: ModulesProps) {

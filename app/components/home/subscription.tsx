@@ -1,8 +1,6 @@
 import { Container } from "~/components/container";
-import { Button } from "../ui/button";
 import { DialogTrigger } from "../ui/dialog";
 import { Stripe } from "~/services/stripe.server";
-import { aA } from "vitest/dist/reporters-yx5ZTtEV.js";
 
 export function Subscription({
   plans,
@@ -16,7 +14,7 @@ export function Subscription({
           <div className="max-w-3xl md:py-12 mx-auto">
             <h1 className="text-center text-2xl mb-16">
               The first module for each course is free. When you are prepared
-              and ready to move forward, it's just a step away.
+              and ready to move forward, it&apos;s just a step away.
               <p className="text-zinc-600 text-sm">Cancel anytime</p>
             </h1>
             <div className="flex flex-col gap-6">
@@ -55,10 +53,3 @@ export function Subscription({
     </Container>
   );
 }
-
-const paymentOptions = [
-  { season: "month", price: 14.9 },
-  { season: "quarter", price: 40.9 },
-  { season: "biannual", price: 74.9 },
-  { season: "year", price: 143.9 },
-];

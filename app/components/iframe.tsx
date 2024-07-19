@@ -18,6 +18,7 @@ function IFrame({ videoId, src, className }: IframeProps) {
     <div className={cn("relative mt-8 pt-[56.25%]", className)}>
       <iframe
         src={`${src}/${videoId}?autoplay=false&loop=false&muted=false&preload=true&responsive=true`}
+        title="Video iframe"
         id="iframe"
         loading="lazy"
         className={cn(

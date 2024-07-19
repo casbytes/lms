@@ -14,9 +14,14 @@ import { Comments } from "./comments";
 import { FaComments, FaPlus } from "react-icons/fa6";
 import { Textarea } from "../ui/textarea";
 import { CgSpinnerTwo } from "react-icons/cg";
-import { TaskProps } from ".";
+import type { TaskProps } from ".";
 
-export function CommentsDialog({ task, userId }: TaskProps) {
+type CommentsDialogProps = {
+  task: TaskProps;
+  userId: string;
+};
+
+export function CommentsDialog({ task, userId }: CommentsDialogProps) {
   const [isDisabled, setIsDisabled] = React.useState(true);
 
   const f = useFetcher();

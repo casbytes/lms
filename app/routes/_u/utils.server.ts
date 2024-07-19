@@ -1,5 +1,3 @@
-import { InternalServerError } from "~/errors";
-
 export async function getResponse(request: Request) {
   try {
     const url = new URL(request.url);
@@ -12,6 +10,6 @@ export async function getResponse(request: Request) {
       success,
     };
   } catch (error) {
-    throw new InternalServerError("Failed to process request.");
+    throw error;
   }
 }

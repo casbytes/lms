@@ -7,8 +7,20 @@ import { CgSpinnerTwo } from "react-icons/cg";
 import { FaEdit } from "react-icons/fa";
 import { formatDistanceToNow } from "date-fns";
 import { Role } from "~/constants/enums";
+import type { TaskProps } from ".";
+import type { TaskComment as ITaskComment, User } from "~/utils/db.server";
 
-export function Comment({ task, comment, userId }: any) {
+type TaskComment = ITaskComment & {
+  user: User;
+};
+
+type CommentProps = {
+  task: TaskProps;
+  comment: TaskComment;
+  userId: string;
+};
+
+export function Comment({ task, comment, userId }: CommentProps) {
   const [isCommenting, setIsCommenting] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [commentContent, setCommentContent] = React.useState(comment.content);

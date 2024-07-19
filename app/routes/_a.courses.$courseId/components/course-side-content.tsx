@@ -1,5 +1,10 @@
 import React from "react";
-import { types } from "~/utils/db.server";
+import type {
+  ModuleProgress,
+  Project as IProject,
+  User,
+  Badge,
+} from "~/utils/db.server";
 import { Await } from "@remix-run/react";
 import { CourseTitle } from "~/components/course-title";
 import { PendingStatus, Status } from "~/components/status";
@@ -8,10 +13,10 @@ import { Separator } from "~/components/ui/separator";
 import { BadgeGallery, Modules } from "~/components/modules";
 
 type CourseSideContentProps = {
-  user: types.User;
-  project: types.Project;
-  modules: Promise<types.ModuleProgress[]>;
-  badges: Promise<types.Badge[]>;
+  user: User;
+  project: IProject;
+  modules: Promise<ModuleProgress[]>;
+  badges: Promise<Badge[]>;
 };
 
 export function CourseSideContent({

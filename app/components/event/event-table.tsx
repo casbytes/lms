@@ -1,4 +1,4 @@
-import { types } from "~/utils/db.server";
+import type { Event, User } from "~/utils/db.server";
 import {
   Table,
   TableBody,
@@ -12,12 +12,10 @@ import { format } from "date-fns";
 import { Badge } from "../ui/badge";
 import { capitalizeFirstLetter } from "~/utils/helpers";
 import { EventPopover } from "./event-popover";
-import { EventDialog } from "./event-dialog";
-import { Role } from "~/constants/enums";
 
 type IEventTableProps = {
-  events: types.Event[];
-  user: types.User;
+  events: Event[];
+  user: User;
 };
 
 export function EventTable({ events, user }: IEventTableProps) {
@@ -44,11 +42,7 @@ export function EventTable({ events, user }: IEventTableProps) {
                 {format(new Date(event.eventDate), "do MMM, yyyy - HH:MMp")}
               </TableCell>
               <TableCell className="text-blue-600">
-                {user.role === (Role.ADMIN || Role.MODERATOR) ? (
-                  <EventPopover event={event} user={user} />
-                ) : (
-                  <EventDialog user={user} event={event} />
-                )}
+                <EventPopover event={event} user={user} />
               </TableCell>
             </TableRow>
           ))

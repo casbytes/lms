@@ -1,7 +1,6 @@
 import React from "react";
 import { Await } from "@remix-run/react";
 import { ImSpinner2 } from "react-icons/im";
-import { ICourse } from "~/constants/types";
 import {
   Table,
   TableBody,
@@ -10,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import { type Course as ICourse } from "../utils.server";
 import { Course } from "./course";
 
 type CoursesProps = {

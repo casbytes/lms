@@ -7,11 +7,15 @@ import { prisma } from "~/utils/db.server";
 import { getUser } from "~/utils/session.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const [user, events] = await Promise.all([
-    getUser(request),
-    prisma.event.findMany(),
-  ]);
-  return json({ user, events });
+  try {
+    const [user, events] = await Promise.all([
+      getUser(request),
+      prisma.event.findMany(),
+    ]);
+    return json({ user, events });
+  } catch (error) {
+    throw error;
+  }
 }
 
 export default function EventsRoute() {

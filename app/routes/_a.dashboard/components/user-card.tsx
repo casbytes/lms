@@ -1,7 +1,7 @@
-import type { IUser } from "~/constants/types";
+import type { User } from "~/utils/db.server";
 
 type UserCardProps = {
-  user: IUser;
+  user: User;
 };
 
 export function UserCard({ user }: UserCardProps) {
@@ -16,7 +16,7 @@ export function UserCard({ user }: UserCardProps) {
           className="absolute -z-10 sm:z-10 md:-z-10 lg:z-10 right-2 lg:right-6"
         />
       </div>
-      <p className="mt-4">😊 It's good to see you again.</p>
+      <p className="mt-4">😊 It&apos;s good to see you again.</p>
     </article>
   );
 }

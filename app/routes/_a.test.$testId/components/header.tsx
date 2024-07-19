@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "@remix-run/react";
+import { useInterval } from "use-interval";
 import { format, addSeconds } from "date-fns";
 import { TestAlert } from "./test-alert";
 import { Progress } from "~/components/ui/progress";
@@ -18,50 +19,48 @@ type TestHeaderProps = {
 export function TestHeader({
   progress,
   submitForm,
-  redirectUrl,
   questionsLength,
   currentQuestionIndex,
 }: TestHeaderProps) {
-  const [alert, setAlert] = React.useState(true);
+  const timePerQuestion = 1.5 * 60;
+  const totalTime = timePerQuestion * questionsLength;
 
-  // const timePerQuestion = 1.5 * 60;
-  // const totalTime = timePerQuestion * questionsLength;
-  const [timeLeft, setTimeLeft] = React.useState(20);
+  const [alert, setAlert] = React.useState(true);
+  const [timeLeft, setTimeLeft] = React.useState(totalTime);
 
   const navigate = useNavigate();
 
-  const ALERT_INTERVAL = 30000;
+  const ALERT_TIMEOUT = 30000;
   const INTERVAL = 1000;
-  const LEAST_TIME = 0;
+  const SUBMIT_TIME = 0;
   const WARNING_TIME = 300; // 5 minutes (5 * 60 = 300 seconds)
   const ONE_MINUTE = 60;
+
+  function formatTime(seconds: number) {
+    const time = addSeconds(new Date(SUBMIT_TIME), seconds);
+    return format(time, "mm:ss");
+  }
+
+  const submitAndNavigate = React.useCallback(async () => {
+    submitForm().then(() => navigate(-2));
+  }, [submitForm, navigate]);
+
+  useInterval(() => {
+    setTimeLeft((prevTime) => prevTime - 1);
+  }, INTERVAL);
+
+  React.useEffect(() => {
+    if (timeLeft === SUBMIT_TIME) {
+      submitAndNavigate();
+    }
+  }, [submitAndNavigate, timeLeft]);
 
   React.useEffect(() => {
     const timer = window.setTimeout(() => {
       setAlert(false);
-    }, ALERT_INTERVAL);
+    }, ALERT_TIMEOUT);
     return () => window.clearTimeout(timer);
   }, []);
-
-  React.useEffect(() => {
-    if (timeLeft > LEAST_TIME) {
-      const timer = window.setInterval(() => {
-        setTimeLeft((prevTime) => prevTime - 1);
-      }, INTERVAL);
-      return () => window.clearInterval(timer);
-    } else {
-      async function sAN() {
-        await submitForm();
-        navigate(-2);
-      }
-      sAN();
-    }
-  }, [timeLeft, navigate]);
-
-  function formatTime(seconds: number) {
-    const time = addSeconds(new Date(LEAST_TIME), seconds);
-    return format(time, "mm:ss");
-  }
 
   return (
     <>
@@ -71,7 +70,7 @@ export function TestHeader({
           Time left:{" "}
           <Badge
             className={cn("text-lg", {
-              "bg-red-500 hover:bg-red-400": timeLeft <= WARNING_TIME,
+              "bg-yellow-500 hover:bg-yellow-400": timeLeft <= WARNING_TIME,
             })}
           >
             <span

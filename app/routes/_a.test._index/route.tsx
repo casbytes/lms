@@ -6,15 +6,13 @@ import { PageTitle } from "~/components/page-title";
 import { Button } from "~/components/ui/button";
 import { Rules } from "./components/rules";
 import { getTest } from "./utils.server";
-import { TestStatus } from "~/constants/types";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const test = await getTest(request);
-  return json({ test });
+  return await getTest(request);
 }
 
 export default function TestIndexRoute() {
-  const { test } = useLoaderData<typeof loader>();
+  const test = useLoaderData<typeof loader>();
   const moduleTest = test?.moduleProgressId ? true : false;
 
   const defaultTitle = "Matters choke!";

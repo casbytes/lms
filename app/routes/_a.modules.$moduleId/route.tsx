@@ -1,7 +1,13 @@
 import React from "react";
 import { Await, useLoaderData } from "@remix-run/react";
 import { LoaderFunctionArgs, defer } from "@remix-run/node";
-import { getModuleBadges, getSubModules, getModule } from "./utils.server";
+import {
+  getModuleBadges,
+  getSubModules,
+  getModule,
+  getTest,
+  getCheckpoint,
+} from "./utils.server";
 import { getUser } from "~/utils/session.server";
 import { BackButton } from "~/components/back-button";
 import { Container } from "~/components/container";
@@ -11,18 +17,24 @@ import { Assessment } from "~/components/assessment";
 import { PageTitle } from "~/components/page-title";
 import { SubModules } from "~/components/modules";
 import { SideContent } from "./components/side-content";
+import { safeParseDate } from "~/utils/helpers";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const module = getModule(request, params);
   const moduleBadges = getModuleBadges(request, params);
   const subModules = getSubModules(request, params);
+  const [test, checkpoint] = await Promise.all([
+    getTest(request, params),
+    getCheckpoint(request, params),
+  ]);
   const user = await getUser(request);
-  return defer({ moduleBadges, subModules, module, user });
+  return defer({ moduleBadges, subModules, module, test, checkpoint, user });
 }
 
 export default function ModuleRoute() {
-  const { moduleBadges, subModules, module, user } =
+  const { moduleBadges, subModules, module, test, checkpoint, user } =
     useLoaderData<typeof loader>();
+  const item = { test, checkpoint };
   return (
     <Container className="max-w-3xl lg:max-w-7xl">
       <BackButton to="/dashboard" buttonText="dashboard" />
@@ -38,12 +50,7 @@ export default function ModuleRoute() {
         <ul className="col-span-3 flex flex-col gap-6 overflow-y-auto h-auto max-h-screen">
           <div className="bg-[url('https://cdn.casbytes.com/assets/elearning2.png')] bg-no-repeat bg-contain">
             <div className="flex flex-col gap-6 bg-slate-100/90">
-              <React.Suspense fallback={<PendingAssessment />}>
-                <Await resolve={module}>
-                  {(module) => <Assessment item={module} />}
-                </Await>
-              </React.Suspense>
-
+              <Assessment item={item} />
               <Separator className="bg-sky-700 h-2 rounded-tl-md rounded-br-md" />
               <SubModules subModules={subModules} user={user} />
             </div>

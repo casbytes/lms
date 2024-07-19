@@ -13,7 +13,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "~/components/ui/accordion";
-import { getUserId } from "~/utils/session.server";
+import { getUser, getUserId } from "~/utils/session.server";
 import { TaskTable } from "~/components/task";
 import { TaskPopover } from "~/components/task/task-popover";
 import { handleResponse } from "./utils.client";
@@ -26,7 +26,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     request,
     params
   );
-  return json({ checkpoint, checkpointContent, videoSource, userId });
+  const user = await getUser(request);
+  return json({ checkpoint, checkpointContent, user, videoSource, userId });
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -35,12 +36,12 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function CheckPointRoute() {
-  const { checkpoint, checkpointContent, videoSource, userId } =
+  const { checkpoint, checkpointContent, user, videoSource, userId } =
     useLoaderData<typeof loader>();
   const data = useActionData<typeof action>();
 
-  let moduleProgressId = checkpoint?.moduleProgressId;
-  let subModuleProgressId = checkpoint?.subModuleProgressId;
+  // let moduleProgressId = checkpoint?.moduleProgressId;
+  // let subModuleProgressId = checkpoint?.subModuleProgressId;
 
   const moduleTest = checkpoint?.moduleProgressId ? true : false;
   const defaultTitle = "Matters choke!";
@@ -57,9 +58,9 @@ export default function CheckPointRoute() {
   React.useEffect(() => {
     if (data?.checkpointResponse) {
       const { checkpointResponse } = data;
-      handleResponse(checkpointResponse);
+      // handleResponse(checkpointResponse);
     }
-  }, [data?.checkpointResponse]);
+  }, [data]);
 
   return (
     <Container className="max-w-4xl">
@@ -73,7 +74,7 @@ export default function CheckPointRoute() {
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="task-details" className="mb-4">
             <AccordionTrigger className="text-lg bg-zinc-300 p-2 rounded-md text-blue-600">
-              Status and links
+              Status and link
             </AccordionTrigger>
             <AccordionContent className="pt-4">
               <TaskTable task={checkpoint} />
@@ -85,7 +86,7 @@ export default function CheckPointRoute() {
           <IFrame src={videoSource} videoId={checkpointContent.data.videoId} />
         ) : null}
       </>
-      <TaskPopover task={checkpoint} userId={userId} />
+      <TaskPopover user={user} task={checkpoint} userId={userId} />
     </Container>
   );
 }

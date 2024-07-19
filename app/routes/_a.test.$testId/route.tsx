@@ -1,13 +1,7 @@
 import React from "react";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import {
-  useActionData,
-  useSubmit,
-  useLoaderData,
-  useNavigation,
-  useNavigate,
-} from "@remix-run/react";
+import { useSubmit, useLoaderData, useNavigation } from "@remix-run/react";
 import { BackButton } from "~/components/back-button";
 import { Container } from "~/components/container";
 import { PageTitle } from "~/components/page-title";
@@ -20,7 +14,6 @@ import { getTest, questions, updateTest } from "./utils.server";
 import { Pagination } from "./components/pagination";
 import { TestHeader } from "./components/header";
 import { Question } from "./components/question";
-import { Button } from "~/components/ui/button";
 import { getUser } from "~/utils/session.server";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
@@ -57,13 +50,14 @@ export default function TestRoute() {
     Array(questions.length).fill([])
   );
 
-  let moduleProgressId = test?.moduleProgressId;
-  let subModuleProgressId = test?.subModuleProgressId;
+  const moduleProgressId = test?.moduleProgressId;
+  const subModuleProgressId = test?.subModuleProgressId;
 
   /**
    * Calculates the scores of the user based on the answers provided
    */
-  function calculateScores() {
+
+  const calculateScores = React.useCallback(() => {
     const newScores = userAnswers.map((answer, index) => {
       const correctAnswerIds = questions[index].correctAnswer;
       return answer.length === correctAnswerIds.length &&
@@ -72,26 +66,27 @@ export default function TestRoute() {
         : 0;
     });
     setScores(newScores);
-  }
+  }, [questions, userAnswers]);
 
   /**
    *  Calculates the total score of the user score and returns it
    * @returns {Number} The total score of the user in percent
    */
-  function getTotalScore(): number {
+
+  const getTotalScore = React.useCallback(() => {
     return (
       (scores.reduce((acc, score) => acc + score, 0) / questions.length) * 100
     );
-  }
+  }, [scores, questions]);
 
   /**
    * Calculates the total score of the user score and returns it
    * @returns {Number} The total score of the user in percent
    */
-  function getUserScore(): number {
+  const getUserScore = React.useCallback(() => {
     calculateScores();
     return getTotalScore();
-  }
+  }, [calculateScores, getTotalScore]);
 
   /**
    * Programmatically submits the test form
@@ -140,7 +135,7 @@ export default function TestRoute() {
    */
   React.useEffect(() => {
     getUserScore();
-  }, [userAnswers]);
+  }, [getUserScore, userAnswers]);
 
   /**
    * useEffect to check for hydration

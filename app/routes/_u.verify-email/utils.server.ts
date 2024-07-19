@@ -1,7 +1,6 @@
 import { redirect } from "@remix-run/node";
 import invariant from "tiny-invariant";
-import { Role } from "~/constants/types";
-import { InternalServerError } from "~/errors";
+import { Role } from "~/constants/enums";
 import { createStripeCustomer } from "~/services/stripe.server";
 import { prisma } from "~/utils/db.server";
 import {
@@ -18,7 +17,7 @@ export async function getEmail(request: Request) {
     }
     return email;
   } catch (error) {
-    throw new InternalServerError("Failed to process request.");
+    throw error;
   }
 }
 
@@ -36,7 +35,7 @@ export async function updateUser(request: Request) {
 
     const stripeCustomer = await createStripeCustomer({ email, name });
     if (!stripeCustomer.id) {
-      throw new InternalServerError("Failed to create stripe customer.");
+      throw new Error("Failed to create stripe customer.");
     }
     const user = await prisma.user.update({
       where: { email },

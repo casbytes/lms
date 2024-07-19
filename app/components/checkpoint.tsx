@@ -1,5 +1,5 @@
 import { Link } from "@remix-run/react";
-import { types } from "~/utils/db.server";
+import type { Checkpoint as ICheckpoint } from "~/utils/db.server";
 import { FiCheckCircle } from "react-icons/fi";
 import { IoShieldCheckmarkSharp } from "react-icons/io5";
 import { LuCircleDotDashed } from "react-icons/lu";
@@ -11,15 +11,15 @@ import { capitalizeFirstLetter } from "~/utils/helpers";
 import { Status } from "~/constants/enums";
 
 type CheckpointProps = {
-  checkpoint: types.Checkpoint;
+  checkpoint: ICheckpoint;
 };
 
 export function Checkpoint({ checkpoint }: CheckpointProps) {
-  const locked = checkpoint.status === Status.LOCKED;
-  const inProgress = checkpoint.status === Status.IN_PROGRESS;
-  const completed = checkpoint.status === Status.COMPLETED;
+  const LOCKED = checkpoint.status === Status.LOCKED;
+  const IN_PROGRESS = checkpoint.status === Status.IN_PROGRESS;
+  const COMPLETED = checkpoint.status === Status.COMPLETED;
 
-  const checkpointLink = `/checkpoint/${checkpoint.id}?${
+  const checkpointUrl = `/checkpoint/${checkpoint.id}?${
     checkpoint?.moduleProgressId
       ? `moduleId=${checkpoint.moduleProgressId}`
       : `submoduleId=${checkpoint.subModuleProgressId}`
@@ -31,14 +31,15 @@ export function Checkpoint({ checkpoint }: CheckpointProps) {
       className="rounded-md text-black bg-stone-200 hover:bg-stone-300 py-4 relative border-b-2 border-zinc-600 w-full"
     >
       <Link
-        to={checkpointLink}
+        prefetch="intent"
+        to={checkpointUrl}
         className="flex flex-1 justify-between items-center p-2"
       >
         <div className="absolute p-1 left-0">
           <IoShieldCheckmarkSharp
             size={20}
             className={cn("text-zinc-700", {
-              "text-sky-700": completed,
+              "text-sky-700": COMPLETED,
             })}
           />
         </div>
@@ -46,15 +47,15 @@ export function Checkpoint({ checkpoint }: CheckpointProps) {
           {capitalizeFirstLetter(checkpoint.title)}{" "}
           <Badge
             className={cn("bg-zinc-600", {
-              "bg-sky-600": completed,
+              "bg-sky-600": COMPLETED,
             })}
           >
             {checkpoint.score} %
           </Badge>
         </div>
-        {locked ? (
+        {LOCKED ? (
           <SlLock size={20} className="absolute sm:static right-2" />
-        ) : inProgress ? (
+        ) : IN_PROGRESS ? (
           <LuCircleDotDashed
             size={20}
             className="text-sky-700 absolute sm:static right-2"

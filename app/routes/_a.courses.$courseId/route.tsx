@@ -23,8 +23,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const modules = getModules(request, params);
   const subModules = getSubModules(request, params);
   const badges = getModuleBadges(request, params);
-  const test = await getTest(request, params);
-  const checkpoint = await getCheckpoint(request, params);
+  const [test, checkpoint] = await Promise.all([
+    getTest(request, params),
+    getCheckpoint(request, params),
+  ]);
   const project = await getProject(request, params);
   const module = await getModule(request, params);
   const user = await getUser(request);
@@ -51,8 +53,8 @@ export default function CoursesRoute() {
     module,
     user,
   } = useLoaderData<typeof loader>();
-
   const item = { test, checkpoint };
+
   return (
     <Container className="max-w-3xl lg:max-w-7xl">
       <BackButton to="/dashboard" buttonText="dashboard" />
@@ -63,7 +65,11 @@ export default function CoursesRoute() {
             <div className="flex flex-col gap-6 bg-slate-100/90">
               <Assessment item={item} />
               <Separator className="bg-sky-700 h-2 rounded-tl-md rounded-br-md" />
-              <SubModules subModules={subModules} user={user} />
+              <SubModules
+                subModules={subModules}
+                isPremium={module.premium}
+                user={user}
+              />
             </div>
           </div>
         </ul>
@@ -77,7 +83,6 @@ export default function CoursesRoute() {
             modules={modules}
           />
         </SheetContent>
-
         {/* large screens */}
         <aside className="hidden lg:block col-span-2 border bg-zinc-100 overflow-y-auto max-h-screen">
           <CourseSideContent

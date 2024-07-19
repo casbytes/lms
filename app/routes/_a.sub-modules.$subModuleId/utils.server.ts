@@ -1,8 +1,7 @@
 import invariant from "tiny-invariant";
 import matter from "gray-matter";
-import { types } from "~/utils/db.server";
+import type { LessonProgress, Test } from "~/utils/db.server";
 import { Params } from "@remix-run/react";
-import { InternalServerError, NotFoundError } from "~/errors";
 import { getContentFromGithub } from "~/utils/octokit.server";
 import { getUserId } from "~/utils/session.server";
 import { prisma } from "~/utils/db.server";
@@ -29,14 +28,12 @@ export async function getSubModule(request: Request, params: Params<string>) {
       },
     });
     if (!subModule) {
-      throw new NotFoundError("Sub module not found.");
+      throw new Error("Sub module not found.");
     }
     return subModule;
   } catch (error) {
     console.error(error);
-    throw new InternalServerError(
-      "An error occured why fetching sub modules, please try again."
-    );
+    throw error;
   }
 }
 
@@ -44,9 +41,12 @@ export async function getSubModule(request: Request, params: Params<string>) {
  * Get sub module test by given submodule ID
  * @param {Request} request
  * @param {Params<string>} params
- * @returns {Promise<types.Test>}
+ * @returns {Promise<Test>}
  */
-export async function getTest(request: Request, params: Params<string>) {
+export async function getTest(
+  request: Request,
+  params: Params<string>
+): Promise<Test> {
   try {
     invariant(params.subModuleId, "Submodule ID is required.");
     const subModuleId = params.subModuleId;
@@ -58,14 +58,12 @@ export async function getTest(request: Request, params: Params<string>) {
       },
     });
     if (!test) {
-      throw new NotFoundError("Test not found.");
+      throw new Error("Test not found.");
     }
     return test;
   } catch (error) {
     console.error(error);
-    throw new InternalServerError(
-      "An error occured why fetching sub module test, please try again."
-    );
+    throw error;
   }
 }
 
@@ -87,14 +85,12 @@ export async function getCheckpoint(request: Request, params: Params<string>) {
       },
     });
     if (!checkpoint) {
-      throw new NotFoundError("Checkpoint not found.");
+      throw new Error("Checkpoint not found.");
     }
     return checkpoint;
   } catch (error) {
     console.error(error);
-    throw new InternalServerError(
-      "An error occured why fetching sub module checkpoint, please try again."
-    );
+    throw error;
   }
 }
 
@@ -107,7 +103,7 @@ export async function getCheckpoint(request: Request, params: Params<string>) {
 export async function getLessons(
   request: Request,
   params: Params<string>
-): Promise<types.LessonProgress[]> {
+): Promise<LessonProgress[]> {
   invariant(params.subModuleId, "Submodule ID is required to fetch lessons.");
   const subModuleId = params.subModuleId;
 
@@ -128,7 +124,7 @@ export async function getLessons(
     });
 
     if (!firstLesson) {
-      throw new NotFoundError("First lesson not found.");
+      throw new Error("First lesson not found.");
     }
 
     const [lessons] = await Promise.all([
@@ -164,8 +160,8 @@ export async function getLessons(
  */
 async function updateFirstLessonStatus(
   userId: string,
-  lessonProgress: types.LessonProgress
-): Promise<types.LessonProgress | void> {
+  lessonProgress: LessonProgress
+): Promise<LessonProgress | void> {
   if (lessonProgress.status !== Status.LOCKED) {
     return;
   }
@@ -215,7 +211,7 @@ export async function getLessonContent(
     });
 
     if (!currentLesson) {
-      throw new NotFoundError("Lesson not found.");
+      throw new Error("Lesson not found.");
     }
 
     // await prisma.lessonProgress.update({
@@ -254,7 +250,7 @@ export async function getLessonContent(
     });
 
     if (!mdxContent) {
-      throw new NotFoundError("Empty lesson content.");
+      throw new Error("Empty lesson content.");
     }
 
     const { data, content } = matter(mdxContent);
@@ -285,8 +281,8 @@ export async function getLessonContent(
  * @returns {Promise<void>}
  */
 async function updateLessonStatuses(
-  currentLesson: types.LessonProgress,
-  nextLesson: types.LessonProgress | null,
+  currentLesson: LessonProgress,
+  nextLesson: LessonProgress | null,
   userId: string,
   subModuleId: string
 ) {
@@ -370,8 +366,8 @@ async function updateLessonStatuses(
 async function getPreviousAndNextLessons(
   userId: string,
   subModuleId: string,
-  currentLesson: types.LessonProgress
-): Promise<Array<types.LessonProgress | null>> {
+  currentLesson: LessonProgress
+): Promise<Array<LessonProgress | null>> {
   try {
     return Promise.all([
       prisma.lessonProgress.findFirst({
@@ -398,9 +394,6 @@ async function getPreviousAndNextLessons(
   } catch (error) {
     console.error(error);
     throw error;
-    // throw new InternalServerError(
-    //   "An error occured while fetching previous and next lessons, please try again."
-    // );
   }
 }
 

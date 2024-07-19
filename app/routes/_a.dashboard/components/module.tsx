@@ -1,15 +1,16 @@
-import type { IModule, IUser } from "~/constants/types";
 import { TableCell, TableRow } from "~/components/ui/table";
 import { capitalizeFirstLetter } from "~/utils/helpers";
 import { ConfirmationDialog } from "./confirmation-dialog";
+import type { User } from "~/utils/db.server";
+import type { Module } from "../utils.server";
 
 export function Module({
   user,
   module,
   inCatalog,
 }: {
-  user: IUser;
-  module: IModule;
+  user: User;
+  module: Module;
   inCatalog: boolean;
 }) {
   const moduleWithType = { ...module, type: "module" as const };

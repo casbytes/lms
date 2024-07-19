@@ -1,25 +1,26 @@
+import type { User } from "~/utils/db.server";
 import { FaLock, FaLockOpen } from "react-icons/fa6";
 import { Button } from "./ui/button";
 import { Link } from "@remix-run/react";
-import { IUser } from "~/constants/types";
 
-export function DiscordCard({ user }: { user: IUser }) {
+export function DiscordCard({ user }: { user: User }) {
+  const isSubscribed = user.subscribed;
   return (
     <div className="rounded-md bg-blue-400/35 p-6 flex flex-col items-center">
       <h2 className="text-2xl mb-4 text-blue-600">Discord community</h2>
-      {user.subscribed ? (
+      {isSubscribed ? (
         <FaLockOpen className="h-12 w-12 text-blue-400" />
       ) : (
         <FaLock className="font-bold h-12 w-12 text-blue-500" />
       )}
 
       <p className="text-lg text-slate-600 text-center max-w-xs mt-4">
-        {user.subscribed
+        {isSubscribed
           ? "You now have access to our Discord community. Enjoy your learning experience!"
           : "Upgrade to CASBytes Premium to gain access to our community Discord server."}
       </p>
       <Button
-        disabled={!user.subscribed}
+        disabled={!isSubscribed}
         size="lg"
         className="mt-4 bg-blue-400/50 hover:bg-blue-400 text-blue-700"
       >

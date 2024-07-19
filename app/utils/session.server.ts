@@ -8,14 +8,12 @@ import {
   LoaderFunctionArgs,
 } from "@remix-run/node";
 import { ensurePrimary } from "./litefs.server";
-import { InternalServerError } from "~/errors";
-import { prisma, types } from "./db.server";
+import { type User, prisma } from "./db.server";
 import { Emails } from "~/services/resend/emails.server";
 import { Role } from "~/constants/enums";
 
 export interface SessionData {
   userId: string;
-  authState: string | null;
 }
 
 export const adminRoles: Role[] = [
@@ -66,7 +64,7 @@ export async function signOut(request: Request) {
       },
     });
   } catch (error) {
-    throw new InternalServerError("Failed to sign out, please try again.");
+    throw error;
   }
 }
 
@@ -84,9 +82,7 @@ export async function getUserId(request: Request): Promise<string> {
     }
     return userId;
   } catch (error) {
-    throw new InternalServerError(
-      "Failed to get session user, please try refreshing your page."
-    );
+    throw error;
   }
 }
 
@@ -95,7 +91,7 @@ export async function getUserId(request: Request): Promise<string> {
  * @param {Request} request - Request
  * @returns {DBUser} - DB user
  */
-export async function getUser(request: Request): Promise<types.User> {
+export async function getUser(request: Request): Promise<User> {
   try {
     const userId = await getUserId(request);
     const user = await prisma.user.findUnique({
@@ -105,11 +101,10 @@ export async function getUser(request: Request): Promise<types.User> {
     if (!user) {
       throw redirect("/");
     }
+
     return user;
   } catch (error) {
-    throw new InternalServerError(
-      "Failed to get user from DB, please try again."
-    );
+    throw error;
   }
 }
 
@@ -121,7 +116,7 @@ export async function checkRole(request: Request) {
     }
     return null;
   } catch (error) {
-    throw new InternalServerError("Failed to check role, please try again.");
+    throw error;
   }
 }
 
@@ -164,7 +159,6 @@ export async function handleMagiclinkRedirect(request: Request) {
     if (!existingUser) {
       await prisma.user.create({
         data: { email, verificationToken: token, authState },
-        select: { email: true },
       });
     } else {
       await prisma.user.update({
@@ -195,9 +189,7 @@ export async function handleMagiclinkRedirect(request: Request) {
     }
     return redirect(`/?email=${encodeURIComponent(email)}&success=true`);
   } catch (error) {
-    console.error(error);
-
-    throw new InternalServerError("Failed to generate magic link.");
+    throw error;
   }
 }
 
@@ -261,7 +253,7 @@ export async function handleMagiclinkAuth({
         "Your token has expired. Please generate another magic link.";
       return redirect(`/?success=false&error=${encodeURIComponent(message)}`);
     }
-    throw new InternalServerError("Failed to authenticate user.");
+    throw error;
   }
 }
 

@@ -1,9 +1,9 @@
-import { ICourseProgress } from "~/constants/types";
-import { Table, TableBody, TableCell, TableRow } from "../ui/table";
+import { CourseProgress } from "~/utils/db.server";
+import { Table, TableBody, TableCell, TableRow } from "~/components/ui/table";
 import { Course } from "./course";
 
 type CCCProps = {
-  userCourses: ICourseProgress[];
+  userCourses: CourseProgress[];
 };
 
 export function Courses({ userCourses }: CCCProps) {
@@ -18,7 +18,7 @@ export function Courses({ userCourses }: CCCProps) {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={2}>
+              <TableCell colSpan={2} className="text-center">
                 No courses in your catalog.
                 <br />
                 <span className="text-sm">

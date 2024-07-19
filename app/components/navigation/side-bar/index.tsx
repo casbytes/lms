@@ -38,6 +38,7 @@ export function SideBar({
                     asChild
                   >
                     <Link
+                      prefetch="intent"
                       to={item.href}
                       className="flex gap-4 capitalize text-xl items-center"
                     >

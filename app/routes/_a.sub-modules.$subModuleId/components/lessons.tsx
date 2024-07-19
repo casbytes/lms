@@ -1,8 +1,8 @@
+import type { LessonProgress } from "~/utils/db.server";
 import { Lesson } from "./lesson";
-import { ILessonProgress } from "~/constants/types";
 
 type LessonsProps = {
-  lessons: ILessonProgress[];
+  lessons: LessonProgress[];
 };
 
 export function Lessons({ lessons }: LessonsProps) {

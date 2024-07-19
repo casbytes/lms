@@ -66,12 +66,7 @@ export async function createCheckoutSession({
   priceId,
   successUrl,
   cancelUrl,
-}: {
-  customerId: string;
-  priceId: string;
-  successUrl: string;
-  cancelUrl: string;
-}) {
+}: Record<string, string>) {
   return await stripe.checkout.sessions.create({
     customer: customerId,
     billing_address_collection: "auto",
@@ -92,15 +87,12 @@ export async function createCheckoutSession({
  * Create a Stripe billing portal session
  * @param {string} customerId - Stripe customer ID
  * @param {string} returnUrl - Return URL
- * @returns   {Promise<Stripe.BillingPortal.Session>} - Stripe billing portal session
+ * @returns {Promise<Stripe.BillingPortal.Session>} - Stripe billing portal session
  */
 export async function createBillingPortalSession({
   customerId,
   returnUrl,
-}: {
-  customerId: string;
-  returnUrl: string;
-}) {
+}: Record<string, string>) {
   return await stripe.billingPortal.sessions.create({
     customer: customerId,
     return_url: returnUrl,

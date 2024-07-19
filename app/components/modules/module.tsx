@@ -1,5 +1,5 @@
 import { useNavigation, useSearchParams, useSubmit } from "@remix-run/react";
-import { types } from "~/utils/db.server";
+import type { User, ModuleProgress } from "~/utils/db.server";
 import { SheetClose } from "../ui/sheet";
 import { Button } from "../ui/button";
 import { cn } from "~/libs/shadcn";
@@ -12,8 +12,8 @@ import { BsLockFill, BsUnlockFill } from "react-icons/bs";
 import { Status } from "~/constants/enums";
 
 type ModuleItemProps = {
-  user: types.User;
-  module: types.SubModuleProgress;
+  user: User;
+  module: ModuleProgress;
 };
 
 export function Module({ module, user }: ModuleItemProps) {
@@ -23,25 +23,30 @@ export function Module({ module, user }: ModuleItemProps) {
   const moduleId = navigation.formData?.get("moduleId");
   const currentModuleId = searchParams.get("moduleId");
 
-  const isActive = user.subscribed;
+  const isCurrentModule = currentModuleId === module.id;
+  const isSubscribed = user.subscribed;
+  const isPremium = module.premium;
 
-  const locked = module.status === Status.LOCKED || !isActive;
-  const completed = module.status === Status.COMPLETED;
-  const inProgress = module.status === Status.IN_PROGRESS;
+  /**
+   * The user is not subscribed and the module is premium (paid)
+   */
+  const locked =
+    module.status === Status.LOCKED || (!isSubscribed && isPremium);
+  const COMPLETED = module.status === Status.COMPLETED;
+  const IN_PROGRESS = module.status === Status.IN_PROGRESS;
 
   return (
     <li className="w-full">
       <SheetClose asChild>
         <Button
-          // disabled={locked}
+          // disabled={locked }
           aria-label={module.title}
           onClick={() => submit({ moduleId: module.id })}
           className={cn(
             "overflow-x-auto flex border-l-8 border-b-2 text-zinc-700 border-zinc-500 bg-zinc-200 hover:bg-zinc-300 justify-between w-full text-lg",
             {
-              "border-sky-600": completed,
-              "border-sky-700 text-sky-800 bg-zinc-200/50":
-                currentModuleId === module.id,
+              "border-sky-600": COMPLETED,
+              "border-sky-700 text-sky-800 bg-zinc-200/50": isCurrentModule,
             }
           )}
         >
@@ -51,20 +56,20 @@ export function Module({ module, user }: ModuleItemProps) {
               <CgSpinnerTwo size={20} className="animate-spin" />
             ) : locked ? (
               <SlLock size={20} />
-            ) : inProgress ? (
+            ) : IN_PROGRESS ? (
               <LuCircleDotDashed size={20} />
             ) : (
               <FiCheckCircle size={20} />
             )}
             <div className="flex items-center gap-4">
-              {capitalizeFirstLetter(module?.title)}{" "}
+              {capitalizeFirstLetter(module.title)}{" "}
             </div>{" "}
           </div>
 
-          {!isActive ? (
-            <BsLockFill className="text-zinc-500 absolute sm:static right-8" />
-          ) : (
+          {isSubscribed ? (
             <BsUnlockFill className="text-zinc-500 absolute sm:static right-8" />
+          ) : (
+            <BsLockFill className="text-zinc-500 absolute sm:static right-8" />
           )}
         </Button>
       </SheetClose>

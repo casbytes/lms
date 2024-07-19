@@ -22,7 +22,7 @@ export function Header() {
               <span className="text-zinc-700">
                 Master Front-End, Back-End, Full-Stack and More
               </span>{" "}
-              with CASBytes'
+              with CASBytes&apos;
               <span className="text-zinc-700"> Cutting-Edge Curriculum.</span>
             </h2>
             <div className="flex flex-wrap justify-center md:justify-start gap-4 capitalize">

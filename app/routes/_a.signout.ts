@@ -1,5 +1,4 @@
 import { ActionFunctionArgs, redirect } from "@remix-run/node";
-import { BadRequestError, InternalServerError } from "~/errors";
 import invariant from "tiny-invariant";
 import { getUserId, signOut } from "~/utils/session.server";
 import { prisma } from "~/utils/db.server";
@@ -35,9 +34,6 @@ export async function action({ request }: ActionFunctionArgs) {
 
     return signOut(request);
   } catch (error) {
-    if (error instanceof BadRequestError) {
-      throw error;
-    }
-    throw new InternalServerError();
+    throw error;
   }
 }

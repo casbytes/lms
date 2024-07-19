@@ -1,15 +1,9 @@
 import React from "react";
-import {
-  useBlocker,
-  useNavigation,
-  useNavigate,
-  redirect,
-} from "@remix-run/react";
+import { useNavigation, useNavigate } from "@remix-run/react";
 import { FaSpinner } from "react-icons/fa6";
 import {
   DialogClose,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -31,11 +25,9 @@ export function TestDialog({
   const navigation = useNavigation();
 
   const isSubmitting = navigation.formData?.get("intent") === "submit";
-
-  async function handleButtonClick() {
-    await submitForm();
-    navigate(-2);
-  }
+  const handleButtonClick = React.useCallback(async () => {
+    submitForm().then(() => navigate(-2));
+  }, [navigate, submitForm]);
 
   /**
    * useEffect to handle window or tab change
@@ -54,7 +46,7 @@ export function TestDialog({
     return () => {
       document.removeEventListener("visibilitychange", handleTabChange);
     };
-  }, [isFormSubmitted, navigate]);
+  }, [dialogButtonRef, handleButtonClick, isFormSubmitted, navigate]);
 
   return (
     <DialogContent className="max-w-lg">

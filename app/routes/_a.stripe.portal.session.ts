@@ -1,5 +1,4 @@
 import { ActionFunctionArgs, redirect } from "@remix-run/node";
-import { InternalServerError } from "~/errors";
 import { createBillingPortalSession } from "~/services/stripe.server";
 import { getUser } from "~/utils/session.server";
 
@@ -19,7 +18,6 @@ export async function action({ request }: ActionFunctionArgs) {
     });
     return redirect(portalSession.url, 303);
   } catch (error) {
-    console.error(error);
-    throw new InternalServerError();
+    throw error;
   }
 }

@@ -1,18 +1,25 @@
+import React from "react";
+import type { User } from "~/utils/db.server";
 import { AiOutlineDollarCircle } from "react-icons/ai";
 import { FaHeart } from "react-icons/fa6";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import { IUser } from "~/constants/types";
 
-export function UserOverview({ user }: { user: IUser }) {
-  const avatarFallBack = user.name
-    ?.split(" ")
+export function UserOverview({ user }: { user: User }) {
+  const avatarFallBack = user
+    .name!.split(" ")
     .map((n) => n[0])
     .join("");
+
+  const avatarSrc = React.useMemo(() => {
+    const seed = user.name!.split(" ")[0];
+    return `https://api.dicebear.com/9.x/avataaars/svg?seed=${seed}`;
+  }, [user.name]);
+
   return (
-    <div className="flex flex-col sm:flex-row gap-4 justify-between mt-8 md:mt-20 bg-sky-200 rounded-md p-2">
+    <div className="flex flex-col gap-6 sm:flex-row justify-between mt-8 md:mt-20 bg-sky-200 rounded-md p-2">
       <div className="flex justify-start sm:justify-between gap-6 flex-wrap items-center">
         <Avatar>
-          {/* <AvatarImage src={user?.avatar_url} /> */}
+          <AvatarImage alt={user.name!} src={avatarSrc} />
           <AvatarFallback>{avatarFallBack}</AvatarFallback>
         </Avatar>
         <p className="text-2xl">{user.name}</p>

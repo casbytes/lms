@@ -1,5 +1,5 @@
 import React from "react";
-import { types } from "~/utils/db.server";
+import type { Event, User } from "~/utils/db.server";
 import {
   Dialog,
   DialogClose,
@@ -20,13 +20,18 @@ import { useLocalStorageState } from "~/utils/hooks";
 import { Role } from "~/constants/enums";
 
 type EventDialogProps = {
-  event: types.Event;
-  user: types.User;
+  event: Event;
+  user: User;
 };
 
 export function EventDialog({ event, user }: EventDialogProps) {
   const [isEditing, setIsEditing] = React.useState(false);
-  const [values, setValues] = useLocalStorageState<Values>("event", event);
+  const [values, setValues] = useLocalStorageState<Values>("editEvent", {
+    title: event.title,
+    description: event.description,
+    type: event.type,
+    eventDate: event.eventDate,
+  });
 
   return (
     <Dialog>

@@ -1,30 +1,15 @@
+import type { Checkpoint, Link, Project } from "~/utils/db.server";
 export { TaskTable } from "./task-table";
 export { AddLinkDialog } from "./add-link-dialog";
 export { SubmitDialog } from "./submit-dialog";
 export { TaskPopover } from "./task-popover";
 
-export interface TaskLink {
-  id: string;
-  url: string;
-  title: string;
-}
+type ICheckpoint = Checkpoint & {
+  links?: Link[];
+};
 
-export interface TaskComment {
-  id: string;
-  content: string;
-  userId: string;
-}
+type IProject = Project & {
+  links?: Link[];
+};
 
-export interface TaskData<T = TaskLink | TaskComment> {
-  id: string;
-  title: string;
-  status: string;
-  score: number;
-  links?: T[];
-  comments?: T[];
-}
-
-export interface TaskProps<T extends TaskData = TaskData> {
-  task: T;
-  userId?: string;
-}
+export type TaskProps = ICheckpoint | IProject;

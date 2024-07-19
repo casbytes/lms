@@ -1,4 +1,4 @@
-import Stripe from "stripe";
+import { Stripe } from "~/services/stripe.server";
 import { Form, useNavigation } from "@remix-run/react";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -11,12 +11,12 @@ import {
 } from "~/components/ui/card";
 import { cn } from "~/libs/shadcn";
 import { CgSpinnerTwo } from "react-icons/cg";
-import { IUser } from "~/constants/types";
 import { FaRegCreditCard } from "react-icons/fa6";
+import type { User } from "~/utils/db.server";
 
 type SubscriptionCardProps = {
   plan: Stripe.Price;
-  user: IUser;
+  user: User;
   subs: Stripe.Response<Stripe.ApiList<Stripe.Subscription>>;
 };
 
@@ -33,7 +33,7 @@ export function SubscriptionCard({ plan, user, subs }: SubscriptionCardProps) {
   const isSubmiting = n.formData?.get("intent") === "subscribe";
 
   const disabled = user.subscribed || isSubmiting;
-  const activePlanId = subs.data[0].items.data[0].plan.id;
+  const activePlanId = subs?.data[0]?.items?.data[0]?.plan?.id;
   const activePlan = user.subscribed && activePlanId === plan.id;
 
   return (

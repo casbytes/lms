@@ -1,3 +1,4 @@
+import type { User } from "~/utils/db.server";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { Form, useNavigation } from "@remix-run/react";
 import { CgSpinnerTwo } from "react-icons/cg";
@@ -11,7 +12,7 @@ import {
   DialogHeader,
 } from "~/components/ui/dialog";
 
-export function AccountDeleteDialog({ user }: any) {
+export function AccountDeleteDialog({ user }: { user: User }) {
   const navigation = useNavigation();
   const isLoading = navigation.formData?.get("intent") === "deleteAccount";
   return (
@@ -38,7 +39,7 @@ export function AccountDeleteDialog({ user }: any) {
           </DialogClose>
           <Form method="post">
             <input type="hidden" name="intent" value="deleteAccount" required />
-            <input type="hidden" name="userId" value={user.userId} required />
+            <input type="hidden" name="userId" value={user.id} required />
             <Button type="submit" variant="destructive">
               {isLoading ? (
                 <CgSpinnerTwo className="mr-4  animate-spin" />

@@ -1,11 +1,14 @@
-import { types } from "~/utils/db.server";
+import type {
+  Test as ITest,
+  Checkpoint as ICheckpoint,
+} from "~/utils/db.server";
 import { Checkpoint } from "~/components/checkpoint";
 import { Test } from "~/components/test";
 
 type AssessmentProps = {
   item: {
-    test: types.Test;
-    checkpoint: types.Checkpoint;
+    test: ITest;
+    checkpoint: ICheckpoint;
   };
 };
 

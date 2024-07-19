@@ -11,10 +11,10 @@ import { Button } from "../ui/button";
 import { TiDocumentAdd } from "react-icons/ti";
 import { Form, useNavigation } from "@remix-run/react";
 import { CgSpinnerTwo } from "react-icons/cg";
-import { TaskProps } from ".";
+import type { TaskProps } from ".";
 import { CheckpointStatus } from "~/constants/enums";
 
-export function SubmitDialog({ task }: TaskProps) {
+export function SubmitDialog({ task }: { task: TaskProps }) {
   const n = useNavigation();
   const isSubmitting = n.formData?.get("intent") === "submitTask";
   const submitted = task.status === CheckpointStatus.SUBMITTED;

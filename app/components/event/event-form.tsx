@@ -1,4 +1,5 @@
 import React from "react";
+import type { Event, User } from "~/utils/db.server";
 import { useFetcher } from "@remix-run/react";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -17,15 +18,14 @@ import { Button } from "../ui/button";
 import { SetValues, Values } from "./event-popover";
 import { IoClose } from "react-icons/io5";
 import { FaEdit, FaRegSave } from "react-icons/fa";
-import { IEvent, IUser, Role } from "~/constants/types";
 import { FaPlus } from "react-icons/fa6";
 import { CgSpinnerTwo } from "react-icons/cg";
 
 type EventFormProps = {
-  event?: IEvent;
+  event?: Event;
   setValues: SetValues;
   values: Values;
-  user: IUser;
+  user: User;
   isEditing: boolean;
   setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
 };
@@ -34,7 +34,7 @@ export function EventForm({
   setValues,
   values,
   event,
-  user,
+  // user,
   isEditing,
   setIsEditing,
 }: EventFormProps) {
@@ -44,7 +44,6 @@ export function EventForm({
   }
 
   const f = useFetcher();
-
   const isCreating = f.formData?.get("intent") === "addEvent";
   const isUpdating = f.formData?.get("intent") === "updateEvent";
 
@@ -78,7 +77,7 @@ export function EventForm({
         type: "",
         eventDate: "",
       });
-      window.localStorage.removeItem("event");
+      window.localStorage.removeItem("addEvent");
     } else {
       setIsEditing(true);
     }
@@ -88,13 +87,13 @@ export function EventForm({
     if (isEditing && event) {
       setValues(event);
     }
-  }, [event, isEditing]);
+  }, [event, isEditing, setValues]);
 
   return (
     <>
       <div className="flex flex-col gap-4">
         <Input
-          value={isEditing ? values.title : ""}
+          value={values.title}
           name="title"
           placeholder="title"
           onChange={handleInputChange}
@@ -104,7 +103,7 @@ export function EventForm({
           <Label>Type:</Label>
           <Select
             name="type"
-            value={isEditing ? values.type : ""}
+            value={values.type}
             required
             onValueChange={(value) =>
               setValues((prev) => ({
@@ -127,7 +126,7 @@ export function EventForm({
         <div>
           <Label>Date and Time:</Label>
           <Input
-            value={isEditing ? (values.eventDate as string) : ""}
+            value={values.eventDate as string}
             name="eventDate"
             type="datetime-local"
             onChange={handleInputChange}
@@ -137,7 +136,7 @@ export function EventForm({
         <div>
           <Label>Description:</Label>
           <Textarea
-            value={isEditing ? values.description : ""}
+            value={values.description}
             name="description"
             placeholder="Event description..."
             onChange={(e) =>
@@ -156,7 +155,7 @@ export function EventForm({
             <Button
               onClick={() => {
                 setIsEditing(false);
-                window.localStorage.removeItem("event");
+                window.localStorage.removeItem("editEvent");
               }}
             >
               <IoClose className="mr-2" /> Cancel

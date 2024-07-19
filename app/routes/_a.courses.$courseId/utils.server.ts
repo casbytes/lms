@@ -1,7 +1,11 @@
 import invariant from "tiny-invariant";
-import { Params } from "@remix-run/react";
-import { InternalServerError, NotFoundError } from "~/errors";
-import { prisma, types } from "~/utils/db.server";
+import { type Params } from "@remix-run/react";
+import {
+  type ModuleProgress,
+  type SubModuleProgress,
+  prisma,
+  Badge,
+} from "~/utils/db.server";
 import { getUserId } from "~/utils/session.server";
 import { Status } from "~/constants/enums";
 
@@ -9,12 +13,12 @@ import { Status } from "~/constants/enums";
  * Get default Module
  * @param {String} userId
  * @param {String} courseId
- * @returns {Promise<types.ModuleProgress>}
+ * @returns {Promise<ModuleProgress>}
  */
 async function getDefaultModule(
   userId: string,
   courseId: string
-): Promise<types.ModuleProgress> {
+): Promise<ModuleProgress | void> {
   try {
     const module = await prisma.moduleProgress.findFirst({
       where: { users: { some: { id: userId } }, courseProgressId: courseId },
@@ -23,16 +27,12 @@ async function getDefaultModule(
       },
     });
     if (!module) {
-      throw new NotFoundError("Module not found.");
+      // throw new Error("Module not found.");
+      return;
     }
     return module;
   } catch (error) {
-    if (error instanceof NotFoundError) {
-      throw error;
-    }
-    throw new InternalServerError(
-      "An error occured while fetching module, please try again."
-    );
+    throw error;
   }
 }
 
@@ -41,10 +41,10 @@ async function getDefaultModule(
  * @param {Request} request
  * @returns {String | undefined}
  */
-function getModuleIdFromRequest(request: Request): string | undefined {
+function getModuleIdFromRequest(request: Request): string | null {
   const url = new URL(request.url);
   const moduleSearch = new URLSearchParams(url.search);
-  let moduleId = moduleSearch.get("moduleId") ?? undefined;
+  const moduleId = moduleSearch.get("moduleId");
   return moduleId;
 }
 
@@ -72,7 +72,7 @@ async function getModuleIdToUse(
 export async function getModule(
   request: Request,
   params: Params<string>
-): Promise<types.ModuleProgress> {
+): Promise<ModuleProgress> {
   invariant(params.courseId, "Course ID is required to get test.");
   const courseId = params.courseId;
   const userId = await getUserId(request);
@@ -83,7 +83,7 @@ export async function getModule(
     },
   });
   if (!moduleProgress) {
-    throw new NotFoundError("ModuleProgress not found");
+    throw new Error("ModuleProgress not found");
   }
   return moduleProgress;
 }
@@ -103,16 +103,11 @@ export async function getTest(request: Request, params: Params<string>) {
     });
 
     if (!test) {
-      throw new NotFoundError("Test not found");
+      throw new Error("Test not found");
     }
     return test;
   } catch (error) {
-    if (error instanceof NotFoundError) {
-      throw error;
-    }
-    throw new InternalServerError(
-      "An error occured while fetching test, please try again."
-    );
+    throw error;
   }
 }
 
@@ -131,16 +126,11 @@ export async function getCheckpoint(request: Request, params: Params<string>) {
     });
 
     if (!checkpoint) {
-      throw new NotFoundError("Test not found");
+      throw new Error("Test not found");
     }
     return checkpoint;
   } catch (error) {
-    if (error instanceof NotFoundError) {
-      throw error;
-    }
-    throw new InternalServerError(
-      "An error occured while fetching checkpoint, please try again."
-    );
+    throw error;
   }
 }
 
@@ -157,17 +147,12 @@ export async function getProject(request: Request, params: Params<string>) {
     });
 
     if (!project) {
-      throw new NotFoundError("Project not found");
+      throw new Error("Project not found");
     }
 
     return project;
   } catch (error) {
-    if (error instanceof NotFoundError) {
-      throw error;
-    }
-    throw new InternalServerError(
-      "An error occured while fetching project, please try again."
-    );
+    throw error;
   }
 }
 
@@ -175,12 +160,12 @@ export async function getProject(request: Request, params: Params<string>) {
  * Get modules by a given course ID
  * @param {Request} request
  * @param {Params<string>} params
- * @returns {Promise<types.ModuleProgress[]>}
+ * @returns {Promise<ModuleProgress[]>}
  */
 export async function getModules(
   request: Request,
   params: Params<string>
-): Promise<types.ModuleProgress[]> {
+): Promise<ModuleProgress[]> {
   try {
     invariant(params.courseId, "Course ID is required to get modules.");
     const courseProgressId = params.courseId;
@@ -201,7 +186,7 @@ export async function getModules(
     });
 
     if (!firstModule) {
-      throw new NotFoundError("First Module not found.");
+      throw new Error("First Module not found.");
     }
 
     const firstSubModule = await prisma.subModuleProgress.findFirst({
@@ -215,7 +200,7 @@ export async function getModules(
     });
 
     if (!firstSubModule) {
-      throw new NotFoundError("First Sub Module not found.");
+      throw new Error("First Sub Module not found.");
     }
 
     await prisma.subModuleProgress.update({
@@ -242,9 +227,7 @@ export async function getModules(
 
     return modules;
   } catch (error) {
-    throw new InternalServerError(
-      "An error occured while fetching modules, please try again."
-    );
+    throw error;
   }
 }
 
@@ -268,7 +251,7 @@ async function updateFirstModule(
   });
 
   if (!firstModule) {
-    throw new NotFoundError("First Module not found.");
+    throw new Error("First Module not found.");
   }
 
   await prisma.moduleProgress.update({
@@ -297,7 +280,7 @@ async function updateFirstSubModule(
   });
 
   if (!firstSubModule) {
-    throw new NotFoundError("First Sub Module not found.");
+    throw new Error("First Sub Module not found.");
   }
 
   await prisma.subModuleProgress.update({
@@ -310,12 +293,12 @@ async function updateFirstSubModule(
  * Get badges by a given module ID
  * @param {Request} request
  * @param {Params<string>} params
- * @returns {Promise<types.Badge[]>}
+ * @returns {Promise<Badge[]>}
  */
 export async function getModuleBadges(
   request: Request,
   params: Params<string>
-): Promise<types.Badge[]> {
+): Promise<Badge[]> {
   try {
     invariant(params.courseId, "Course ID is required to get badges.");
     const courseId = params.courseId;
@@ -330,9 +313,7 @@ export async function getModuleBadges(
     });
     return badges;
   } catch (error) {
-    throw new InternalServerError(
-      "An error occured while fetching badges, please try again."
-    );
+    throw error;
   }
 }
 
@@ -340,12 +321,12 @@ export async function getModuleBadges(
  * Get sub modules by a given module ID
  * @param {Request} request
  * @param {Params<string>} params
- * @returns {Promise<types.SubModuleProgress[]>}
+ * @returns {Promise<SubModuleProgress[]>}
  */
 export async function getSubModules(
   request: Request,
   params: Params<string>
-): Promise<types.SubModuleProgress[]> {
+): Promise<SubModuleProgress[]> {
   try {
     invariant(params.courseId, "Course ID is required to get sub modules.");
     const courseId = params.courseId;
@@ -364,8 +345,6 @@ export async function getSubModules(
 
     return subModules;
   } catch (error) {
-    throw new InternalServerError(
-      "An error occured while fetching sub modules, please try again."
-    );
+    throw error;
   }
 }

@@ -1,6 +1,6 @@
 import React from "react";
-import { Link } from "@remix-run/react";
 import highlightjs from "highlight.js";
+import { Link } from "@remix-run/react";
 import { MdOutlineContentCopy } from "react-icons/md";
 import { IoCheckmarkDone, IoWarning } from "react-icons/io5";
 import { FaLightbulb, FaQuoteLeft } from "react-icons/fa6";
@@ -41,12 +41,12 @@ export function Div(props: React.HTMLAttributes<HTMLDivElement>): JSX.Element {
       return (
         <div
           className={cn(
-            "border-green-600 text-green-900 bg-green-100/30",
+            "border-blue-600 text-blue-900 bg-blue-100/30",
             className
           )}
           {...rest}
         >
-          <span className="icon text-green-800">
+          <span className="icon text-blue-800">
             <FaLightbulb size={25} />
           </span>
           {children}
@@ -160,12 +160,12 @@ export function H4(props: React.HTMLAttributes<HTMLHeadElement>): JSX.Element {
  */
 export function H5(props: React.HTMLAttributes<HTMLHeadElement>): JSX.Element {
   return (
-    <h4
+    <h5
       className="text-lg mt-3 mb-2 capitalize dark:text-amber-600 text-blue-600"
       {...props}
     >
       {props.children}
-    </h4>
+    </h5>
   );
 }
 
@@ -176,12 +176,12 @@ export function H5(props: React.HTMLAttributes<HTMLHeadElement>): JSX.Element {
  */
 export function H6(props: React.HTMLAttributes<HTMLHeadElement>): JSX.Element {
   return (
-    <h4
+    <h6
       className="text-lg mt-3 mb-2 capitalize dark:text-amber-600 text-blue-600"
       {...props}
     >
       {props.children}
-    </h4>
+    </h6>
   );
 }
 
@@ -192,7 +192,7 @@ export function H6(props: React.HTMLAttributes<HTMLHeadElement>): JSX.Element {
  */
 export function UL(props: React.HTMLAttributes<HTMLUListElement>): JSX.Element {
   return (
-    <ul className="list-disc list-inside space-y-3" {...props}>
+    <ul className="list-disc list-inside space-y-2" {...props}>
       {props.children}
     </ul>
   );
@@ -205,7 +205,7 @@ export function UL(props: React.HTMLAttributes<HTMLUListElement>): JSX.Element {
  */
 export function OL(props: React.HTMLAttributes<HTMLOListElement>): JSX.Element {
   return (
-    <ol className="list-decimal list-inside space-y-3" {...props}>
+    <ol className="list-decimal list-inside space-y-2" {...props}>
       {props.children}
     </ol>
   );

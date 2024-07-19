@@ -23,9 +23,9 @@ import {
 } from "../ui/select";
 import { Input } from "../ui/input";
 import { CgSpinnerTwo } from "react-icons/cg";
-import { TaskProps } from ".";
+import type { TaskProps } from ".";
 
-export function AddLinkDialog({ task }: TaskProps) {
+export function AddLinkDialog({ task }: { task: TaskProps }) {
   const [isDisabled, setIsDisabled] = React.useState(true);
 
   const inputRef = React.useRef<HTMLInputElement>(null);

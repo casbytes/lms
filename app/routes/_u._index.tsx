@@ -1,7 +1,7 @@
 import { type MetaFunction } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
-import { Home } from "~/components/home";
 import { listPlans } from "~/services/stripe.server";
+import { Home } from "~/components/home";
 
 export const meta: MetaFunction = () => {
   return [
@@ -18,11 +18,7 @@ export async function loader() {
   }
 }
 
-/**
- * *The index route for the unauthenticated app.
- * @returns {React.ReactElement}
- */
-export default function Index(): React.ReactElement {
+export default function Index() {
   const plans = useLoaderData<typeof loader>();
   return <Home plans={plans} />;
 }

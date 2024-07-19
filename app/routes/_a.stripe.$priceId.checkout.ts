@@ -1,6 +1,5 @@
 import invariant from "tiny-invariant";
 import { ActionFunctionArgs, redirect } from "@remix-run/node";
-import { InternalServerError } from "~/errors";
 import { createCheckoutSession } from "~/services/stripe.server";
 import { getUser } from "~/utils/session.server";
 
@@ -26,10 +25,10 @@ export async function action({ request, params }: ActionFunctionArgs) {
       successUrl: `${baseUrl}/subscription?success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${baseUrl}/subscription?canceled=true`,
     });
-    if (!session.url) throw new InternalServerError("No session URL found");
+    if (!session.url) throw new Error("No stripe session URL");
     return redirect(session.url, 303);
   } catch (error) {
     console.error(error);
-    throw new InternalServerError();
+    throw error;
   }
 }

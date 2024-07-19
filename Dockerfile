@@ -66,7 +66,7 @@ COPY --from=build /app/package.json /app/package.json
 
 # Prepare for litefs
 COPY --from=flyio/litefs:0.5.11 /usr/local/bin/litefs /usr/local/bin/litefs
-ADD litefs.yml /etc/litefs.yml
+ADD ./other/litefs.yml /etc/litefs.yml
 
 RUN mkdir -p /data ${LITEFS_DIR}
 

@@ -1,7 +1,6 @@
 import { Params } from "@remix-run/react";
 import matter from "gray-matter";
 import invariant from "tiny-invariant";
-import { InternalServerError, NotFoundError } from "~/errors";
 import { prisma } from "~/utils/db.server";
 import { getContentFromGithub } from "~/utils/octokit.server";
 import { getUserId } from "~/utils/session.server";
@@ -23,7 +22,7 @@ export async function getProject(request: Request, params: Params<string>) {
     });
 
     if (!project) {
-      throw new NotFoundError("Project not found.");
+      throw new Error("Project not found.");
     }
 
     const repo = project.courseProgress.slug;
@@ -38,6 +37,6 @@ export async function getProject(request: Request, params: Params<string>) {
 
     return { project, projectContent: { data, mdx } };
   } catch (error) {
-    throw new InternalServerError();
+    throw error;
   }
 }

@@ -1,5 +1,7 @@
-import { Link, useFetcher } from "@remix-run/react";
-import { FaPlus, FaSpinner } from "react-icons/fa6";
+import { Link, useNavigation, useSubmit } from "@remix-run/react";
+import { CgSpinnerTwo } from "react-icons/cg";
+import { FaPlus } from "react-icons/fa6";
+import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -11,8 +13,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
-import type { ICourse, IModule, IUser } from "~/constants/types";
+import type { Module as IModule, Course as ICourse } from "../utils.server";
 import { capitalizeFirstLetter } from "~/utils/helpers";
+import { User } from "~/utils/db.server";
 
 interface Module extends IModule {
   type: string;
@@ -27,13 +30,18 @@ export function ConfirmationDialog({
   user,
   inCatalog,
 }: {
-  user?: IUser;
+  user?: User;
   item: Course | Module;
   inCatalog: boolean;
 }) {
-  const f = useFetcher();
-  const isSubmitting = f.formData?.get("intent") === "addToCatalog";
-
+  const submit = useSubmit();
+  const n = useNavigation();
+  const isSubmitting = n.formData?.get("intent") === "addCourseToCatalog";
+  const submitOptions = {
+    intent:
+      item.type === "course" ? "addCourseToCatalog" : "addModuleToCatalog",
+    itemId: item.id,
+  };
   return (
     <Dialog>
       <Button
@@ -41,82 +49,82 @@ export function ConfirmationDialog({
         size={"sm"}
         asChild
       >
-        <DialogTrigger className="px-4 flex items-center disabled:bg-slate-200 disabled:cursor-not-allowed rounded-md">
+        <DialogTrigger
+          disabled={isSubmitting}
+          className="px-4 flex items-center disabled:bg-slate-200 disabled:cursor-not-allowed rounded-md"
+        >
           {" "}
-          <FaPlus className="mr-2" /> add
+          {isSubmitting ? (
+            <CgSpinnerTwo className="mr-2 animate-spin" />
+          ) : (
+            <FaPlus className="mr-2" />
+          )}
+          add
         </DialogTrigger>
       </Button>
-      {inCatalog ? (
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              You can't add a new course or module to your catalog.
-            </DialogTitle>
-            <DialogDescription>
-              You have an ongoing course or module in your catalog, please
-              complete it before adding another one.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant={"outline"} asChild>
-              <DialogClose>Close</DialogClose>
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      ) : !inCatalog && !user?.subscribed && item.type === "module" ? (
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              You must be subscribed to add this module to your catalog.
-            </DialogTitle>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant={"outline"} asChild>
-              <DialogClose>Close</DialogClose>
-            </Button>
-            <Button asChild>
-              <Link to="/subscription">Subscribe</Link>
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      ) : (
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              Are you sure you want to add this {item.type} to your catalog?
-            </DialogTitle>
-            <DialogDescription className="text-lg">
-              {capitalizeFirstLetter(item.title)}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant={"outline"} asChild>
-              <DialogClose>Cancel</DialogClose>
-            </Button>
-            <Button
-              className="bg-indigo-500 hover:bg-indigo-400 py-1 font-black"
-              disabled={isSubmitting || inCatalog}
-              onClick={() => {
-                f.submit(
-                  {
-                    intent:
-                      item.type === "course"
-                        ? "addCourseToCatalog"
-                        : "addModuleToCatalog",
-                    itemId: item.id,
-                  },
-                  { method: "POST" }
-                );
-              }}
-            >
-              {isSubmitting ? (
-                <FaSpinner className="mr-2 animate-spin" />
-              ) : null}
-              Confirm
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      )}
+      <DialogContent>
+        {inCatalog ? (
+          <>
+            <DialogHeader>
+              <DialogTitle>
+                You can&apos;t add a new course or module to your catalog.
+              </DialogTitle>
+              <DialogDescription>
+                You have an ongoing course or module in your catalog, please
+                complete it before adding another one.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant={"outline"} asChild>
+                <DialogClose>Close</DialogClose>
+              </Button>
+            </DialogFooter>
+          </>
+        ) : !inCatalog && !user?.subscribed && item.type === "module" ? (
+          <>
+            <DialogHeader>
+              <DialogTitle>
+                You must be subscribed to add this module to your catalog.
+              </DialogTitle>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant={"outline"} asChild>
+                <DialogClose>Close</DialogClose>
+              </Button>
+              <Button asChild>
+                <Link to="/subscription">Subscribe</Link>
+              </Button>
+            </DialogFooter>
+          </>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle>
+                Are you sure you want to add this <Badge>{item.type}</Badge> to
+                your catalog?
+              </DialogTitle>
+              <DialogDescription className="text-lg">
+                {capitalizeFirstLetter(item.title)}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant={"outline"} asChild>
+                <DialogClose>Cancel</DialogClose>
+              </Button>
+              <Button
+                className="bg-indigo-500 hover:bg-indigo-400 py-1 font-black"
+                disabled={isSubmitting || inCatalog}
+                onClick={() => {
+                  submit(submitOptions, { method: "POST" });
+                }}
+                asChild
+              >
+                <DialogClose>Confirm</DialogClose>
+              </Button>
+            </DialogFooter>
+          </>
+        )}
+      </DialogContent>
     </Dialog>
   );
 }

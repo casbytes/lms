@@ -1,4 +1,4 @@
-import { Form, Link, useNavigation, useFetcher } from "@remix-run/react";
+import { Link, useFetcher } from "@remix-run/react";
 import {
   Table,
   TableBody,
@@ -12,14 +12,12 @@ import { Badge } from "../ui/badge";
 import { cn } from "~/libs/shadcn";
 import { MdDeleteForever } from "react-icons/md";
 import { CgSpinnerTwo } from "react-icons/cg";
-import { TaskProps } from ".";
 import { CheckpointStatus, Status } from "~/constants/enums";
+import type { TaskProps } from ".";
 
-export function TaskTable({ task }: any) {
+export function TaskTable({ task }: { task: TaskProps }) {
   const CUT_OFF_SCORE = 80;
   const isSubmitted = task.status === CheckpointStatus.SUBMITTED;
-  const isCompleted =
-    task.status === CheckpointStatus.GRADED && task.score >= CUT_OFF_SCORE;
   const isGraded = task.status === CheckpointStatus.GRADED;
   const isLocked = task.status === Status.LOCKED;
 
@@ -69,7 +67,7 @@ export function TaskTable({ task }: any) {
         </TableHeader>
         <TableBody>
           {task.links?.length ? (
-            task.links.map((link: any) => (
+            task.links.map((link) => (
               <TableRow key={link.id}>
                 <TableCell>
                   <span>{link.title}</span>
@@ -80,6 +78,7 @@ export function TaskTable({ task }: any) {
                       to={link.url}
                       target="_blank"
                       className="text-blue-600"
+                      rel="noreferrer"
                     >
                       {link.url}
                     </Link>

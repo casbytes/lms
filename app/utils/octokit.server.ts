@@ -1,9 +1,10 @@
 import { Octokit } from "@octokit/rest";
-import { BadRequestError, InternalServerError, NotFoundError } from "~/errors";
+import { remember } from "@epic-web/remember";
 
-const octokit = new Octokit({
-  auth: process.env.GITHUB_TOKEN,
-});
+export const octokit = remember(
+  "octokit",
+  () => new Octokit({ auth: process.env.GITHUB_TOKEN })
+);
 interface GCFProps {
   repo: string;
   path: string;
@@ -29,18 +30,13 @@ export async function getContentFromGithub({
     if (typeof data === "object" && "content" in data) {
       const content = Buffer.from(data.content, "base64").toString("utf-8");
       if (content.trim() === "") {
-        throw new NotFoundError("Cannot fetch empty lesson content.");
+        throw new Error("Cannot fetch empty lesson content.");
       }
       return { content };
     } else {
-      throw new BadRequestError("Invalid lesson content.");
+      throw new Error("Invalid lesson content.");
     }
   } catch (error) {
-    if (error instanceof NotFoundError || error instanceof BadRequestError) {
-      throw error;
-    }
-    throw new InternalServerError(
-      "An error occured while fetching lesson content. Please try again."
-    );
+    throw error;
   }
 }

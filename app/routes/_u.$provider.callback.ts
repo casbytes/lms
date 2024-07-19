@@ -1,6 +1,5 @@
 import invariant from "tiny-invariant";
 import { type LoaderFunctionArgs } from "@remix-run/node";
-import { BadRequestError, InternalServerError } from "~/errors";
 import { ensurePrimary } from "litefs-js/remix";
 import { handleMagiclinkAuth } from "~/utils/session.server";
 
@@ -17,7 +16,6 @@ export async function loader(loaderArgs: LoaderFunctionArgs) {
     }
     return handleMagiclinkAuth(loaderArgs);
   } catch (error) {
-    if (error instanceof BadRequestError || error instanceof Error) throw error;
-    throw new InternalServerError("Failed to process request.");
+    throw error;
   }
 }

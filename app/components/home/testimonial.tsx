@@ -1,4 +1,3 @@
-import avatar from "~/assets/avatar.png";
 import {
   Carousel,
   CarouselContent,
@@ -52,6 +51,7 @@ export function Testimonial() {
                         src="https://cdn.casbytes.com/assets/avatar.png"
                         width={100}
                         height={100}
+                        alt="avatar"
                         className="rounded-full absolute -top-10 bottom-0 left-0 right-0 mx-auto"
                       />
                       <h1 className="text-lg text-center text-slate-100 font-black mt-12">

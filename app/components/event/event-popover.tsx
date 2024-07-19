@@ -1,12 +1,11 @@
 import React from "react";
+import type { Event, User } from "~/utils/db.server";
 import { HiOutlineDotsVertical } from "react-icons/hi";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { IEvent, IUser } from "~/constants/types";
 import { EventDialog } from "./event-dialog";
 import { Button } from "../ui/button";
 import { MdOutlineDeleteForever } from "react-icons/md";
 import { Separator } from "../ui/separator";
-import { AddEventDialog } from "./add-event-dialog";
 
 export type Values = {
   title: string;
@@ -17,7 +16,7 @@ export type Values = {
 
 export type SetValues = React.Dispatch<React.SetStateAction<Values>>;
 
-export function EventPopover({ event, user }: { event: IEvent; user: IUser }) {
+export function EventPopover({ event, user }: { event: Event; user: User }) {
   return (
     <Popover>
       <PopoverTrigger>
@@ -25,12 +24,14 @@ export function EventPopover({ event, user }: { event: IEvent; user: IUser }) {
       </PopoverTrigger>
       <PopoverContent className="max-w-32 flex flex-col gap-2">
         <EventDialog event={event} user={user} />
-        <Separator />
-        <AddEventDialog user={user} />
-        <Separator />
-        <Button variant="secondary" className="w-full">
-          <MdOutlineDeleteForever size={25} className="mr-2" /> Delete
-        </Button>
+        {user.role === "ADMIN" || user.role === "MODERATOR" ? (
+          <>
+            <Separator />
+            <Button variant="secondary" className="w-full">
+              <MdOutlineDeleteForever size={25} className="mr-2" /> Delete
+            </Button>
+          </>
+        ) : null}
       </PopoverContent>
     </Popover>
   );

@@ -1,7 +1,6 @@
 import invariant from "tiny-invariant";
 import { Params } from "@remix-run/react";
-import { prisma, types } from "~/utils/db.server";
-import { InternalServerError, NotFoundError } from "~/errors";
+import { prisma, type SubModuleProgress, type Badge } from "~/utils/db.server";
 import { getUserId } from "~/utils/session.server";
 import { Status } from "~/constants/enums";
 
@@ -11,10 +10,7 @@ import { Status } from "~/constants/enums";
  * @param {Params} params
  * @returns {Promise<types.ModuleProgress>}
  */
-export async function getModule(
-  request: Request,
-  params: Params<string>
-): Promise<types.ModuleProgress> {
+export async function getModule(request: Request, params: Params<string>) {
   try {
     invariant(params.moduleId, "Module ID is required to get module.");
     const moduleId = params.moduleId;
@@ -29,29 +25,15 @@ export async function getModule(
         orderBy: {
           order: "asc",
         },
-        include: {
-          test: true,
-          checkpoint: true,
-          courseProgress: {
-            include: {
-              project: true,
-            },
-          },
-        },
       }),
       updateModuleStatues(request, moduleId),
     ]);
     if (!moduleProgress) {
-      throw new NotFoundError("Module not found.");
+      throw new Error("Module not found.");
     }
     return moduleProgress;
   } catch (error) {
-    if (error instanceof NotFoundError) {
-      throw error;
-    }
-    throw new InternalServerError(
-      "An error occured while fetching module, please try again."
-    );
+    throw error;
   }
 }
 
@@ -102,7 +84,7 @@ async function updateModuleStatues(
 export async function getSubModules(
   request: Request,
   params: Params<string>
-): Promise<types.SubModuleProgress[]> {
+): Promise<SubModuleProgress[]> {
   try {
     invariant(params.moduleId, "Module ID is required to get module.");
     const moduleId = params.moduleId;
@@ -116,21 +98,11 @@ export async function getSubModules(
       orderBy: {
         order: "asc",
       },
-      include: {
-        moduleProgress: {
-          include: {
-            test: true,
-            checkpoint: true,
-          },
-        },
-      },
     });
 
     return subModules;
   } catch (error) {
-    throw new InternalServerError(
-      "An error occured while fetching sub modules, please try again."
-    );
+    throw error;
   }
 }
 
@@ -143,7 +115,7 @@ export async function getSubModules(
 export async function getModuleBadges(
   request: Request,
   params: Params<string>
-): Promise<types.Badge[]> {
+): Promise<Badge[]> {
   try {
     invariant(params.moduleId, "Module ID is required to get module.");
     const moduleId = params.moduleId;
@@ -157,8 +129,50 @@ export async function getModuleBadges(
     });
     return badges;
   } catch (error) {
-    throw new InternalServerError(
-      "An error occured while fetching badges, please try again."
-    );
+    throw error;
+  }
+}
+
+export async function getTest(request: Request, params: Params<string>) {
+  try {
+    invariant(params.moduleId, "Module ID is required to get test.");
+    const moduleId = params.moduleId;
+    const userId = await getUserId(request);
+
+    const test = await prisma.test.findFirst({
+      where: {
+        moduleProgressId: moduleId,
+        users: { some: { id: userId } },
+      },
+    });
+
+    if (!test) {
+      throw new Error("Test not found");
+    }
+    return test;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function getCheckpoint(request: Request, params: Params<string>) {
+  try {
+    invariant(params.moduleId, "Module ID is required to get checkpoint.");
+    const moduleId = params.moduleId;
+    const userId = await getUserId(request);
+
+    const checkpoint = await prisma.checkpoint.findFirst({
+      where: {
+        moduleProgressId: moduleId,
+        users: { some: { id: userId } },
+      },
+    });
+
+    if (!checkpoint) {
+      throw new Error("Test not found");
+    }
+    return checkpoint;
+  } catch (error) {
+    throw error;
   }
 }

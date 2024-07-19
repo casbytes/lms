@@ -1,7 +1,6 @@
 import React from "react";
 import { Await } from "@remix-run/react";
 import { ImSpinner2 } from "react-icons/im";
-import type { ICourse, IUser } from "~/constants/types";
 import {
   Table,
   TableBody,
@@ -26,10 +25,16 @@ import {
 } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import { capitalizeFirstLetter } from "~/utils/helpers";
+import type { Course, Module as IModule } from "../utils.server";
+import { User } from "~/utils/db.server";
+
+type CourseWithModules = Course & {
+  modules: IModule[];
+};
 
 type ModulesProps = {
-  user: IUser;
-  data: Promise<{ courses: ICourse[]; inCatalog: boolean }>;
+  user: User;
+  data: Promise<{ courses: CourseWithModules[]; inCatalog: boolean }>;
 };
 
 export function Modules({ data, user }: ModulesProps) {
@@ -41,11 +46,16 @@ export function Modules({ data, user }: ModulesProps) {
             <div className="rounded-md bg-cyan-300/30 p-6 flex flex-col items-center">
               <h2 className="text-xl font-bold mb-4 text-cyan-600">Modules</h2>
               <Dialog>
-                <Button className="w-full" asChild>
-                  <DialogTrigger className="w-full bg-cyan-600 hover:bg-cyan-500">
-                    View Modules
-                  </DialogTrigger>
-                </Button>
+                <div className="w-full">
+                  <Button className="w-full" asChild>
+                    <DialogTrigger className="w-full bg-cyan-600 hover:bg-cyan-500">
+                      View Modules
+                    </DialogTrigger>
+                  </Button>
+                  <p className="mt-2 max-w-xs text-center mx-auto text-slate-600 text-sm">
+                    Click the button above to view all modules.
+                  </p>
+                </div>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-scroll">
                   <DialogTitle>Courses</DialogTitle>
                   <Accordion type="single" collapsible>
@@ -61,7 +71,8 @@ export function Modules({ data, user }: ModulesProps) {
                                 <TableRow className="w-full">
                                   <TableHead>Module Title</TableHead>
                                   <TableHead className="flex gap-6 items-center justify-end">
-                                    🤷‍♂️ Add to catalog
+                                    {/* 🤷‍♂️  */}
+                                    Add to catalog
                                   </TableHead>
                                 </TableRow>
                               </TableHeader>

@@ -1,5 +1,5 @@
 import { Link } from "@remix-run/react";
-import { types } from "~/utils/db.server";
+import type { Project, User } from "~/utils/db.server";
 import { BsLockFill, BsUnlockFill } from "react-icons/bs";
 import { FaProjectDiagram } from "react-icons/fa";
 import { LuCircleDotDashed } from "react-icons/lu";
@@ -10,8 +10,8 @@ import { capitalizeFirstLetter } from "~/utils/helpers";
 import { Status } from "~/constants/enums";
 
 type ProjectProps = {
-  user: types.User;
-  project: types.Project;
+  user: User;
+  project: Project;
 };
 
 export function Project({ project, user }: ProjectProps) {

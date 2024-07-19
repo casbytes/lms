@@ -16,7 +16,7 @@ export function CheckoutSuccessUI({
   setStatus: (status: "success" | "canceled" | null) => void;
 }) {
   const n = useNavigation();
-  const isSubmiting = n.formData?.get("intent") === "mybi";
+  const isSubmiting = n.formData?.get("intent") === "manage";
 
   return (
     <Card className="max-w-lg mx-auto mt-8 md:mt-12 bg-blue-50">
@@ -34,7 +34,7 @@ export function CheckoutSuccessUI({
       </CardHeader>
       <CardFooter className="flex flex-col gap-4 mt-4">
         <Form method="post" action="/stripe/portal/session">
-          <Button name="intent" value="mybi" type="submit" variant="outline">
+          <Button name="intent" value="manage" type="submit" variant="outline">
             {isSubmiting ? (
               <CgSpinnerTwo className="animate-spin mr-2" />
             ) : (

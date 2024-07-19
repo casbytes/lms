@@ -1,12 +1,16 @@
-import { types } from "~/utils/db.server";
+import type { Badge as IBadge, ModuleProgress } from "~/utils/db.server";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { cn } from "~/libs/shadcn";
 import { Badge } from "../ui/badge";
 import { capitalizeFirstLetter } from "~/utils/helpers";
 import { BadgeStatus } from "~/constants/enums";
 
+type BadgeWithModuleProgress = IBadge & {
+  moduleProgress?: ModuleProgress;
+};
+
 type BadgeGalleryProps = {
-  badges: types.Badge[];
+  badges: BadgeWithModuleProgress[];
 };
 
 export function BadgeGallery({ badges }: BadgeGalleryProps) {

@@ -3,10 +3,10 @@ import { Await } from "@remix-run/react";
 import { CourseTitle } from "~/components/course-title";
 import { PendingStatus, Status } from "~/components/status";
 import { Lessons } from "./lessons";
-import { ILessonProgress } from "~/constants/types";
+import type { LessonProgress } from "~/utils/db.server";
 
 type ModuleSideContentProps = {
-  lessons: Promise<ILessonProgress[]>;
+  lessons: Promise<LessonProgress[]>;
 };
 
 export function ModuleSideContent({ lessons }: ModuleSideContentProps) {

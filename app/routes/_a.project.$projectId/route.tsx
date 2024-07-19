@@ -66,7 +66,7 @@ export default function ProjectRoute() {
           <IFrame src={videoSource} videoId={projectContent.data.videoId} />
         ) : null}
       </>
-      <TaskPopover task={project} />
+      <TaskPopover task={project} user={user} userId={user.id} />
     </Container>
   );
 }

@@ -1,6 +1,6 @@
+import matter from "gray-matter";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
-import matter from "gray-matter";
 import { Container } from "~/components/container";
 import { Markdown } from "~/components/markdown";
 import { PageTitle } from "~/components/page-title";
@@ -12,7 +12,7 @@ export async function loader() {
     const { content } = matter(mdx);
     return json(content);
   } catch (error) {
-    throw new Error("Failed to load terms of use content, please try again.");
+    throw error;
   }
 }
 

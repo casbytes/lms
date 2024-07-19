@@ -34,13 +34,10 @@ export async function getTest(request: Request) {
       },
     });
     if (!test) {
-      throw new NotFoundError("Test not found.");
+      throw new Error("Test not found.");
     }
     return test;
   } catch (error) {
-    if (error instanceof NotFoundError) {
-      throw error;
-    }
-    throw new InternalServerError();
+    throw error;
   }
 }

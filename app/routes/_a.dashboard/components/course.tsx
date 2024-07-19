@@ -1,7 +1,7 @@
 import { TableCell, TableRow } from "~/components/ui/table";
-import { ICourse } from "~/constants/types";
 import { capitalizeFirstLetter } from "~/utils/helpers";
 import { ConfirmationDialog } from "./confirmation-dialog";
+import { Course as ICourse } from "../utils.server";
 
 export function Course({
   course,

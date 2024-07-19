@@ -1,5 +1,5 @@
 import { useNavigation, useSearchParams, useSubmit } from "@remix-run/react";
-import { types } from "~/utils/db.server";
+import type { LessonProgress } from "~/utils/db.server";
 import { FaSpinner } from "react-icons/fa6";
 import { FiCheckCircle } from "react-icons/fi";
 import { LuCircleDotDashed } from "react-icons/lu";
@@ -11,7 +11,7 @@ import { capitalizeFirstLetter } from "~/utils/helpers";
 import { Status } from "~/constants/enums";
 
 type LessonProps = {
-  lesson: types.LessonProgress;
+  lesson: LessonProgress;
 };
 
 export function Lesson({ lesson }: LessonProps) {

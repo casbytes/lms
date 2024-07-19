@@ -1,11 +1,11 @@
+import type { User } from "~/utils/db.server";
 import { format } from "date-fns";
 import { Button } from "~/components/ui/button";
 import { DialogTrigger } from "~/components/ui/dialog";
 import { Table, TableBody, TableCell, TableRow } from "~/components/ui/table";
-import { IUser } from "~/constants/types";
 
 type AccountDetailsProps = {
-  user: IUser;
+  user: User;
 };
 
 export function AccountDetails({ user }: AccountDetailsProps) {
@@ -17,6 +17,10 @@ export function AccountDetails({ user }: AccountDetailsProps) {
           <TableRow>
             <TableCell>Email</TableCell>
             <TableCell>{user.email}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>Github username</TableCell>
+            <TableCell>christophersesugh</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Joined On</TableCell>

@@ -1,14 +1,15 @@
 import React from "react";
 import { Await } from "@remix-run/react";
 import { SubModule } from "./sub-module";
-import { ISubModuleProgress, IUser } from "~/constants/types";
+import type { User, SubModuleProgress } from "~/utils/db.server";
 
 type SubModulesProps = {
-  user: IUser;
-  subModules: Promise<ISubModuleProgress[]>;
+  user: User;
+  subModules: Promise<SubModuleProgress[]>;
+  isPremium: boolean;
 };
 
-export function SubModules({ subModules, user }: SubModulesProps) {
+export function SubModules({ subModules, isPremium, user }: SubModulesProps) {
   return (
     <React.Suspense fallback={<PendingSubModules />}>
       <Await resolve={subModules}>
@@ -19,6 +20,7 @@ export function SubModules({ subModules, user }: SubModulesProps) {
                 <SubModule
                   key={submodule.id}
                   submodule={submodule}
+                  isPremium={isPremium}
                   user={user}
                   index={index}
                 />
@@ -36,7 +38,7 @@ export function SubModules({ subModules, user }: SubModulesProps) {
 function PendingSubModules() {
   return (
     <ul className="space-y-3">
-      {Array.from({ length: 10 }).map((_, i) => (
+      {Array.from({ length: 10 }, (_, i) => (
         <li key={i} className="bg-gray-300 h-8 rounded-md animate-pulse"></li>
       ))}
     </ul>

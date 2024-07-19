@@ -1,7 +1,6 @@
 import invariant from "tiny-invariant";
 import schedule from "node-schedule";
 import { Params } from "@remix-run/react";
-import { BadRequestError, InternalServerError, NotFoundError } from "~/errors";
 import { getUserId } from "~/utils/session.server";
 import { prisma } from "~/utils/db.server";
 import { Status, TestStatus } from "~/constants/enums";
@@ -138,7 +137,7 @@ export async function getTest(request: Request, params: Params<string>) {
       },
     });
     if (!test) {
-      throw new NotFoundError("Test not found.");
+      throw new Error("Test not found.");
     }
 
     if (test?.nextAttemptAt) {
@@ -147,10 +146,7 @@ export async function getTest(request: Request, params: Params<string>) {
 
     return test;
   } catch (error) {
-    if (error instanceof NotFoundError) {
-      throw error;
-    }
-    throw new InternalServerError();
+    throw error;
   }
 }
 
@@ -169,9 +165,7 @@ async function scheduleStatusUpdate(testId: string, nextAttemptAt: Date) {
         data: { status: TestStatus.AVAILABLE },
       });
     } catch (error) {
-      throw new InternalServerError(
-        "An unexpected error occurred while trying to update test status in node schedule."
-      );
+      throw error;
     }
   });
 }
@@ -198,7 +192,7 @@ export async function updateTest(request: Request) {
     | null;
 
   if (!intent) {
-    throw new BadRequestError("Invalid intent.");
+    throw new Error("Invalid intent.");
   }
 
   try {
@@ -214,7 +208,7 @@ export async function updateTest(request: Request) {
     });
 
     if (!existingTest) {
-      throw new NotFoundError("Existing test not found.");
+      throw new Error("Existing test not found.");
     }
 
     const updateData: {
@@ -288,7 +282,7 @@ export async function updateTest(request: Request) {
     });
 
     if (!testResponse) {
-      throw new NotFoundError("Failed to update task.");
+      throw new Error("Failed to update task.");
     }
 
     /**
@@ -301,7 +295,7 @@ export async function updateTest(request: Request) {
     ) {
       let checkpointId: string | null = null;
       if (testResponse.moduleProgress) {
-        checkpointId = testResponse.moduleProgress?.checkpoint?.id ?? null;
+        checkpointId = testResponse.moduleProgress.checkpoint?.id ?? null;
       } else if (testResponse.subModuleProgress) {
         checkpointId = testResponse.subModuleProgress.checkpoint?.id ?? null;
       }
@@ -321,9 +315,6 @@ export async function updateTest(request: Request) {
 
     return testResponse;
   } catch (error) {
-    if (error instanceof NotFoundError || error instanceof BadRequestError) {
-      throw error;
-    }
-    throw new InternalServerError("An unexpected error occurred.");
+    throw error;
   }
 }

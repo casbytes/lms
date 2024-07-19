@@ -1,54 +1,55 @@
+import React from "react";
 import { ActionFunctionArgs, LoaderFunctionArgs, defer } from "@remix-run/node";
 import { Container } from "~/components/container";
 import { PageTitle } from "~/components/page-title";
-import { useLoaderData } from "@remix-run/react";
+import { useActionData, useLoaderData } from "@remix-run/react";
 import { MembershipCard } from "~/components/membership-card";
 import { DiscordCard } from "~/components/discord-card";
 import { UserCard } from "./components/user-card";
 import { Statistics } from "./components/user-statistics";
 import {
-  addCourseToCatalog,
   getCourses,
+  getLearningTime,
   getUserCourses,
   getUserModules,
+  handleActions,
 } from "./utils.server";
-import { BadRequestError, InternalServerError } from "~/errors";
 import { Courses } from "./components/courses";
 import { getUser } from "~/utils/session.server";
 import { Modules } from "./components/modules";
+import { toast } from "~/components/ui/use-toast";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   try {
     const data = getCourses(request);
     const userCourses = getUserCourses(request);
     const userModules = getUserModules(request);
+    const timeData = getLearningTime(request);
     const user = await getUser(request);
-    return defer({ data, userCourses, userModules, user });
+    return defer({ data, userCourses, userModules, timeData, user });
   } catch (error) {
-    throw new InternalServerError();
+    throw error;
   }
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const formData = await request.formData();
-  const intent = formData.get("intent");
-  const courseId = String(formData.get("courseId"));
-  const { id: userId } = await getUser(request);
-
-  try {
-    if (intent !== "addCourseToCatalog") {
-      throw new BadRequestError("Invalid form data.");
-    }
-    await addCourseToCatalog(userId, courseId);
-    return null;
-  } catch (error) {
-    throw new InternalServerError();
-  }
+  return await handleActions(request);
 }
 
 export default function Dashboard() {
-  const { data, userCourses, userModules, user } =
+  const { data, userCourses, userModules, timeData, user } =
     useLoaderData<typeof loader>();
+  const ad = useActionData<typeof action>();
+
+  React.useEffect(() => {
+    if (ad) {
+      if (ad.success) {
+        toast({ title: ad.message });
+      } else {
+        toast({ title: ad.message, variant: "destructive" });
+      }
+    }
+  }, [ad]);
 
   return (
     <Container className="bg-2 bg-no-repeat">
@@ -62,7 +63,11 @@ export default function Dashboard() {
           </div>
           <div className="flex flex-col gap-10 order-first md:order-last">
             <UserCard user={user} />
-            <Statistics userCourses={userCourses} userModules={userModules} />
+            <Statistics
+              userCourses={userCourses}
+              userModules={userModules}
+              timeData={timeData}
+            />
             <MembershipCard user={user} />
           </div>
         </div>

@@ -5,10 +5,16 @@ import { AddLinkDialog } from "./add-link-dialog";
 import { SubmitDialog } from "./submit-dialog";
 import { CommentsDialog } from "./comments-dialog";
 import { FaListUl } from "react-icons/fa6";
-import { TaskProps } from ".";
-import { IProject } from "~/constants/types";
+import type { User } from "~/utils/db.server";
+import type { TaskProps } from ".";
 
-export function TaskPopover({ task, userId, user }: any) {
+type TaskPopoverProps = {
+  task: TaskProps;
+  userId: string;
+  user: User;
+};
+
+export function TaskPopover({ task, userId, user }: TaskPopoverProps) {
   return (
     <Popover>
       <Button
@@ -21,10 +27,14 @@ export function TaskPopover({ task, userId, user }: any) {
         </PopoverTrigger>
       </Button>
       <PopoverContent className="flex flex-col gap-2 max-w-44">
-        <CommentsDialog task={task} userId={userId} />
-        <Separator />
-        <AddLinkDialog task={task} />
-        <Separator />
+        {task.gradingMethod === "MANNUAL" ? (
+          <>
+            <CommentsDialog task={task} userId={userId} />
+            <Separator />
+            <AddLinkDialog task={task} />
+            <Separator />
+          </>
+        ) : null}
         <SubmitDialog task={task} />
       </PopoverContent>
     </Popover>

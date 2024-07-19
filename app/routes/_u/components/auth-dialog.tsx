@@ -7,7 +7,6 @@ import {
 } from "~/components/ui/dialog";
 import { Link } from "@remix-run/react";
 import { AuthForm } from "./auth-form";
-import { FaGithub, FaGoogle } from "react-icons/fa6";
 
 export function AuthDialog() {
   return (
@@ -24,17 +23,6 @@ export function AuthDialog() {
       </DialogHeader>
 
       <AuthForm provider="magic-link" label="Email a magic link" />
-      {/* <div className="flex justify-center capitalize">or continue with</div>
-      <AuthForm
-        provider="github"
-        label="GitHub"
-        icon={<FaGithub className="mr-2 h-6 w-6" />}
-      />
-      <AuthForm
-        provider="google"
-        label="Google"
-        icon={<FaGoogle className="mr-2 h-6 w-6" />}
-      /> */}
       <p className="text-sm text-center max-w-xs mx-auto mt-4 text-slate-800">
         To sign in to your account or to create a new one fill in your email
         above and we'll send you an email with a magic link to get you started.
