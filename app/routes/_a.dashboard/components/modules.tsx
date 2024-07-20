@@ -34,14 +34,14 @@ type CourseWithModules = Course & {
 
 type ModulesProps = {
   user: User;
-  data: Promise<{ courses: CourseWithModules[]; inCatalog: boolean }>;
+  courseData: Promise<{ courses: CourseWithModules[]; inCatalog: boolean }>;
 };
 
-export function Modules({ data, user }: ModulesProps) {
+export function Modules({ courseData, user }: ModulesProps) {
   return (
     <React.Suspense fallback={<PendingCard />}>
-      <Await resolve={data}>
-        {(data) => (
+      <Await resolve={courseData}>
+        {(courseData) => (
           <div>
             <div className="rounded-md bg-cyan-300/30 p-6 flex flex-col items-center">
               <h2 className="text-xl font-bold mb-4 text-cyan-600">Modules</h2>
@@ -59,8 +59,8 @@ export function Modules({ data, user }: ModulesProps) {
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-scroll">
                   <DialogTitle>Courses</DialogTitle>
                   <Accordion type="single" collapsible>
-                    {data.courses && data.courses?.length ? (
-                      data.courses.map((course) => (
+                    {courseData.courses && courseData.courses?.length ? (
+                      courseData.courses.map((course) => (
                         <AccordionItem value={course.title!} key={course.id}>
                           <AccordionTrigger className="text-lg">
                             {capitalizeFirstLetter(course.title!)}
@@ -83,7 +83,7 @@ export function Modules({ data, user }: ModulesProps) {
                                       user={user}
                                       key={module.id}
                                       module={module}
-                                      inCatalog={data.inCatalog}
+                                      inCatalog={courseData.inCatalog}
                                     />
                                   ))
                                 ) : (

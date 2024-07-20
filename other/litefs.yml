@@ -26,7 +26,4 @@ exec:
   - cmd: sqlite3 $DATABASE_PATH "PRAGMA journal_mode=WAL;"
     if-candidate: true
 
-  - cmd: npm run update:prod
-    if-candidate: true
-
   - cmd: npm start

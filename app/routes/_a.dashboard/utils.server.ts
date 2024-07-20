@@ -1,3 +1,5 @@
+import invariant from "tiny-invariant";
+import slugify from "slugify";
 import {
   CourseProgress,
   ModuleProgress,
@@ -18,8 +20,6 @@ import {
   subMonths,
   subWeeks,
 } from "date-fns";
-import invariant from "tiny-invariant";
-import slugify from "slugify";
 import { octokit } from "~/utils/octokit.server";
 
 export interface Course {
@@ -27,19 +27,16 @@ export interface Course {
   id: string;
   modules: Module[];
 }
-
 export interface Module {
   title: string;
   id: string;
   subModules: SubModule[];
 }
-
 export interface SubModule {
   title: string;
   id: string;
   lessons: Lesson[];
 }
-
 export interface Lesson {
   title: string;
   id: string;
@@ -48,6 +45,11 @@ export interface Lesson {
 const date = new Date();
 const today = startOfDay(date);
 
+/**
+ * Get learning time in hours
+ * @param request - The incoming request
+ * @returns {Promise<{ date: string, hours: number }[]>} - The learning time in hours
+ */
 async function getLearningHours(request: Request) {
   const userId = await getUserId(request);
   const lastWeek = Array.from({ length: 7 }, (_, i) =>
@@ -82,6 +84,7 @@ async function getLearningHours(request: Request) {
     throw error;
   }
 }
+
 /**
  * Get learning time in weeks
  * @param request - The incoming request
@@ -235,7 +238,7 @@ export async function getUserModules(
 }
 
 /**
- * Check if a user already has a course in their catalog
+ * Check if a user has a course or module in progress
  * @param {String} userId
  * @returns {Promise<Boolean>}
  */
@@ -243,30 +246,17 @@ export async function checkCatalog(userId: string): Promise<boolean> {
   const [courses, modules] = await Promise.all([
     prisma.courseProgress.findMany({
       where: {
-        users: {
-          some: {
-            id: userId,
-          },
-        },
-        NOT: {
-          status: Status.COMPLETED,
-        },
+        users: { some: { id: userId } },
+        NOT: { status: Status.COMPLETED },
       },
     }),
     prisma.moduleProgress.findMany({
       where: {
-        users: {
-          some: {
-            id: userId,
-          },
-        },
-        NOT: {
-          status: Status.COMPLETED,
-        },
+        users: { some: { id: userId } },
+        NOT: { status: Status.COMPLETED },
       },
     }),
   ]);
-
   return courses.length > 0 || modules.length > 0;
 }
 
@@ -275,12 +265,11 @@ const octokitCredentials = {
   repo: "meta",
   path: "build",
 };
-/**
- * Get all courses
- * @param {Request} request
- * @returns {Promise<{ courses: ICourse[], inCatalog: boolean }> }
- */
 
+/**
+ * Get courses meta data from the GitHub
+ * @returns {Promise<ICourse[]>}
+ */
 async function getMeta() {
   const { data } = await octokit.repos.getContent(octokitCredentials);
   if (!Array.isArray(data)) {
@@ -289,6 +278,11 @@ async function getMeta() {
   return data;
 }
 
+/**
+ * Get file content from GitHub
+ * @param {String} path - The file path
+ * @returns {Promise<String>} - The file content
+ */
 async function getFileContent(path: string) {
   const { data } = await octokit.repos.getContent({
     ...octokitCredentials,
@@ -300,8 +294,14 @@ async function getFileContent(path: string) {
   return Buffer.from(data.content, "base64").toString("utf8");
 }
 
-// Reuse the courses array in the addCourseToCatalog function
+// Reuse the courses array in the addCourseToCatalog function and addModuleToCatalog function
 const courses: Course[] = [];
+
+/**
+ * Get courses
+ * @param {Request} request - The incoming request
+ * @returns {Promise<{ courses: ICourse[], inCatalog: Boolean }>}
+ */
 export async function getCourses(
   request: Request
 ): Promise<{ courses: Course[]; inCatalog: boolean }> {
@@ -323,7 +323,6 @@ export async function getCourses(
 //##########
 //ACTIONS
 //##########
-
 export async function handleActions(request: Request) {
   const formData = await request.formData();
   const userId = await getUserId(request);
@@ -335,17 +334,17 @@ export async function handleActions(request: Request) {
   invariant(intent, "Invalid form data.");
 
   switch (intent) {
-    case "addCourseToCatalog":
-      return await addCourseToCatalog(formData, userId);
-
-    case "addModuleToCatalog":
-      // return await addModuleToCatalog(request);
-      break;
-
     case "deleteCourse":
       return await deleteCourse(formData, userId);
+
     case "deleteModule":
       return await deleteModule(formData, userId);
+
+    case "addModuleToCatalog":
+      return await addModuleToCatalog(formData, userId);
+
+    case "addCourseToCatalog":
+      return await addCourseToCatalog(formData, userId);
     default:
       throw new Error("Invalid intent.");
   }
@@ -359,7 +358,6 @@ async function deleteCourse(formData: FormData, userId: string) {
     });
     return { success: true, message: "Course deleted from catalog." };
   } catch (error) {
-    console.error(error);
     return { success: false, message: "Failed to delete course from catalog." };
   }
 }
@@ -372,8 +370,66 @@ async function deleteModule(formData: FormData, userId: string) {
     });
     return { success: true, message: "Module deleted from catalog." };
   } catch (error) {
-    console.error(error);
     return { success: false, message: "Failed to delete module from catalog." };
+  }
+}
+
+async function addModuleToCatalog(formData: FormData, userId: string) {
+  const moduleId = formData.get("itemId") as string;
+  invariant(moduleId, "Module ID is required.");
+
+  let module: Module | undefined;
+  for (const course of courses) {
+    module = course.modules.find((m) => m.id === String(moduleId));
+    if (module) break;
+  }
+  invariant(module, "Module not found.");
+
+  try {
+    return await prisma.$transaction(async (txn) => {
+      const existingModuleProgress = await txn.moduleProgress.findFirst({
+        where: { title: module.title, users: { some: { id: userId } } },
+      });
+
+      if (existingModuleProgress) {
+        return { success: false, message: "Module already in catalog" };
+      }
+
+      const moduleProgress = await txn.moduleProgress.create({
+        data: {
+          title: module.title,
+          slug: slugify(module.title, { lower: true }),
+          users: { connect: { id: userId } },
+          status: Status.IN_PROGRESS,
+          order: 1,
+          test: {
+            create: {
+              title: `${module.title} test`,
+              users: { connect: { id: userId } },
+            },
+          },
+          checkpoint: {
+            create: {
+              title: `${module.title} checkpoint`,
+              users: { connect: { id: userId } },
+            },
+          },
+        },
+      });
+
+      await Promise.all([
+        createSubModuleProgresses(
+          txn,
+          module.subModules,
+          moduleProgress,
+          userId
+        ),
+        createBadges(txn, moduleProgress, userId),
+      ]);
+      return { success: true, message: "Module added to catalog" };
+    });
+  } catch (error) {
+    return { success: false, message: "Failed to add module to catalog" };
   }
 }
 
@@ -385,13 +441,18 @@ async function deleteModule(formData: FormData, userId: string) {
  */
 export async function addCourseToCatalog(formData: FormData, userId: string) {
   try {
-    const courseId = String(formData.get("itemId"));
-    const course = courses.find((c) => c.id === courseId);
-    if (!course) {
-      throw new Error("Course not found.");
-    }
+    const courseId = formData.get("itemId") as string;
+    invariant(courseId, "Course ID is required.");
+    const course = courses.find((c) => c.id === String(courseId));
+    invariant(course, "Course not found.");
 
-    await prisma.$transaction(async (txn) => {
+    return await prisma.$transaction(async (txn) => {
+      const existingCourseProgress = await txn.courseProgress.findFirst({
+        where: { id: course.title, users: { some: { id: userId } } },
+      });
+      if (existingCourseProgress) {
+        return { success: false, message: "Course already in catalog" };
+      }
       const courseProgress = await txn.courseProgress.create({
         data: {
           title: course.title,
@@ -409,10 +470,9 @@ export async function addCourseToCatalog(formData: FormData, userId: string) {
       });
 
       await createModuleProgresses(txn, course.modules, courseProgress, userId);
+      return { success: true, message: "Course added to catalog" };
     });
-    return { success: true, message: "Course added to catalog" };
   } catch (error) {
-    console.error(error);
     return { success: false, message: "Failed to add course to catalog" };
   }
 }
@@ -532,6 +592,7 @@ async function createSubModuleProgresses(
       subModuleProgress,
       userId
     );
+    return subModuleProgress;
   }
 }
 

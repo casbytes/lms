@@ -23,6 +23,8 @@ export function DeleteConfirmationDialog({
 }) {
   const submit = useSubmit();
   const n = useNavigation();
+  const currentItemId = n.formData?.get("itemId");
+
   const isDeleting =
     itemType === "course"
       ? n.formData?.get("intent") === "deleteCourse"
@@ -36,7 +38,7 @@ export function DeleteConfirmationDialog({
     <Dialog>
       <Button size="sm" variant={"ghost"} className="py-1 font-black" asChild>
         <DialogTrigger disabled={isDeleting}>
-          {isDeleting ? (
+          {isDeleting && currentItemId === itemId ? (
             <CgSpinnerTwo size={20} className="animate-spin" />
           ) : (
             <MdDeleteForever size={20} className="text-red-500" />

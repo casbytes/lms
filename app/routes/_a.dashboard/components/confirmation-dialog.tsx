@@ -1,7 +1,6 @@
 import { Link, useNavigation, useSubmit } from "@remix-run/react";
 import { CgSpinnerTwo } from "react-icons/cg";
 import { FaPlus } from "react-icons/fa6";
-import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -36,6 +35,7 @@ export function ConfirmationDialog({
 }) {
   const submit = useSubmit();
   const n = useNavigation();
+  const isSubscribed = user?.subscribed;
   const isSubmitting = n.formData?.get("intent") === "addCourseToCatalog";
   const submitOptions = {
     intent:
@@ -80,7 +80,7 @@ export function ConfirmationDialog({
               </Button>
             </DialogFooter>
           </>
-        ) : !inCatalog && !user?.subscribed && item.type === "module" ? (
+        ) : !inCatalog && !isSubscribed && item.type === "module" ? (
           <>
             <DialogHeader>
               <DialogTitle>
@@ -100,8 +100,7 @@ export function ConfirmationDialog({
           <>
             <DialogHeader>
               <DialogTitle>
-                Are you sure you want to add this <Badge>{item.type}</Badge> to
-                your catalog?
+                Are you sure you want to add this {item.type} to your catalog?
               </DialogTitle>
               <DialogDescription className="text-lg">
                 {capitalizeFirstLetter(item.title)}

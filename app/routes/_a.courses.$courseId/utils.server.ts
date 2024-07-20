@@ -27,7 +27,6 @@ async function getDefaultModule(
       },
     });
     if (!module) {
-      // throw new Error("Module not found.");
       return;
     }
     return module;

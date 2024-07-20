@@ -5,25 +5,6 @@ import { Input } from "~/components/ui/input";
 import { CgSpinnerTwo } from "react-icons/cg";
 import { User } from "~/utils/db.server";
 
-// export async function action({ request }: ActionFunctionArgs) {
-//   // eslint-disable-next-line no-useless-catch
-//   try {
-//     const userId = await getUserId(request);
-//     const formData = await request.formData();
-//     const name = formData.get("name") as string;
-//     const user = await prisma.user.update({
-//       where: { id: userId },
-//       data: { name },
-//     });
-//     if (!user) {
-//       throw new Error("user not found");
-//     }
-//     return { success: true };
-//   } catch (error) {
-//     throw error;
-//   }
-// }
-
 export function UpdateUserForm({ user }: { user: User }) {
   const [values, setValues] = React.useState({ name: "", githubUsername: "" });
   const [isDisabled, setIsDisabled] = React.useState(true);

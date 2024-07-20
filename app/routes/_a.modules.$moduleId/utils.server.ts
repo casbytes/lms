@@ -100,10 +100,45 @@ export async function getSubModules(
       },
     });
 
+    await updateFirstSubModuleStatus(request, moduleId);
     return subModules;
   } catch (error) {
     throw error;
   }
+}
+
+/**
+ * Update the first sub module status to in progress
+ * @param {Request} request
+ * @param {string} moduleId
+ */
+async function updateFirstSubModuleStatus(
+  request: Request,
+  moduleId: string
+): Promise<void> {
+  const userId = await getUserId(request);
+  const firstSubModule = await prisma.subModuleProgress.findFirst({
+    where: {
+      moduleProgressId: moduleId,
+      users: { some: { id: userId } },
+    },
+  });
+
+  if (!firstSubModule) {
+    return;
+  }
+
+  if (
+    firstSubModule.status === Status.IN_PROGRESS ||
+    firstSubModule.status === Status.COMPLETED
+  ) {
+    return;
+  }
+
+  await prisma.subModuleProgress.update({
+    where: { id: firstSubModule.id },
+    data: { status: Status.IN_PROGRESS },
+  });
 }
 
 /**

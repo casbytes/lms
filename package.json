@@ -3,17 +3,12 @@
   "private": true,
   "sideEffects": false,
   "type": "module",
-  "prisma": {
-    "seed": "node ./other/update-db.js"
-  },
   "scripts": {
-    "check": "node ./other/update-db.js",
     "build": "remix vite:build",
     "dev": "remix vite:dev",
     "start": "remix-serve ./build/server/index.js",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
-    "update:prod": "node ./other/update-db.js",
-    "update:dev": "npx prisma db push --force-reset && npx prisma db seed",
+    "reset": "npx prisma db push --force-reset && npx prisma db seed",
     "migrate:dev": "npx prisma migrate dev",
     "migrate:prod": "npx prisma migrate deploy",
     "studio": "npx prisma studio",

@@ -2,10 +2,26 @@ import { deleteStripeCustomer } from "~/services/stripe.server";
 import { prisma } from "~/utils/db.server";
 import { getUserId, signOut } from "~/utils/session.server";
 
-export async function deleteUser(request: Request) {
+export async function handleActions(request: Request) {
   const formData = await request.formData();
-  const intent = formData.get("intent") as "deleteAccount" | "updateProfile";
   const userId = await getUserId(request);
+  const intent = formData.get("intent") as "deleteAccount" | "updateProfile";
+  switch (intent) {
+    case "deleteAccount":
+      return deleteUser(formData, userId, request);
+    case "updateProfile":
+      return updateUser(formData, userId);
+    default:
+      throw new Error("Invalid intent.");
+  }
+}
+
+export async function deleteUser(
+  formData: FormData,
+  userId: string,
+  request: Request
+) {
+  const intent = formData.get("intent") as "deleteAccount";
 
   try {
     if (intent !== "deleteAccount") {
@@ -49,12 +65,10 @@ export async function deleteUser(request: Request) {
   }
 }
 
-export async function updateUser(request: Request) {
-  const formData = await request.formData();
+export async function updateUser(formData: FormData, userId: string) {
   const intent = formData.get("intent") as "updateProfile";
   const name = formData.get("name") as string;
   const githubUsername = formData.get("githubUsername") as string | null;
-  const userId = await getUserId(request);
 
   try {
     if (intent !== "updateProfile") {
@@ -69,7 +83,6 @@ export async function updateUser(request: Request) {
     }
     return { success: true };
   } catch (error) {
-    console.error(error);
     throw error;
   }
 }

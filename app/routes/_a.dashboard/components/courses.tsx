@@ -13,15 +13,15 @@ import { type Course as ICourse } from "../utils.server";
 import { Course } from "./course";
 
 type CoursesProps = {
-  data: Promise<{ courses: ICourse[]; inCatalog: boolean }>;
+  courseData: Promise<{ courses: ICourse[]; inCatalog: boolean }>;
 };
 
-export function Courses({ data }: CoursesProps) {
+export function Courses({ courseData }: CoursesProps) {
   return (
     <React.Suspense fallback={<PendingCard />}>
-      <Await resolve={data}>
-        {(data) => {
-          const { inCatalog, courses } = data;
+      <Await resolve={courseData}>
+        {(courseData) => {
+          const { inCatalog, courses } = courseData;
           return (
             <div>
               <div className="rounded-md bg-indigo-300/30 p-6 flex flex-col items-center">

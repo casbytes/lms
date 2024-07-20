@@ -45,47 +45,6 @@ model LearningTime {
 }
 
 //||||||||||||||||##########||||||||||||||||//
-//                  COURSE                  //
-//||||||||||||||||##########||||||||||||||||//
-model Course {
-  id        String   @id @default(uuid())
-  title     String
-  slug      String
-  published Boolean
-  jsonId    String   @unique
-  modules   Module[]
-}
-
-model Module {
-  id         String      @id @default(uuid())
-  title      String
-  slug       String
-  jsonId     String      @unique
-  courseId   String
-  course     Course      @relation(fields: [courseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  subModules SubModule[]
-}
-
-model SubModule {
-  id       String   @id @default(uuid())
-  title    String
-  slug     String
-  jsonId   String   @unique
-  moduleId String
-  lessons  Lesson[]
-  module   Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-}
-
-model Lesson {
-  id          String    @id @default(uuid())
-  title       String
-  slug        String
-  jsonId      String    @unique
-  subModuleId String
-  subModule   SubModule @relation(fields: [subModuleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-}
-
-//||||||||||||||||##########||||||||||||||||//
 //                 PROGRESS                 //
 //||||||||||||||||##########||||||||||||||||//
 model CourseProgress {
@@ -107,9 +66,9 @@ model ModuleProgress {
   score             Int                 @default(0)
   status            String              @default("LOCKED") //LOCKED, IN_PROGRESS, COMPLETED
   order             Int
-  courseProgressId  String
+  courseProgressId  String?
   users             User[]
-  courseProgress    CourseProgress      @relation(fields: [courseProgressId], references: [id], onDelete: Cascade)
+  courseProgress    CourseProgress?     @relation(fields: [courseProgressId], references: [id], onDelete: Cascade)
   subModuleProgress SubModuleProgress[]
   badges            Badge[]
   test              Test?

@@ -21,12 +21,12 @@ import { toast } from "~/components/ui/use-toast";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   try {
-    const data = getCourses(request);
+    const courseData = getCourses(request);
     const userCourses = getUserCourses(request);
     const userModules = getUserModules(request);
     const timeData = getLearningTime(request);
     const user = await getUser(request);
-    return defer({ data, userCourses, userModules, timeData, user });
+    return defer({ courseData, userCourses, userModules, timeData, user });
   } catch (error) {
     throw error;
   }
@@ -37,7 +37,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function Dashboard() {
-  const { data, userCourses, userModules, timeData, user } =
+  const { courseData, userCourses, userModules, timeData, user } =
     useLoaderData<typeof loader>();
   const ad = useActionData<typeof action>();
 
@@ -57,8 +57,8 @@ export default function Dashboard() {
         <PageTitle title="Dashboard" className="mb-12" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white p-4 rounded-md drop-shadow-sm">
           <div className="flex gap-10 flex-col">
-            <Courses data={data} />
-            <Modules data={data} user={user} />
+            <Courses courseData={courseData} />
+            <Modules courseData={courseData} user={user} />
             <DiscordCard user={user} />
           </div>
           <div className="flex flex-col gap-10 order-first md:order-last">

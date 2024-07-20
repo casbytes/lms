@@ -10,10 +10,10 @@ import { UserOverview } from "./components/user-overview";
 import { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { Dialog } from "~/components/ui/dialog";
 import { AccountDeleteDialog } from "./components/account-delete-dialog";
-import { updateUser } from "./utils.server";
 import { UpdateUserForm } from "./components/update-user-form";
 import { getUser } from "~/utils/session.server";
 import { toast } from "~/components/ui/use-toast";
+import { handleActions } from "./utils.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
@@ -24,7 +24,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export async function action({ request }: ActionFunctionArgs) {
-  return updateUser(request);
+  return handleActions(request);
 }
 
 export default function Profile() {
@@ -53,7 +53,7 @@ export default function Profile() {
         <Separator className="mt-2" />
         <div className="grid grid-cols-1 md:grid-cols-2 mx-auto gap-6 mt-8">
           <Dialog>
-            <AccountDeleteDialog user={user} />
+            <AccountDeleteDialog />
             <AccountDetails user={user} />
           </Dialog>
           <UpdateUserForm user={user} />

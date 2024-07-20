@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import { Button } from "~/components/ui/button";
 import { DialogTrigger } from "~/components/ui/dialog";
 import { Table, TableBody, TableCell, TableRow } from "~/components/ui/table";
+import { safeParseDate } from "~/utils/helpers";
 
 type AccountDetailsProps = {
   user: User;
@@ -20,12 +21,12 @@ export function AccountDetails({ user }: AccountDetailsProps) {
           </TableRow>
           <TableRow>
             <TableCell>Github username</TableCell>
-            <TableCell>christophersesugh</TableCell>
+            <TableCell>{user?.githubUsername ?? "🤷‍♂️"}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Joined On</TableCell>
             <TableCell className="capitalize">
-              {format(new Date(user.createdAt), "do MMMM, yyyy")}
+              {format(safeParseDate(user.createdAt), "do MMMM, yyyy")}
             </TableCell>
           </TableRow>
           <TableRow>
