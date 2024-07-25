@@ -28,7 +28,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
     if (!session.url) throw new Error("No stripe session URL");
     return redirect(session.url, 303);
   } catch (error) {
-    console.error(error);
     throw error;
   }
 }

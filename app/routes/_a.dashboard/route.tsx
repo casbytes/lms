@@ -18,6 +18,9 @@ import { Courses } from "./components/courses";
 import { getUser } from "~/utils/session.server";
 import { Modules } from "./components/modules";
 import { toast } from "~/components/ui/use-toast";
+import { metaFn } from "~/utils/meta";
+
+export const meta = metaFn;
 
 export async function loader({ request }: LoaderFunctionArgs) {
   try {

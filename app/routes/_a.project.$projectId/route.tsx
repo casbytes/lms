@@ -1,10 +1,4 @@
-import {
-  json,
-  useActionData,
-  useLoaderData,
-  useSubmit,
-  useNavigation,
-} from "@remix-run/react";
+import { json, useActionData, useLoaderData } from "@remix-run/react";
 import { BackButton } from "~/components/back-button";
 import { Container } from "~/components/container";
 import { PageTitle } from "~/components/page-title";
@@ -21,6 +15,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "~/components/ui/accordion";
+import { metaFn } from "~/utils/meta";
+
+export const meta = metaFn;
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const videoSource = getVideoSource();

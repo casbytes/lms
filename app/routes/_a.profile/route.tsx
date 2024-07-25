@@ -14,6 +14,9 @@ import { UpdateUserForm } from "./components/update-user-form";
 import { getUser } from "~/utils/session.server";
 import { toast } from "~/components/ui/use-toast";
 import { handleActions } from "./utils.server";
+import { metaFn } from "~/utils/meta";
+
+export const meta = metaFn;
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {

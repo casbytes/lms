@@ -6,7 +6,7 @@ import type { User, SubModuleProgress } from "~/utils/db.server";
 type SubModulesProps = {
   user: User;
   subModules: Promise<SubModuleProgress[]>;
-  isPremium: boolean;
+  isPremium?: boolean;
 };
 
 export function SubModules({ subModules, isPremium, user }: SubModulesProps) {

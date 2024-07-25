@@ -8,27 +8,35 @@ export function loader() {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  async function updateUserSubscription(email: string, subscribed: boolean) {
+    return await prisma.user.update({
+      where: { email },
+      data: {
+        subscribed,
+      },
+    });
+  }
+
   try {
     const event = await constructWebhookEvent(request);
     if (!event) {
       return new Response("Webhook Error", { status: 400 });
     }
+
     switch (event.type) {
-      case "checkout.session.completed":
+      case "checkout.session.completed": {
         const checkoutSession = event.data.object as Stripe.Checkout.Session;
         const customerEmail = checkoutSession.customer_details?.email;
         invariant(customerEmail, "Customer email is required");
-        return await prisma.user.update({
-          where: { email: customerEmail },
-          data: {
-            subscribed: true,
-          },
-        });
+        return await updateUserSubscription(customerEmail, true);
+      }
 
       case "customer.subscription.updated":
-        const subscription = event.data.object as Stripe.Subscription;
-        // Do something with the subscription
-        console.log(subscription);
+        {
+          const subscription = event.data.object as Stripe.Subscription;
+          // Do something with the subscription
+          console.log(subscription);
+        }
         break;
 
       default:

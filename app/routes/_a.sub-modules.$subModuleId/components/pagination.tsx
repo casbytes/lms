@@ -18,9 +18,9 @@ type LessonWithModule = LessonProgress & {
 
 type PaginationProps = {
   currentLessonData: {
-    previousLesson: LessonWithModule;
+    previousLesson: LessonWithModule | null;
     currentLesson: LessonWithModule;
-    nextLesson: LessonWithModule;
+    nextLesson: LessonWithModule | null;
   };
 };
 

@@ -21,6 +21,9 @@ import { Separator } from "~/components/ui/separator";
 import { Assessment } from "~/components/assessment";
 import { ContentPendingUI } from "~/components/content-pending-ui";
 import { getVideoSource } from "~/utils/helpers.server";
+import { metaFn } from "~/utils/meta";
+
+export const meta = metaFn;
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const lessons = getLessons(request, params);

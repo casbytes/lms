@@ -15,6 +15,9 @@ import { Pagination } from "./components/pagination";
 import { TestHeader } from "./components/header";
 import { Question } from "./components/question";
 import { getUser } from "~/utils/session.server";
+import { metaFn } from "~/utils/meta";
+
+export const meta = metaFn;
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const user = await getUser(request);
@@ -28,7 +31,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function TestRoute() {
-  const { questions, user, test } = useLoaderData<typeof loader>();
+  const { questions, test } = useLoaderData<typeof loader>();
 
   const submit = useSubmit();
   const navigation = useNavigation();
@@ -96,7 +99,6 @@ export default function TestRoute() {
       submit(
         {
           testId: test.id,
-          userId: user.id,
           intent: "submit",
           moduleProgressId: moduleProgressId ?? null,
           subModuleProgressId: subModuleProgressId ?? null,

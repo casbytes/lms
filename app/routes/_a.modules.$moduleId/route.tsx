@@ -17,7 +17,9 @@ import { Assessment } from "~/components/assessment";
 import { PageTitle } from "~/components/page-title";
 import { SubModules } from "~/components/modules";
 import { SideContent } from "./components/side-content";
-import { safeParseDate } from "~/utils/helpers";
+import { metaFn } from "~/utils/meta";
+
+export const meta = metaFn;
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const module = getModule(request, params);
@@ -79,12 +81,12 @@ export default function ModuleRoute() {
   );
 }
 
-function PendingAssessment() {
-  return (
-    <ul className="space-y-3">
-      {Array.from({ length: 2 }).map((_, i) => (
-        <li key={i} className="bg-gray-300 h-8 rounded-md animate-pulse"></li>
-      ))}
-    </ul>
-  );
-}
+// function PendingAssessment() {
+//   return (
+//     <ul className="space-y-3">
+//       {Array.from({ length: 2 }).map((_, i) => (
+//         <li key={i} className="bg-gray-300 h-8 rounded-md animate-pulse"></li>
+//       ))}
+//     </ul>
+//   );
+// }

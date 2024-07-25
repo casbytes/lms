@@ -18,6 +18,9 @@ import { CourseSideContent } from "./components/course-side-content";
 import { PageTitle } from "~/components/page-title";
 import { getUser } from "~/utils/session.server";
 import { SubModules } from "~/components/modules";
+import { metaFn } from "~/utils/meta";
+
+export const meta = metaFn;
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const modules = getModules(request, params);

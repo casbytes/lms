@@ -3,10 +3,13 @@ import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 export function ChartFilter() {
   const [, setSearchParams] = useSearchParams();
   function handleSubmit(filter: "days" | "weeks" | "months") {
-    setSearchParams((params) => {
-      params.set("filter", filter);
-      return params;
-    });
+    setSearchParams(
+      (params) => {
+        params.set("filter", filter);
+        return params;
+      },
+      { preventScrollReset: true }
+    );
   }
 
   return (
@@ -16,7 +19,7 @@ export function ChartFilter() {
         <ToggleGroupItem
           value="days"
           onClick={() => handleSubmit("days")}
-          aria-label="daily learning time"
+          aria-label="Daily learning time"
         >
           Days
         </ToggleGroupItem>

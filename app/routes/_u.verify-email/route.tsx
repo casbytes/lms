@@ -3,6 +3,9 @@ import { VerifyEmailForm } from "./components/form";
 import { ActionFunctionArgs, LoaderFunctionArgs, json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { getEmail, updateUser } from "./utils.server";
+import { metaFn } from "~/utils/meta";
+
+export const meta = metaFn;
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const email = await getEmail(request);

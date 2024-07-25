@@ -7,7 +7,7 @@ import {
   Badge,
 } from "~/utils/db.server";
 import { getUserId } from "~/utils/session.server";
-import { Status } from "~/constants/enums";
+import { BadgeStatus, Status } from "~/constants/enums";
 
 /**
  * Get default Module
@@ -310,9 +310,88 @@ export async function getModuleBadges(
         moduleProgress: true,
       },
     });
+    await enableBadge(userId, moduleIdToUse, badges);
     return badges;
   } catch (error) {
     throw error;
+  }
+}
+
+/**
+ * Enable badge based on the user's progress
+ * @param {String} userId
+ * @param {String} moduleProgressId
+ * @param {Badge[]} badges
+ */
+async function enableBadge(
+  userId: string,
+  moduleProgressId: string,
+  badges: Badge[]
+) {
+  const totalSubtmodules = await prisma.subModuleProgress.count({
+    where: {
+      moduleProgressId,
+      users: { some: { id: userId } },
+    },
+  });
+  const completedSubmodules = await prisma.subModuleProgress.count({
+    where: {
+      moduleProgressId,
+      users: { some: { id: userId } },
+      status: Status.COMPLETED,
+    },
+  });
+
+  const currentPercentage = (completedSubmodules / totalSubtmodules) * 100;
+
+  enum BadgeLevels {
+    NOVICE = "NOVICE",
+    ADEPT = "ADEPT",
+    PROFICIENT = "PROFICIENT",
+    VIRTUOSO = "VIRTUOSO",
+  }
+
+  for (const badge of badges) {
+    if (
+      currentPercentage >= 25 &&
+      badge.status === BadgeStatus.LOCKED &&
+      badge.level === BadgeLevels.NOVICE
+    ) {
+      await prisma.badge.update({
+        where: { id: badge.id },
+        data: { status: BadgeStatus.UNLOCKED },
+      });
+    }
+    if (
+      currentPercentage >= 50 &&
+      badge.status === BadgeStatus.LOCKED &&
+      badge.level === BadgeLevels.ADEPT
+    ) {
+      await prisma.badge.update({
+        where: { id: badge.id },
+        data: { status: BadgeStatus.UNLOCKED },
+      });
+    }
+    if (
+      currentPercentage >= 75 &&
+      badge.status === BadgeStatus.LOCKED &&
+      badge.level === BadgeLevels.PROFICIENT
+    ) {
+      await prisma.badge.update({
+        where: { id: badge.id },
+        data: { status: BadgeStatus.UNLOCKED },
+      });
+    }
+    if (
+      currentPercentage >= 100 &&
+      badge.status === BadgeStatus.LOCKED &&
+      badge.level === BadgeLevels.VIRTUOSO
+    ) {
+      await prisma.badge.update({
+        where: { id: badge.id },
+        data: { status: BadgeStatus.UNLOCKED },
+      });
+    }
   }
 }
 

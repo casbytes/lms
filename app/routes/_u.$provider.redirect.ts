@@ -14,7 +14,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
     invariant(provider, "Invalid provider.");
     return handleMagiclinkRedirect(request);
   } catch (error) {
-    console.error("Error:", error);
     throw error;
   }
 }

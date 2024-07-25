@@ -1,3 +1,4 @@
+/* eslint-disable no-undefined */
 import invariant from "tiny-invariant";
 import matter from "gray-matter";
 import type { LessonProgress, Test } from "~/utils/db.server";
@@ -6,6 +7,7 @@ import { getContentFromGithub } from "~/utils/octokit.server";
 import { getUserId } from "~/utils/session.server";
 import { prisma } from "~/utils/db.server";
 import { Status, TestStatus } from "~/constants/enums";
+import { cache } from "~/utils/node-cache.server";
 
 /**
  * Get sub module by given ID
@@ -32,7 +34,6 @@ export async function getSubModule(request: Request, params: Params<string>) {
     }
     return subModule;
   } catch (error) {
-    console.error(error);
     throw error;
   }
 }
@@ -62,7 +63,6 @@ export async function getTest(
     }
     return test;
   } catch (error) {
-    console.error(error);
     throw error;
   }
 }
@@ -89,7 +89,6 @@ export async function getCheckpoint(request: Request, params: Params<string>) {
     }
     return checkpoint;
   } catch (error) {
-    console.error(error);
     throw error;
   }
 }
@@ -144,11 +143,7 @@ export async function getLessons(
     ]);
     return lessons;
   } catch (error) {
-    console.error(error);
     throw error;
-    // throw new InternalServerError(
-    //   "An error occured while fetching lessons, please try again."
-    // );
   }
 }
 
@@ -176,16 +171,28 @@ async function updateFirstLessonStatus(
   });
 }
 
+type MDX = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: { [key: string]: any };
+  content: string;
+};
+
 /**
  * Get lessons content from Github by given submodule ID and lesson slug
  * @param {Request} request
  * @param {Params<string>} params
- * @returns {Promise<string>}
+ * @returns {Promise<{mdx: {data:{ [key: string]: any }, content: string}, previousLesson: ILessonProgress | null, currentLesson: ILessonProgress, nextLesson: ILessonProgress | null}>}
  */
 export async function getLessonContent(
   request: Request,
   params: Params<string>
-): Promise<any> {
+): Promise<{
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  mdx: { data: { [key: string]: any }; content: string };
+  previousLesson: LessonProgress | null;
+  currentLesson: LessonProgress;
+  nextLesson: LessonProgress | null;
+}> {
   try {
     invariant(params.subModuleId, "Submodule ID is required to fetch lessons.");
     const subModuleId = params.subModuleId;
@@ -214,26 +221,30 @@ export async function getLessonContent(
       throw new Error("Lesson not found.");
     }
 
-    // await prisma.lessonProgress.update({
-    //   where: {
-    //     id: currentLesson.id,
-    //     users: { some: { id: userId } },
-    //   },
-    //   data: {
-    //     status: Status.IN_PROGRESS,
-    //   },
-    // });
-
     const [previousLesson, nextLesson] = await getPreviousAndNextLessons(
       userId,
       subModuleId,
       currentLesson
     );
 
+    const lessonData = {
+      previousLesson,
+      currentLesson,
+      nextLesson,
+    };
+
     /**
      * Update the status of the current lesson and the next lesson
      */
     await updateLessonStatuses(currentLesson, nextLesson, userId, subModuleId);
+    const cacheKey = `lesson-${currentLesson.id}`;
+
+    if (cache.has(cacheKey)) {
+      return {
+        mdx: cache.get<MDX>(cacheKey)!,
+        ...lessonData,
+      };
+    }
     /**
      * Fetch lesson content from Github
      * The repo name is the slug of the associated module progress
@@ -252,23 +263,14 @@ export async function getLessonContent(
     if (!mdxContent) {
       throw new Error("Empty lesson content.");
     }
-
     const { data, content } = matter(mdxContent);
+    cache.set<MDX>(cacheKey, { data, content });
     return {
       mdx: { data, content },
-      previousLesson,
-      currentLesson,
-      nextLesson,
+      ...lessonData,
     };
   } catch (error) {
-    console.error(error);
     throw error;
-    // if (error instanceof NotFoundError) {
-    //   throw error;
-    // }
-    // throw new InternalServerError(
-    //   "An error occured while fetching lesson content from CMS, please try again."
-    // );
   }
 }
 
@@ -348,11 +350,7 @@ async function updateLessonStatuses(
       }
     });
   } catch (error) {
-    console.error(error);
     throw error;
-    // throw new InternalServerError(
-    //   "An error occured while updating lesson statuses, please try again."
-    // );
   }
 }
 
@@ -376,6 +374,13 @@ async function getPreviousAndNextLessons(
           users: { some: { id: userId } },
           order: { lt: currentLesson.order },
         },
+        include: {
+          subModuleProgress: {
+            include: {
+              moduleProgress: true,
+            },
+          },
+        },
         // orderBy: {
         //   order: "asc",
         // },
@@ -386,13 +391,19 @@ async function getPreviousAndNextLessons(
           users: { some: { id: userId } },
           order: { gt: currentLesson.order },
         },
+        include: {
+          subModuleProgress: {
+            include: {
+              moduleProgress: true,
+            },
+          },
+        },
         // orderBy: {
         //   order: "asc",
         // },
       }),
     ]);
   } catch (error) {
-    console.error(error);
     throw error;
   }
 }

@@ -10,24 +10,26 @@ import { Form, Link, useLoaderData, useNavigation } from "@remix-run/react";
 import { FiCheckCircle } from "react-icons/fi";
 import { CgSpinnerTwo } from "react-icons/cg";
 import { FaArrowRightLong } from "react-icons/fa6";
-import { readContent } from "~/utils/helpers.server";
+import { readPage } from "~/utils/helpers.server";
 import { Container } from "~/components/container";
 import { Markdown } from "~/components/markdown";
 import { PageTitle } from "~/components/page-title";
 import { Button } from "~/components/ui/button";
 import { getUser, getUserId } from "~/utils/session.server";
 import { prisma } from "~/utils/db.server";
+import { metaFn } from "~/utils/meta";
+
+export const meta = metaFn;
 
 export async function loader({ request }: LoaderFunctionArgs) {
   try {
     const [user, content] = await Promise.all([
       getUser(request),
-      readContent("onboarding.mdx"),
+      readPage("onboarding.mdx"),
     ]);
     const mdx = matter(content);
     return json({ mdx, user });
   } catch (error) {
-    console.error(error);
     throw error;
   }
 }
@@ -45,8 +47,6 @@ export async function action({ request }: ActionFunctionArgs) {
     });
     return redirect("/dashboard");
   } catch (error) {
-    console.error(error);
-
     throw error;
   }
 }

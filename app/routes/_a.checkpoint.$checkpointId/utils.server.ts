@@ -6,6 +6,7 @@ import { getContentFromGithub } from "~/utils/octokit.server";
 import { getUserId, getUser } from "~/utils/session.server";
 import { ensurePrimary } from "~/utils/litefs.server";
 import { CheckpointStatus, Status } from "~/constants/enums";
+import { cache } from "~/utils/node-cache.server";
 
 const { NODE_ENV } = process.env;
 //################
@@ -19,7 +20,7 @@ export async function getCheckpoint(request: Request, params: Params<string>) {
   if (NODE_ENV === "production") {
     await ensurePrimary();
   }
-  const user = await getUser(request);
+  const userId = await getUserId(request);
   const url = new URL(request.url);
   const searchParams = url.searchParams;
   const id = searchParams.get("moduleId") ?? searchParams.get("submoduleId");
@@ -28,7 +29,6 @@ export async function getCheckpoint(request: Request, params: Params<string>) {
   try {
     invariant(id, "ID is required to get Checkpoint");
     invariant(checkpointId, "Checkpoint ID is required to get Checkpoint");
-    const userId = await getUserId(request);
 
     const checkpoint = await prisma.checkpoint.findFirst({
       where: {
@@ -70,72 +70,13 @@ export async function getCheckpoint(request: Request, params: Params<string>) {
       throw new Error("Checkpoint not found.");
     }
 
-    /**
-     * If the checkpoint is graded and the user has scored above the cut off score
-     * and the user is subscribed to the platform, update the next module or sudmodule after the checkpoint module or submodule else update the course progress to completed
-     */
-    if (
-      checkpoint.status === CheckpointStatus.GRADED &&
-      checkpoint.score >= CUT_OFF_SCORE
-    ) {
-      //update the next modules or sudmodule after the checkpoint module or submodule to in progress
-      const isSubscribed = user.subscribed;
-      let courseProgressId: string | undefined;
-      if (checkpoint.moduleProgress && isSubscribed) {
-        courseProgressId = checkpoint.moduleProgress.courseProgress.id;
-        const nextModuleProgress = await prisma.moduleProgress.findFirst({
-          where: {
-            // id: checkpoint.moduleProgress.id,
-            order: {
-              gt: checkpoint.moduleProgress.order,
-            },
-          },
-        });
+    const cacheKey = `checkpoint-${checkpointId}`;
 
-        if (nextModuleProgress) {
-          await prisma.moduleProgress.update({
-            where: {
-              id: nextModuleProgress.id,
-            },
-            data: {
-              status: Status.IN_PROGRESS,
-            },
-          });
-        }
-      } else if (checkpoint.subModuleProgress && isSubscribed) {
-        courseProgressId =
-          checkpoint.subModuleProgress.moduleProgress.courseProgress.id;
-        const nextSubmoduleProgress = await prisma.subModuleProgress.findFirst({
-          where: {
-            // id: checkpoint.subModuleProgress.id,
-            order: {
-              gt: checkpoint.subModuleProgress.order,
-            },
-          },
-        });
-        console.log(nextSubmoduleProgress);
-
-        if (nextSubmoduleProgress) {
-          await prisma.subModuleProgress.update({
-            where: {
-              id: nextSubmoduleProgress.id,
-            },
-            data: {
-              status: Status.IN_PROGRESS,
-            },
-          });
-        }
-      } else {
-        courseProgressId = checkpoint.moduleProgress!.courseProgress.id;
-        await prisma.courseProgress.update({
-          where: {
-            id: courseProgressId,
-          },
-          data: {
-            status: Status.COMPLETED,
-          },
-        });
-      }
+    if (cache.has(cacheKey)) {
+      return {
+        checkpoint,
+        checkpointContent: cache.get(cacheKey),
+      };
     }
 
     const path = checkpoint?.moduleProgress
@@ -152,7 +93,7 @@ export async function getCheckpoint(request: Request, params: Params<string>) {
     });
 
     const { data, content: mdx } = matter(content);
-
+    cache.set(cacheKey, { data, mdx });
     return {
       checkpoint,
       checkpointContent: { data, mdx },
@@ -171,7 +112,6 @@ export async function updateCheckpoint(request: Request) {
   const user = await getUser(request);
   const formData = await request.formData();
   const checkpointId = formData.get("itemId") as string;
-
   const intent = formData.get("intent") as
     | "addLink"
     | "deleteLink"
@@ -201,7 +141,16 @@ export async function updateCheckpoint(request: Request) {
     case "submitTask": {
       const checkpoint = await prisma.checkpoint.findUnique({
         where: { id: checkpointId },
+        include: {
+          subModuleProgress: true,
+          moduleProgress: true,
+        },
       });
+
+      const checkpointPath = checkpoint?.moduleProgressId
+        ? checkpoint?.moduleProgress?.slug
+        : checkpoint?.subModuleProgress?.slug;
+
       if (checkpoint?.gradingMethod === "AUTO") {
         const userGithubUsername = user?.githubUsername;
         if (!userGithubUsername) {
@@ -210,8 +159,11 @@ export async function updateCheckpoint(request: Request) {
             errors: [{ formError: "Please update your github username" }],
           };
         }
-        const path = `${userGithubUsername}/checkpoint-folder`;
-        return await autoGrade(userGithubUsername, path);
+        const checkpointRepo = `${userGithubUsername}/${checkpointPath}-checkpoint`;
+        /**
+         * Make some updates before returning response
+         */
+        return await autoGrade(userGithubUsername, checkpointRepo);
       } else {
         return await submitTask(checkpointId, userId);
       }
@@ -228,8 +180,8 @@ export async function updateCheckpoint(request: Request) {
  * @param path - path to checkpoint on github
  * @returns {}
  */
-async function autoGrade(userGithubUsername: string, path: string) {
-  console.log(userGithubUsername, path);
+async function autoGrade(userGithubUsername: string, checkpointRepo: string) {
+  console.log(userGithubUsername, checkpointRepo);
   return null;
 }
 

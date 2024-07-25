@@ -16,6 +16,10 @@ export interface SessionData {
   userId: string;
 }
 
+interface SessionError {
+  error: string;
+}
+
 export const adminRoles: Role[] = [
   Role.ADMIN,
   Role.MODERATOR,
@@ -26,8 +30,10 @@ export const adminRoles: Role[] = [
 const { SECRET, NODE_ENV, BASE_URL, DEV_BASE_URL } = process.env;
 const MODE = NODE_ENV;
 
+export const sessionKey = "userId";
+
 const { getSession, commitSession, destroySession } =
-  createCookieSessionStorage<SessionData>({
+  createCookieSessionStorage<SessionData, SessionError>({
     cookie: {
       name: "__casbytes_session",
       secrets: [SECRET],
@@ -43,10 +49,42 @@ const { getSession, commitSession, destroySession } =
 /**
  * Get user session
  * @param request - Request
- * @returns {Session<SessionData SessionData>} - User session
+ * @returns {Session<SessionData SessionError>} - User session
  */
-export async function getUserSession(request: Request) {
-  return getSession(request.headers.get("Cookie"));
+export async function getUserSession(
+  request: Request
+): Promise<Session<SessionData, SessionError>> {
+  return getSession(request.headers.get("cookie"));
+}
+
+/**
+ * Destroy session
+ * @param {Session} session - Session
+ * @returns {Promise<{headers}>} - Destroy session
+ */
+export async function destroyAuthSession(
+  session: Session<SessionData, SessionError>
+) {
+  return {
+    headers: {
+      "set-cookie": await destroySession(session, { maxAge: 0 }),
+    },
+  };
+}
+
+/**
+ * Commit session
+ * @param {Session} session - Session
+ * @returns {Promise<{headers}>} - Commit session
+ */
+export async function commitAuthSession(
+  session: Session<SessionData, SessionError>
+) {
+  return {
+    headers: {
+      "set-cookie": await commitSession(session),
+    },
+  };
 }
 
 /**
@@ -56,13 +94,10 @@ export async function getUserSession(request: Request) {
  */
 export async function signOut(request: Request) {
   try {
-    return redirect("/", {
-      headers: {
-        "Set-Cookie": await destroySession(await getUserSession(request), {
-          maxAge: 0,
-        }),
-      },
-    });
+    return redirect(
+      "/",
+      await destroyAuthSession(await getUserSession(request))
+    );
   } catch (error) {
     throw error;
   }
@@ -78,7 +113,8 @@ export async function getUserId(request: Request): Promise<string> {
     const session = await getUserSession(request);
     const userId: string | undefined = session?.get("userId");
     if (!userId) {
-      throw redirect("/");
+      session.flash("error", "Unauthorized.");
+      throw redirect("/", await commitAuthSession(session));
     }
     return userId;
   } catch (error) {
@@ -93,15 +129,15 @@ export async function getUserId(request: Request): Promise<string> {
  */
 export async function getUser(request: Request): Promise<User> {
   try {
+    const session = await getUserSession(request);
     const userId = await getUserId(request);
     const user = await prisma.user.findUnique({
       where: { id: userId },
     });
-
     if (!user) {
-      throw redirect("/");
+      session.flash("error", "Unauthorized.");
+      throw redirect("/", await commitAuthSession(session));
     }
-
     return user;
   } catch (error) {
     throw error;
@@ -111,26 +147,15 @@ export async function getUser(request: Request): Promise<User> {
 export async function checkRole(request: Request) {
   try {
     const user = await getUser(request);
+    const session = await getUserSession(request);
     if (!adminRoles.includes(user.role as Role)) {
+      session.flash("error", "Unauthorized.");
       throw redirect("/dashboard");
     }
     return null;
   } catch (error) {
     throw error;
   }
-}
-
-/**
- * Commit session
- * @param {Session} session - Session
- * @returns {Promise<{headers}>} - Commit session
- */
-export async function commitAuthSession(session: Session<SessionData>) {
-  return {
-    headers: {
-      "Set-Cookie": await commitSession(session),
-    },
-  };
 }
 
 /**
@@ -171,6 +196,7 @@ export async function handleMagiclinkRedirect(request: Request) {
       MODE === "production" ? BASE_URL : DEV_BASE_URL
     }/magic-link/callback?token=${token}`;
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { data, error } = await Emails.sendMagicLink({
       email: existingUser?.email ?? email!,
       link: MAGIC_LINK,
@@ -252,6 +278,10 @@ export async function handleMagiclinkAuth({
       const message =
         "Your token has expired. Please generate another magic link.";
       return redirect(`/?success=false&error=${encodeURIComponent(message)}`);
+    } else if (error instanceof JWT.JsonWebTokenError) {
+      return redirect(
+        `/?success=false&error=${encodeURIComponent(error.message)}`
+      );
     }
     throw error;
   }

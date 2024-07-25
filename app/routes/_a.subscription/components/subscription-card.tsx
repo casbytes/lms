@@ -21,12 +21,7 @@ type SubscriptionCardProps = {
 };
 
 export function SubscriptionCard({ plan, user, subs }: SubscriptionCardProps) {
-  const classNames: Record<string, string> = {
-    standard_monthly: "bg-blue-100/50 text-blue-700",
-    standard_quarterly: "bg-green-100/50 text-green-600",
-    standard_biannually: "bg-yellow-100/50 text-yellow-600",
-    standard_annually: "bg-red-100/50 text-red-600",
-  };
+  const className = "bg-sky-50 text-sky-600";
 
   const n = useNavigation();
   const planId = n.formData?.get("planId");
@@ -37,26 +32,40 @@ export function SubscriptionCard({ plan, user, subs }: SubscriptionCardProps) {
   const activePlan = user.subscribed && activePlanId === plan.id;
 
   return (
-    <Card className={classNames[plan.lookup_key!]}>
+    <Card className="bg-white drop-shadow-lg text-sky-600">
       <CardHeader>
-        <CardTitle className="text-xl">
-          <Badge className="mr-4">
+        <CardTitle className="text-xl flex justify-between items-start">
+          <Badge className={cn("mr-4 bg-emerald-700 text-lg")}>
             {plan.nickname === "Annually"
-              ? " 1 year"
+              ? "1 year"
               : plan.nickname === "Biannually"
               ? "6 months"
               : plan.nickname === "Quarterly"
               ? "3 months"
               : "1 month"}
           </Badge>
+          <Badge
+            className={cn(
+              "mr-4 bg-rose-600",
+              plan.nickname === "Monthly" ? "hidden" : ""
+            )}
+          >
+            {plan.nickname === "Annually"
+              ? "30% off"
+              : plan.nickname === "Biannually"
+              ? "20% off"
+              : plan.nickname === "Quarterly"
+              ? "10% off"
+              : null}
+          </Badge>
         </CardTitle>
         <CardDescription className="text-lg">
-          Billed {plan.nickname}.
+          <span className={className}>Billed {plan.nickname}.</span>
           <span className="block text-sm text-slate-500">Cancel anytime</span>
           <span
             className={cn(
               "block text-center text-6xl my-6 p-2 border rounded-md",
-              classNames[plan.lookup_key!]
+              className
             )}
           >
             <span className="drop-shadow-lg">
@@ -87,7 +96,7 @@ export function SubscriptionCard({ plan, user, subs }: SubscriptionCardProps) {
             <Button
               name="intent"
               value="subscribe"
-              className={cn(activePlan ? "bg-sky-600 " : "")}
+              className="bg-sky-600 hover:bg-sky-500 disabled:cursor-not-allowed"
               disabled={disabled}
             >
               {isSubmiting && planId === plan.id ? (

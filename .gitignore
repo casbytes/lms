@@ -8,6 +8,7 @@ Dockerfile
 .dockerignore
 .git
 .DS_Store
+/test-meta/
 
 # Sentry Config File
 .env.sentry-build-plugin

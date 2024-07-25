@@ -1,4 +1,4 @@
-import { LoaderFunctionArgs, json } from "@remix-run/node";
+import { LoaderFunctionArgs } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
 import { BackButton } from "~/components/back-button";
 import { Container } from "~/components/container";
@@ -6,6 +6,9 @@ import { PageTitle } from "~/components/page-title";
 import { Button } from "~/components/ui/button";
 import { Rules } from "./components/rules";
 import { getTest } from "./utils.server";
+import { metaFn } from "~/utils/meta";
+
+export const meta = metaFn;
 
 export async function loader({ request }: LoaderFunctionArgs) {
   return await getTest(request);

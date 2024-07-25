@@ -8,6 +8,8 @@ import {
   prisma,
 } from "~/utils/db.server";
 import { getUserId } from "~/utils/session.server";
+import { octokit } from "~/utils/octokit.server";
+import { cache } from "~/utils/node-cache.server";
 import { Status } from "~/constants/enums";
 import {
   endOfMonth,
@@ -20,21 +22,24 @@ import {
   subMonths,
   subWeeks,
 } from "date-fns";
-import { octokit } from "~/utils/octokit.server";
 
+type GM = "AUTO" | "MANUAL";
 export interface Course {
   title: string;
   id: string;
+  published: boolean;
   modules: Module[];
 }
 export interface Module {
   title: string;
   id: string;
+  gradingMethod: GM;
   subModules: SubModule[];
 }
 export interface SubModule {
   title: string;
   id: string;
+  gradingMethod: GM;
   lessons: Lesson[];
 }
 export interface Lesson {
@@ -51,12 +56,12 @@ const today = startOfDay(date);
  * @returns {Promise<{ date: string, hours: number }[]>} - The learning time in hours
  */
 async function getLearningHours(request: Request) {
-  const userId = await getUserId(request);
   const lastWeek = Array.from({ length: 7 }, (_, i) =>
     subDays(today, i)
   ).reverse();
 
   try {
+    const userId = await getUserId(request);
     const learningTimes = await prisma.learningTime.findMany({
       where: {
         userId,
@@ -91,7 +96,6 @@ async function getLearningHours(request: Request) {
  * @returns {Promise<{ date: string, hours: number }[]>} - The learning time in weeks
  */
 async function getLearningWeeks(request: Request) {
-  const userId = await getUserId(request);
   const startOfCurrentWeek = startOfWeek(today);
 
   const weeks = Array.from({ length: 8 }, (_, i) =>
@@ -99,6 +103,7 @@ async function getLearningWeeks(request: Request) {
   ).reverse();
 
   try {
+    const userId = await getUserId(request);
     const learningTime = await prisma.learningTime.findMany({
       where: {
         userId,
@@ -135,7 +140,6 @@ async function getLearningWeeks(request: Request) {
  * @returns {Promise<{ date: string, hours: number }[]>} - The learning time in months
  */
 async function getLearningMonths(request: Request) {
-  const userId = await getUserId(request);
   const startOfCurrentMonth = startOfMonth(today);
   const currentMonth = date.getMonth();
 
@@ -144,6 +148,7 @@ async function getLearningMonths(request: Request) {
   ).reverse();
 
   try {
+    const userId = await getUserId(request);
     const learningTime = await prisma.learningTime.findMany({
       where: {
         userId,
@@ -177,25 +182,45 @@ async function getLearningMonths(request: Request) {
   }
 }
 
+export type TimeData = {
+  date: string;
+  hours: number;
+};
+
 /**
  * Get learning time
  * @param {Request} request - The incoming request
- * @returns {Promise<{ date: string, hours: number }[]>} - The learning time
+ * @returns {Promise<TimeData[]>} - The learning time
  */
 export async function getLearningTime(request: Request) {
   const url = new URL(request.url);
-  const filter = url.searchParams.get("filter") as "days" | "weeks" | "months";
+  const filter =
+    (url.searchParams.get("filter") as "days" | "weeks" | "months") ?? "days";
+
+  const cacheKey = `learningTime-${filter}`;
+  const cachedTimeData = cache.get<TimeData[]>(cacheKey);
+  if (cachedTimeData) {
+    return cachedTimeData;
+  }
+
   try {
+    let result: TimeData[];
     switch (filter) {
       case "days":
-        return getLearningHours(request);
+        result = await getLearningHours(request);
+        break;
       case "weeks":
-        return getLearningWeeks(request);
+        result = await getLearningWeeks(request);
+        break;
       case "months":
-        return getLearningMonths(request);
+        result = await getLearningMonths(request);
+        break;
       default:
-        return getLearningHours(request);
+        result = await getLearningHours(request);
+        break;
     }
+    cache.set<TimeData[]>(cacheKey, result, 5000);
+    return result;
   } catch (error) {
     throw error;
   }
@@ -209,11 +234,15 @@ export async function getLearningTime(request: Request) {
 export async function getUserCourses(
   request: Request
 ): Promise<CourseProgress[]> {
-  const userId = await getUserId(request);
-  const userCourses = await prisma.courseProgress.findMany({
-    where: { users: { some: { id: userId } } },
-  });
-  return userCourses;
+  try {
+    const userId = await getUserId(request);
+    const userCourses = await prisma.courseProgress.findMany({
+      where: { users: { some: { id: userId } } },
+    });
+    return userCourses;
+  } catch (error) {
+    throw error;
+  }
 }
 
 /**
@@ -224,17 +253,21 @@ export async function getUserCourses(
 export async function getUserModules(
   request: Request
 ): Promise<ModuleProgress[]> {
-  const userId = await getUserId(request);
-  const userModules = await prisma.moduleProgress.findMany({
-    where: { users: { some: { id: userId } } },
-    include: {
-      courseProgress: true,
-    },
-    orderBy: {
-      order: "asc",
-    },
-  });
-  return userModules;
+  try {
+    const userId = await getUserId(request);
+    const userModules = await prisma.moduleProgress.findMany({
+      where: { users: { some: { id: userId } } },
+      include: {
+        courseProgress: true,
+      },
+      orderBy: {
+        order: "asc",
+      },
+    });
+    return userModules;
+  } catch (error) {
+    throw error;
+  }
 }
 
 /**
@@ -260,6 +293,9 @@ export async function checkCatalog(userId: string): Promise<boolean> {
   return courses.length > 0 || modules.length > 0;
 }
 
+/**
+ * Octokit credentials
+ */
 const octokitCredentials = {
   owner: process.env.GITHUB_OWNER,
   repo: "meta",
@@ -271,11 +307,15 @@ const octokitCredentials = {
  * @returns {Promise<ICourse[]>}
  */
 async function getMeta() {
-  const { data } = await octokit.repos.getContent(octokitCredentials);
-  if (!Array.isArray(data)) {
-    throw new Error("Invalid meta data.");
+  try {
+    const { data } = await octokit.repos.getContent(octokitCredentials);
+    if (!Array.isArray(data)) {
+      throw new Error("Invalid meta data.");
+    }
+    return data;
+  } catch (error) {
+    throw error;
   }
-  return data;
 }
 
 /**
@@ -284,14 +324,18 @@ async function getMeta() {
  * @returns {Promise<String>} - The file content
  */
 async function getFileContent(path: string) {
-  const { data } = await octokit.repos.getContent({
-    ...octokitCredentials,
-    path,
-  });
-  if (typeof data !== "object" || !("content" in data)) {
-    throw new Error("Invalid file content.");
+  try {
+    const { data } = await octokit.repos.getContent({
+      ...octokitCredentials,
+      path,
+    });
+    if (typeof data !== "object" || !("content" in data)) {
+      throw new Error("Invalid file content.");
+    }
+    return Buffer.from(data.content, "base64").toString("utf8");
+  } catch (error) {
+    throw error;
   }
-  return Buffer.from(data.content, "base64").toString("utf8");
 }
 
 // Reuse the courses array in the addCourseToCatalog function and addModuleToCatalog function
@@ -305,19 +349,32 @@ const courses: Course[] = [];
 export async function getCourses(
   request: Request
 ): Promise<{ courses: Course[]; inCatalog: boolean }> {
-  const userId = await getUserId(request);
-  const inCatalog = await checkCatalog(userId);
-  const meta = await getMeta();
-  for (const folder of meta) {
-    const jsonContent = await getFileContent(folder.path);
-    const course = JSON.parse(jsonContent);
-    //Prevent duplicate courses
-    const existingCourse = courses.find((c) => c.id === course.id);
-    if (!existingCourse) {
-      courses.push(course);
+  try {
+    const userId = await getUserId(request);
+    const inCatalog = await checkCatalog(userId);
+
+    const cachedCourses = cache.get<Course[]>("courses");
+    if (cachedCourses) {
+      for (const cachedCourse of cachedCourses) {
+        courses.push(cachedCourse);
+      }
+      return { courses: cachedCourses, inCatalog };
     }
+
+    const meta = await getMeta();
+    for (const folder of meta) {
+      const jsonContent = await getFileContent(folder.path);
+      const course = JSON.parse(jsonContent);
+      //Prevent duplicate courses
+      if (!courses.find((c) => c.id === course.id)) {
+        courses.push(course);
+      }
+    }
+    cache.set<Course[]>("courses", courses);
+    return { courses, inCatalog };
+  } catch (error) {
+    throw error;
   }
-  return { courses, inCatalog };
 }
 
 //##########
@@ -411,6 +468,7 @@ async function addModuleToCatalog(formData: FormData, userId: string) {
           checkpoint: {
             create: {
               title: `${module.title} checkpoint`,
+              gradingMethod: module?.gradingMethod,
               users: { connect: { id: userId } },
             },
           },
@@ -533,8 +591,9 @@ async function upsertModuleProgress(
     return txn.moduleProgress.update({
       where: { id: existingModuleProgress.id },
       data: {
-        premium: moduleIndex !== 0,
         courseProgressId,
+        premium: moduleIndex !== 0,
+        status: existingModuleProgress.status,
         order: moduleIndex + 1,
       },
     });
@@ -556,6 +615,7 @@ async function upsertModuleProgress(
         checkpoint: {
           create: {
             title: `${module.title} checkpoint`,
+            gradingMethod: module?.gradingMethod,
             users: { connect: { id: userId } },
           },
         },
@@ -641,6 +701,7 @@ async function upsertSubModuleProgress(
         checkpoint: {
           create: {
             title: `${subModule.title} checkpoint`,
+            gradingMethod: subModule?.gradingMethod,
             users: { connect: { id: userId } },
           },
         },

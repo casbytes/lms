@@ -4,7 +4,10 @@ import { Container } from "~/components/container";
 import { EventTable } from "~/components/event";
 import { PageTitle } from "~/components/page-title";
 import { prisma } from "~/utils/db.server";
+import { metaFn } from "~/utils/meta";
 import { getUser } from "~/utils/session.server";
+
+export const meta = metaFn;
 
 export async function loader({ request }: LoaderFunctionArgs) {
   try {

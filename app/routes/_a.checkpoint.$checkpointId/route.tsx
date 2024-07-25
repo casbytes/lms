@@ -18,6 +18,9 @@ import { TaskTable } from "~/components/task";
 import { TaskPopover } from "~/components/task/task-popover";
 import { handleResponse } from "./utils.client";
 import { getVideoSource } from "~/utils/helpers.server";
+import { metaFn } from "~/utils/meta";
+
+export const meta = metaFn;
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const videoSource = getVideoSource();

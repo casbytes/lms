@@ -8,6 +8,9 @@ import { Subscription } from "./components/subscription";
 import { CheckoutSuccessUI } from "./components/success-ui";
 import { CheckoutCancelUI } from "./components/canceled-ui";
 import { getUser } from "~/utils/session.server";
+import { metaFn } from "~/utils/meta";
+
+export const meta = metaFn;
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const [user, plans] = await Promise.all([getUser(request), listPlans()]);
@@ -41,7 +44,7 @@ export default function SubscriptionRoute() {
   }, [success, canceled]);
 
   return (
-    <Container className="max-w-4xl">
+    <Container className="max-w-6xl">
       <PageTitle title="subscription" />
       {isSuccess ? (
         <CheckoutSuccessUI setStatus={setStatus} />

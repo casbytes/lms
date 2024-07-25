@@ -14,8 +14,8 @@ model User {
   id                  String              @id @default(uuid())
   name                String?
   email               String              @unique
-  role                String              @default("USER")
-  stripeCustomerId    String?
+  role                String              @default("USER") //USER, ADMIN, 
+  stripeCustomerId    String?             @unique
   githubUsername      String?             @unique
   subscribed          Boolean             @default(false)
   createdAt           DateTime            @default(now())
@@ -40,7 +40,7 @@ model LearningTime {
   id     String   @id @default(uuid())
   date   DateTime @default(now())
   hours  Float
-  user   User     @relation(fields: [userId], references: [id])
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId String
 }
 
@@ -110,7 +110,7 @@ model Badge {
   status               String         @default("LOCKED") //LOCKED, UNLOCKED
   moduleProgressId     String
   userId               String
-  user                 User           @relation(fields: [userId], references: [id])
+  user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   moduleProgress       ModuleProgress @relation(fields: [moduleProgressId], references: [id], onDelete: Cascade)
 }
 

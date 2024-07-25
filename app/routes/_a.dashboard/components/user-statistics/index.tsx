@@ -6,14 +6,10 @@ import { Chart } from "./chart";
 import { Courses, Modules } from "~/routes/_a.dashboard/components/catalog";
 import type { CourseProgress, ModuleProgress } from "~/utils/db.server";
 import { ChartFilter } from "./chart-filter";
-
-type Data = {
-  date: string;
-  hours: number;
-}[];
+import { TimeData } from "../../utils.server";
 
 type StatisticsProps = {
-  timeData: Promise<Data>;
+  timeData: Promise<TimeData[]>;
   userCourses: Promise<CourseProgress[]>;
   userModules: Promise<ModuleProgress[]>;
 };

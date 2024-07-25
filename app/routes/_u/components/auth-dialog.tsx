@@ -25,7 +25,8 @@ export function AuthDialog() {
       <AuthForm provider="magic-link" label="Email a magic link" />
       <p className="text-sm text-center max-w-xs mx-auto mt-4 text-slate-800">
         To sign in to your account or to create a new one fill in your email
-        above and we'll send you an email with a magic link to get you started.
+        above and we&apos;ll send you an email with a magic link to get you
+        started.
       </p>
       <DialogFooter>
         <p className="text-sm text-center mx-auto mt-6">

@@ -11,7 +11,7 @@ import { Status } from "~/constants/enums";
 type SubModuleItemProps = {
   user: User;
   submodule: SubModuleProgress;
-  isPremium: boolean;
+  isPremium?: boolean;
   index: number;
 };
 

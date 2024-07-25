@@ -106,13 +106,13 @@ export const questions: Question[] = [
 export async function getTest(request: Request, params: Params<string>) {
   const url = new URL(request.url);
   const searchParams = url.searchParams;
+  const userId = await getUserId(request);
   const id = searchParams.get("moduleId") ?? searchParams.get("submoduleId");
   const testId = params.testId;
 
   try {
     invariant(id, "ID is required to get Test");
     invariant(testId, "Test ID is required to get Test");
-    const userId = await getUserId(request);
 
     const test = await prisma.test.findFirst({
       where: {
@@ -182,18 +182,15 @@ const CUT_OFF_SCORE = 80;
  */
 export async function updateTest(request: Request) {
   const formData = await request.formData();
+  const userId = await getUserId(request);
   const score = Number(formData.get("score"));
   const intent = String(formData.get("intent"));
-  const userId = String(formData.get("userId"));
   const testId = String(formData.get("testId"));
   const moduleProgressId = formData.get("moduleProgressId") as string | null;
   const subModuleProgressId = formData.get("subModuleProgressId") as
     | string
     | null;
-
-  if (!intent) {
-    throw new Error("Invalid intent.");
-  }
+  invariant(intent, "Invalid intent");
 
   try {
     const existingTest = await prisma.test.findFirst({
@@ -312,7 +309,6 @@ export async function updateTest(request: Request) {
         });
       }
     }
-
     return testResponse;
   } catch (error) {
     throw error;
