@@ -119,6 +119,7 @@ model Checkpoint {
   title               String
   score               Int                @default(0)
   status              String             @default("LOCKED") //LOCKED, IN_PROGRESS, SUBMITTED, GRADED, COMPLETED
+  testEnvironment     String             @default("node") //node, browser
   gradingMethod       String             @default("AUTO") //AUTO, MANUAL
   moduleProgressId    String?            @unique
   subModuleProgressId String?            @unique

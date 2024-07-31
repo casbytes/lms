@@ -3,6 +3,7 @@ import { Container } from "~/components/container";
 import { Markdown } from "~/components/markdown";
 import { PageTitle } from "~/components/page-title";
 import { BackButton } from "~/components/back-button";
+import { toast } from "~/components/ui/use-toast";
 import { ActionFunctionArgs, LoaderFunctionArgs, json } from "@remix-run/node";
 import { getCheckpoint, updateCheckpoint } from "./utils.server";
 import { useActionData, useLoaderData } from "@remix-run/react";
@@ -13,10 +14,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "~/components/ui/accordion";
-import { getUser, getUserId } from "~/utils/session.server";
+import { getUser } from "~/utils/session.server";
 import { TaskTable } from "~/components/task";
 import { TaskPopover } from "~/components/task/task-popover";
-import { handleResponse } from "./utils.client";
 import { getVideoSource } from "~/utils/helpers.server";
 import { metaFn } from "~/utils/meta";
 
@@ -24,13 +24,12 @@ export const meta = metaFn;
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const videoSource = getVideoSource();
-  const userId = await getUserId(request);
   const { checkpoint, checkpointContent } = await getCheckpoint(
     request,
     params
   );
   const user = await getUser(request);
-  return json({ checkpoint, checkpointContent, user, videoSource, userId });
+  return json({ checkpoint, checkpointContent, user, videoSource });
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -39,7 +38,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function CheckPointRoute() {
-  const { checkpoint, checkpointContent, user, videoSource, userId } =
+  const { checkpoint, checkpointContent, user, videoSource } =
     useLoaderData<typeof loader>();
   const data = useActionData<typeof action>();
 
@@ -61,7 +60,16 @@ export default function CheckPointRoute() {
   React.useEffect(() => {
     if (data?.checkpointResponse) {
       const { checkpointResponse } = data;
-      // handleResponse(checkpointResponse);
+      if (checkpointResponse.message) {
+        toast({
+          title: checkpointResponse.message,
+        });
+      } else if (checkpointResponse.error) {
+        toast({
+          title: checkpointResponse.error,
+          variant: "destructive",
+        });
+      }
     }
   }, [data]);
 
@@ -89,7 +97,7 @@ export default function CheckPointRoute() {
           <IFrame src={videoSource} videoId={checkpointContent.data.videoId} />
         ) : null}
       </>
-      <TaskPopover user={user} task={checkpoint} userId={userId} />
+      <TaskPopover user={user} task={checkpoint} />
     </Container>
   );
 }

@@ -3,18 +3,16 @@ import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 import { AddLinkDialog } from "./add-link-dialog";
 import { SubmitDialog } from "./submit-dialog";
-import { CommentsDialog } from "./comments-dialog";
 import { FaListUl } from "react-icons/fa6";
 import type { User } from "~/utils/db.server";
 import type { TaskProps } from ".";
 
 type TaskPopoverProps = {
   task: TaskProps;
-  userId: string;
   user: User;
 };
 
-export function TaskPopover({ task, userId, user }: TaskPopoverProps) {
+export function TaskPopover({ task, user }: TaskPopoverProps) {
   return (
     <Popover>
       <Button
@@ -29,8 +27,6 @@ export function TaskPopover({ task, userId, user }: TaskPopoverProps) {
       <PopoverContent className="flex flex-col gap-2 max-w-44">
         {task.gradingMethod === "MANNUAL" ? (
           <>
-            <CommentsDialog task={task} userId={userId} />
-            <Separator />
             <AddLinkDialog task={task} />
             <Separator />
           </>

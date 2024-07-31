@@ -247,12 +247,19 @@ async function updateFirstModule(
     orderBy: {
       order: "asc",
     },
+    select: {
+      id: true,
+      status: true,
+    },
   });
 
   if (!firstModule) {
     throw new Error("First Module not found.");
   }
 
+  if (firstModule.status !== Status.LOCKED) {
+    return;
+  }
   await prisma.moduleProgress.update({
     where: { id: firstModule.id },
     data: { status: Status.IN_PROGRESS },
@@ -276,12 +283,19 @@ async function updateFirstSubModule(
     orderBy: {
       order: "asc",
     },
+    select: {
+      id: true,
+      status: true,
+    },
   });
 
   if (!firstSubModule) {
     throw new Error("First Sub Module not found.");
   }
 
+  if (firstSubModule.status !== Status.LOCKED) {
+    return;
+  }
   await prisma.subModuleProgress.update({
     where: { id: firstSubModule.id },
     data: { status: Status.IN_PROGRESS },

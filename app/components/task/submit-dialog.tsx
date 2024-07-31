@@ -24,7 +24,11 @@ export function SubmitDialog({ task }: { task: TaskProps }) {
     <Dialog>
       <Button asChild className="w-full capitalize" variant="secondary">
         <DialogTrigger>
-          <TiDocumentAdd className="mr-2" size={25} />
+          {isSubmitting ? (
+            <CgSpinnerTwo size={15} className="mr-2 animate-spin" />
+          ) : (
+            <TiDocumentAdd className="mr-2" size={25} />
+          )}
           submit task
         </DialogTrigger>
       </Button>
@@ -45,9 +49,6 @@ export function SubmitDialog({ task }: { task: TaskProps }) {
               disabled={disabled}
               className="disabled:cursor-not-allowed"
             >
-              {isSubmitting ? (
-                <CgSpinnerTwo size={15} className="mr-2 animate-spin" />
-              ) : null}
               Yes
             </Button>
           </Form>

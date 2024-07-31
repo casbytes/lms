@@ -26,8 +26,17 @@ export async function getProject(request: Request, params: Params<string>) {
     if (!project) {
       throw new Error("Project not found.");
     }
+
+    type ProjectContent = {
+      data: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        [key: string]: any;
+      };
+      mdx: string;
+    };
+
     if (cache.has(cacheKey)) {
-      return { project, projectContent: cache.get(cacheKey) };
+      return { project, projectContent: cache.get(cacheKey) as ProjectContent };
     }
     const repo = "meta";
     const path = `course-projects/${project.courseProgress.slug}.mdx`;
@@ -37,7 +46,7 @@ export async function getProject(request: Request, params: Params<string>) {
     });
 
     const { data, content: mdx } = matter(content);
-    cache.set(cacheKey, { data, mdx });
+    cache.set<ProjectContent>(cacheKey, { data, mdx });
     return { project, projectContent: { data, mdx } };
   } catch (error) {
     throw error;

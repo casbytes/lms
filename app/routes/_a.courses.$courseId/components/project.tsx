@@ -3,7 +3,6 @@ import type { Project, User } from "~/utils/db.server";
 import { BsLockFill, BsUnlockFill } from "react-icons/bs";
 import { FaProjectDiagram } from "react-icons/fa";
 import { LuCircleDotDashed } from "react-icons/lu";
-import { SlLock } from "react-icons/sl";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/libs/shadcn";
 import { capitalizeFirstLetter } from "~/utils/helpers";

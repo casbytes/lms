@@ -18,13 +18,13 @@ import { metaFn } from "~/utils/meta";
 
 export const meta = metaFn;
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export async function loader({ request }: LoaderFunctionArgs) {
   try {
     return getUser(request);
   } catch (error) {
     throw error;
   }
-};
+}
 
 export async function action({ request }: ActionFunctionArgs) {
   return handleActions(request);
@@ -33,6 +33,7 @@ export async function action({ request }: ActionFunctionArgs) {
 export default function Profile() {
   const user = useLoaderData<typeof loader>();
   const ad = useActionData<typeof action>();
+
   React.useEffect(() => {
     if (ad) {
       if (ad?.success) {

@@ -9,10 +9,93 @@ import { CheckpointStatus, Status } from "~/constants/enums";
 import { cache } from "~/utils/node-cache.server";
 
 const { NODE_ENV } = process.env;
+
+type Message = {
+  ruleId: string;
+  severity: number;
+  message: string;
+  line: number;
+  column: number;
+  nodeType: string;
+  messageId: string;
+  endLine: number;
+  endColumn: number;
+};
+
+type LintResult = {
+  filePath: string;
+  messages: Message[] | [];
+  suppressedMessages: unknown[];
+  errorCount: number;
+  fatalErrorCount: number;
+  warningCount: number;
+  fixableErrorCount: number;
+  fixableWarningCount: number;
+  source: string;
+  usedDeprecatedRules: unknown[];
+};
+
+type AssertionResult = {
+  ancestorTitles: string[];
+  fullName: string;
+  status: string;
+  title: string;
+  duration: number;
+  failureMessages: string[];
+  meta: Record<string, unknown>;
+};
+
+type TestResultDetail = {
+  assertionResults: AssertionResult[];
+  startTime: number;
+  endTime: number;
+  status: string;
+  message: string;
+  name: string;
+};
+
+type Snapshot = {
+  added: number;
+  failure: boolean;
+  filesAdded: number;
+  filesRemoved: number;
+  filesRemovedList: unknown[];
+  filesUnmatched: number;
+  filesUpdated: number;
+  matched: number;
+  total: number;
+  unchecked: number;
+  uncheckedKeysByFile: unknown[];
+  unmatched: number;
+  updated: number;
+  didUpdate: boolean;
+};
+
+type TestResults = {
+  numTotalTestSuites: number;
+  numPassedTestSuites: number;
+  numFailedTestSuites: number;
+  numPendingTestSuites: number;
+  numTotalTests: number;
+  numPassedTests: number;
+  numFailedTests: number;
+  numPendingTests: number;
+  numTodoTests: number;
+  snapshot: Snapshot;
+  startTime: number;
+  success: boolean;
+  testResults: TestResultDetail[];
+};
+
+type ApiResponse = {
+  lintResults: LintResult[] | null;
+  testResults: TestResults | null;
+  error: string | null;
+};
+
 //################
 // Server uitls
 //################
-const CUT_OFF_SCORE = 80;
 export async function getCheckpoint(request: Request, params: Params<string>) {
   /**
    * Ensure to mutate using the primary instance.
@@ -72,10 +155,18 @@ export async function getCheckpoint(request: Request, params: Params<string>) {
 
     const cacheKey = `checkpoint-${checkpointId}`;
 
+    type CheckpointContent = {
+      data: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        [key: string]: any;
+      };
+      mdx: string;
+    };
+
     if (cache.has(cacheKey)) {
       return {
         checkpoint,
-        checkpointContent: cache.get(cacheKey),
+        checkpointContent: cache.get(cacheKey) as CheckpointContent,
       };
     }
 
@@ -93,7 +184,7 @@ export async function getCheckpoint(request: Request, params: Params<string>) {
     });
 
     const { data, content: mdx } = matter(content);
-    cache.set(cacheKey, { data, mdx });
+    cache.set<CheckpointContent>(cacheKey, { data, mdx });
     return {
       checkpoint,
       checkpointContent: { data, mdx },
@@ -106,7 +197,7 @@ export async function getCheckpoint(request: Request, params: Params<string>) {
 //################
 // Action uitls
 //################
-
+const CUT_OFF_SCORE = 80;
 export async function updateCheckpoint(request: Request) {
   const userId = await getUserId(request);
   const user = await getUser(request);
@@ -116,7 +207,6 @@ export async function updateCheckpoint(request: Request) {
     | "addLink"
     | "deleteLink"
     | "submitTask";
-
   invariant(intent, "Intent is required to update Checkpoint");
   invariant(checkpointId, "Checkpoint ID is required to update Checkpoint");
 
@@ -141,31 +231,23 @@ export async function updateCheckpoint(request: Request) {
     case "submitTask": {
       const checkpoint = await prisma.checkpoint.findUnique({
         where: { id: checkpointId },
-        include: {
-          subModuleProgress: true,
-          moduleProgress: true,
-        },
+        select: { gradingMethod: true },
       });
-
-      const checkpointPath = checkpoint?.moduleProgressId
-        ? checkpoint?.moduleProgress?.slug
-        : checkpoint?.subModuleProgress?.slug;
-
+      if (!checkpoint) {
+        return formatResponse({
+          error: "Checkpoint not found",
+        });
+      }
       if (checkpoint?.gradingMethod === "AUTO") {
         const userGithubUsername = user?.githubUsername;
         if (!userGithubUsername) {
-          return {
-            success: false,
-            errors: [{ formError: "Please update your github username" }],
-          };
+          return formatResponse({
+            error: "Please add your github username to your profile.",
+          });
         }
-        const checkpointRepo = `${userGithubUsername}/${checkpointPath}-checkpoint`;
-        /**
-         * Make some updates before returning response
-         */
-        return await autoGrade(userGithubUsername, checkpointRepo);
+        return await autoGrade(userId, checkpointId);
       } else {
-        return await submitTask(checkpointId, userId);
+        return await submitTask(userId, checkpointId);
       }
     }
 
@@ -180,9 +262,61 @@ export async function updateCheckpoint(request: Request) {
  * @param path - path to checkpoint on github
  * @returns {}
  */
-async function autoGrade(userGithubUsername: string, checkpointRepo: string) {
-  console.log(userGithubUsername, checkpointRepo);
-  return null;
+async function autoGrade(userId: string, checkpointId: string) {
+  const [user, checkpoint] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: { githubUsername: true },
+    }),
+    prisma.checkpoint.findUnique({
+      where: { id: checkpointId },
+      include: {
+        moduleProgress: true,
+        subModuleProgress: {
+          include: {
+            moduleProgress: true,
+          },
+        },
+      },
+    }),
+  ]);
+
+  const userGithubUsername = user!.githubUsername;
+  const testEnvironment = "node";
+  const checkpointPath = checkpoint?.moduleProgressId
+    ? `${checkpoint.moduleProgress?.title}-checkpoint`
+    : `${checkpoint!.subModuleProgress?.moduleProgress.title}/sub-modules/${
+        checkpoint?.subModuleProgress?.title
+      }-checkpoint`;
+
+  const checkpointRepo = checkpoint?.moduleProgressId
+    ? checkpoint.moduleProgress?.title
+    : checkpoint!.subModuleProgress?.moduleProgress.title;
+
+  const baseUrl =
+    NODE_ENV === "production"
+      ? process.env.CHECKER_URL
+      : "http://localhost:8080";
+  const url = `${baseUrl}/${userGithubUsername}?checkpointPath=${checkpointPath}&checkpointRepo=${checkpointRepo}`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "X-Forwarded-For": "localhost",
+      "X-Test-Env": testEnvironment,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    return formatResponse({
+      error: "Failed to auto grade checkpoint, please try again",
+    });
+  }
+  const data: ApiResponse = await response.json();
+  return formatResponse({
+    ...data,
+  });
 }
 
 /**
@@ -206,14 +340,25 @@ async function submitTask(checkpointId: string, userId: string) {
   });
   if (!checkpoint) {
     return formatResponse({
-      status: "error",
-      message: "Failed to submit task",
+      error: "Failed to submit task, please try again",
     });
   }
   return formatResponse({
-    status: "success",
     message: "Task submitted successfully",
   });
+}
+
+/**
+ * Updates the next module or sub module progress
+ * @param checkpointId - The ID of the checkpoint to update the next module or sub module progress
+ * @param userId - The ID of the user to update the next module or sub module progress for
+ */
+async function updateNextModuleOrSubModuleProgress(
+  userId: string,
+  checkpointId: string,
+  data?: ApiResponse
+) {
+  return null;
 }
 
 /**
@@ -236,12 +381,10 @@ async function addLink(title: string, url: string, checkpointId: string) {
   });
   if (!createdLink) {
     return formatResponse({
-      status: "error",
-      message: "Failed to add link",
+      error: "Failed to add link",
     });
   }
   return formatResponse({
-    status: "success",
     message: "Link added successfully",
   });
 }
@@ -258,27 +401,26 @@ async function deleteLink(linkId: string) {
   });
   if (!link) {
     return formatResponse({
-      status: "error",
-      message: "Failed to delete link",
+      error: "Failed to delete link",
     });
   }
   return formatResponse({
-    status: "success",
     message: "Link deleted successfully",
   });
 }
 
-/**
- * Formats the response
- * @param status - The status of the response
- * @param message - The message of the response
- */
 function formatResponse({
-  status,
-  message,
+  error = null,
+  message = null,
+  lintReulsts = null,
+  testResults = null,
 }: {
-  status: string;
-  message: string;
+  error?: string | null;
+  message?: string | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  lintReulsts?: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  testResults?: any;
 }) {
-  return { status, message };
+  return { error, message, lintReulsts, testResults };
 }
