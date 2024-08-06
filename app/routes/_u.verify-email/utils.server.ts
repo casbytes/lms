@@ -1,19 +1,21 @@
 import { redirect } from "@remix-run/node";
 import invariant from "tiny-invariant";
-import { Role } from "~/constants/enums";
 import { createStripeCustomer } from "~/services/stripe.server";
 import { prisma } from "~/utils/db.server";
+import { ROLE } from "~/utils/helpers";
 import {
-  adminRoles,
   commitAuthSession,
   getUserSession,
+  sessionKey,
 } from "~/utils/session.server";
 
 export async function getEmail(request: Request) {
   try {
     const email = new URL(request.url).searchParams.get("email");
     if (!email) {
-      throw redirect("/");
+      const session = await getUserSession(request);
+      session.flash("error", "Email is required.");
+      throw redirect("/", await commitAuthSession(session));
     }
     return email;
   } catch (error) {
@@ -27,6 +29,7 @@ export async function updateUser(request: Request) {
     const formData = await request.formData();
     const email = formData.get("email") as string;
     const name = formData.get("name") as string;
+    const githubUsername = formData.get("githubUsername") as string | null;
     const intent = formData.get("intent") as string;
 
     invariant(email, "Email is required.");
@@ -35,12 +38,14 @@ export async function updateUser(request: Request) {
 
     const stripeCustomer = await createStripeCustomer({ email, name });
     if (!stripeCustomer.id) {
-      throw new Error("Failed to create stripe customer.");
+      session.flash("error", "Failed to create stripe customer, try again.");
+      throw redirect("/", await commitAuthSession(session));
     }
     const user = await prisma.user.update({
       where: { email },
       data: {
         name,
+        githubUsername,
         verified: true,
         verificationToken: null,
         authState: null,
@@ -49,14 +54,14 @@ export async function updateUser(request: Request) {
     });
 
     if (!user.name || !user.verified) {
-      throw redirect("/");
+      session.flash("error", "Failed to update user.");
+      throw redirect("/", await commitAuthSession(session));
     }
 
-    session.set("userId", user.id);
+    session.set(sessionKey, user.id);
 
-    const redirectUrl = adminRoles.includes(user.role as Role)
-      ? "/a"
-      : "/onboarding";
+    const redirectUrl =
+      user.role === (ROLE.ADMIN as ROLE) ? "/a" : "/onboarding";
     return redirect(redirectUrl, await commitAuthSession(session));
   } catch (error) {
     throw error;

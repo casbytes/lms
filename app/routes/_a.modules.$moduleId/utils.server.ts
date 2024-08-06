@@ -1,14 +1,14 @@
 import invariant from "tiny-invariant";
 import { Params } from "@remix-run/react";
-import { prisma, type SubModuleProgress, type Badge } from "~/utils/db.server";
+import { prisma, type SubModule, type Badge } from "~/utils/db.server";
 import { getUserId } from "~/utils/session.server";
-import { Status } from "~/constants/enums";
+import { STATUS } from "~/utils/helpers";
 
 /**
  *
  * @param {Request} request
  * @param {Params} params
- * @returns {Promise<types.ModuleProgress>}
+ * @returns {Promise<types.Module>}
  */
 export async function getModule(request: Request, params: Params<string>) {
   try {
@@ -16,8 +16,8 @@ export async function getModule(request: Request, params: Params<string>) {
     const moduleId = params.moduleId;
     const userId = await getUserId(request);
 
-    const [moduleProgress] = await Promise.all([
-      prisma.moduleProgress.findFirst({
+    const [module] = await Promise.all([
+      prisma.module.findFirst({
         where: {
           id: moduleId,
           users: { some: { id: userId } },
@@ -28,10 +28,10 @@ export async function getModule(request: Request, params: Params<string>) {
       }),
       updateModuleStatues(request, moduleId),
     ]);
-    if (!moduleProgress) {
+    if (!module) {
       throw new Error("Module not found.");
     }
-    return moduleProgress;
+    return module;
   } catch (error) {
     throw error;
   }
@@ -47,30 +47,30 @@ async function updateModuleStatues(
   moduleId: string
 ): Promise<void> {
   const userId = await getUserId(request);
-  const moduleProgress = await prisma.moduleProgress.findFirst({
+  const module = await prisma.module.findFirst({
     where: {
       id: moduleId,
       users: { some: { id: userId } },
     },
   });
 
-  if (!moduleProgress) {
+  if (!module) {
     return;
   }
 
   if (
-    moduleProgress.status === Status.IN_PROGRESS ||
-    moduleProgress.status === Status.COMPLETED
+    module.status === STATUS.IN_PROGRESS ||
+    module.status === STATUS.COMPLETED
   ) {
     return;
   }
-  await prisma.moduleProgress.update({
+  await prisma.module.update({
     where: {
       id: moduleId,
       users: { some: { id: userId } },
     },
     data: {
-      status: Status.IN_PROGRESS,
+      status: STATUS.IN_PROGRESS,
     },
   });
 }
@@ -79,20 +79,20 @@ async function updateModuleStatues(
  * Get sub modules by a given module ID
  * @param {Request} request
  * @param {Params<string>} params
- * @returns {Promise<types.SubModuleProgress[]>}
+ * @returns {Promise<types.SubModule[]>}
  */
 export async function getSubModules(
   request: Request,
   params: Params<string>
-): Promise<SubModuleProgress[]> {
+): Promise<SubModule[]> {
   try {
     invariant(params.moduleId, "Module ID is required to get module.");
     const moduleId = params.moduleId;
     const userId = await getUserId(request);
 
-    const subModules = await prisma.subModuleProgress.findMany({
+    const subModules = await prisma.subModule.findMany({
       where: {
-        moduleProgressId: moduleId,
+        moduleId: moduleId,
         users: { some: { id: userId } },
       },
       orderBy: {
@@ -117,9 +117,9 @@ async function updateFirstSubModuleStatus(
   moduleId: string
 ): Promise<void> {
   const userId = await getUserId(request);
-  const firstSubModule = await prisma.subModuleProgress.findFirst({
+  const firstSubModule = await prisma.subModule.findFirst({
     where: {
-      moduleProgressId: moduleId,
+      moduleId: moduleId,
       users: { some: { id: userId } },
     },
   });
@@ -129,15 +129,15 @@ async function updateFirstSubModuleStatus(
   }
 
   if (
-    firstSubModule.status === Status.IN_PROGRESS ||
-    firstSubModule.status === Status.COMPLETED
+    firstSubModule.status === STATUS.IN_PROGRESS ||
+    firstSubModule.status === STATUS.COMPLETED
   ) {
     return;
   }
 
-  await prisma.subModuleProgress.update({
+  await prisma.subModule.update({
     where: { id: firstSubModule.id },
-    data: { status: Status.IN_PROGRESS },
+    data: { status: STATUS.IN_PROGRESS },
   });
 }
 
@@ -157,9 +157,9 @@ export async function getModuleBadges(
     const userId = await getUserId(request);
 
     const badges = await prisma.badge.findMany({
-      where: { userId, moduleProgressId: moduleId },
+      where: { userId, moduleId: moduleId },
       include: {
-        moduleProgress: true,
+        module: true,
       },
     });
     return badges;
@@ -176,13 +176,13 @@ export async function getTest(request: Request, params: Params<string>) {
 
     const test = await prisma.test.findFirst({
       where: {
-        moduleProgressId: moduleId,
+        moduleId: moduleId,
         users: { some: { id: userId } },
       },
     });
 
     if (!test) {
-      throw new Error("Test not found");
+      return null;
     }
     return test;
   } catch (error) {
@@ -198,13 +198,13 @@ export async function getCheckpoint(request: Request, params: Params<string>) {
 
     const checkpoint = await prisma.checkpoint.findFirst({
       where: {
-        moduleProgressId: moduleId,
+        moduleId: moduleId,
         users: { some: { id: userId } },
       },
     });
 
     if (!checkpoint) {
-      throw new Error("Test not found");
+      return null;
     }
     return checkpoint;
   } catch (error) {

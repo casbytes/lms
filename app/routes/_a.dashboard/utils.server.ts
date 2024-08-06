@@ -1,16 +1,16 @@
+/* eslint-disable no-undefined */
 import invariant from "tiny-invariant";
 import slugify from "slugify";
 import {
-  CourseProgress,
-  ModuleProgress,
-  Prisma,
-  SubModuleProgress,
   prisma,
+  type Course,
+  type Module,
+  type Prisma,
+  type SubModule,
 } from "~/utils/db.server";
 import { getUserId } from "~/utils/session.server";
 import { octokit } from "~/utils/octokit.server";
 import { cache } from "~/utils/node-cache.server";
-import { Status } from "~/constants/enums";
 import {
   endOfMonth,
   endOfWeek,
@@ -22,27 +22,30 @@ import {
   subMonths,
   subWeeks,
 } from "date-fns";
+import { STATUS } from "~/utils/helpers";
 
-type GM = "AUTO" | "MANUAL";
-export interface Course {
+export interface GithubCourse {
   title: string;
   id: string;
   published: boolean;
-  modules: Module[];
+  testEnvironment?: "node" | "browser";
+  modules: GithubModule[];
 }
-export interface Module {
+export interface GithubModule {
   title: string;
   id: string;
-  gradingMethod: GM;
-  subModules: SubModule[];
+  checkpoint?: boolean;
+  testEnvironment?: "node" | "browser";
+  subModules: GithubSubModule[];
 }
-export interface SubModule {
+export interface GithubSubModule {
   title: string;
   id: string;
-  gradingMethod: GM;
-  lessons: Lesson[];
+  checkpoint?: boolean;
+  testEnvironment?: "node" | "browser";
+  lessons: GithubLesson[];
 }
-export interface Lesson {
+export interface GithubLesson {
   title: string;
   id: string;
 }
@@ -50,23 +53,67 @@ export interface Lesson {
 const date = new Date();
 const today = startOfDay(date);
 
-/**
- * Get learning time in hours
- * @param request - The incoming request
- * @returns {Promise<{ date: string, hours: number }[]>} - The learning time in hours
- */
-async function getLearningHours(request: Request) {
-  const lastWeek = Array.from({ length: 7 }, (_, i) =>
-    subDays(today, i)
-  ).reverse();
+interface TimeRange {
+  start: Date;
+  end: Date;
+}
 
+function generateDateRanges(
+  unit: "days" | "weeks" | "months",
+  length: number
+): TimeRange[] {
+  const ranges: TimeRange[] = [];
+  for (let i = 0; i < length; i++) {
+    let start: Date;
+    let end: Date;
+
+    switch (unit) {
+      case "days":
+        start = subDays(today, i);
+        end = startOfDay(start);
+        break;
+      case "weeks":
+        start = subWeeks(startOfWeek(today), i);
+        end = endOfWeek(start);
+        break;
+      case "months":
+        start = subMonths(startOfMonth(today), i);
+        end = endOfMonth(start);
+        break;
+    }
+
+    ranges.push({ start, end });
+  }
+  return ranges.reverse();
+}
+
+async function getLearningData(
+  request: Request,
+  unit: "days" | "weeks" | "months",
+  length: number
+): Promise<{ date: string; hours: number }[]> {
   try {
     const userId = await getUserId(request);
+    const ranges = generateDateRanges(unit, length);
+
+    let dateCondition: Date;
+    switch (unit) {
+      case "days":
+        dateCondition = subDays(today, 7);
+        break;
+      case "weeks":
+        dateCondition = subWeeks(startOfWeek(today), 7);
+        break;
+      case "months":
+        dateCondition = subMonths(startOfMonth(today), 6);
+        break;
+    }
+
     const learningTimes = await prisma.learningTime.findMany({
       where: {
         userId,
         date: {
-          gte: subDays(today, 7),
+          gte: dateCondition,
         },
       },
       orderBy: {
@@ -74,109 +121,30 @@ async function getLearningHours(request: Request) {
       },
     });
 
-    const formattedHours = lastWeek.map((date) => {
-      const entry = learningTimes.find((lh) =>
-        lh.date.toISOString().startsWith(date.toISOString().slice(0, 10))
+    return ranges.map(({ start, end }) => {
+      const entries = learningTimes.filter(
+        (lh) => lh.date >= start && lh.date <= end
       );
+      const totalHours = entries.reduce((sum, entry) => sum + entry.hours, 0);
+      let formattedDate: string;
+
+      switch (unit) {
+        case "days":
+          formattedDate = format(start, "MMM d");
+          break;
+        case "weeks":
+          formattedDate = `${format(start, "MMM d")}-${format(end, "MMM d")}`;
+          break;
+        case "months":
+          formattedDate = format(start, "MMM yyyy");
+          break;
+      }
 
       return {
-        date: format(date, "MMM d"),
-        hours: Number(entry?.hours.toFixed(2) ?? 0),
-      };
-    });
-    return formattedHours;
-  } catch (error) {
-    throw error;
-  }
-}
-
-/**
- * Get learning time in weeks
- * @param request - The incoming request
- * @returns {Promise<{ date: string, hours: number }[]>} - The learning time in weeks
- */
-async function getLearningWeeks(request: Request) {
-  const startOfCurrentWeek = startOfWeek(today);
-
-  const weeks = Array.from({ length: 8 }, (_, i) =>
-    subWeeks(startOfCurrentWeek, i)
-  ).reverse();
-
-  try {
-    const userId = await getUserId(request);
-    const learningTime = await prisma.learningTime.findMany({
-      where: {
-        userId,
-        date: {
-          gte: subWeeks(startOfCurrentWeek, 7),
-        },
-      },
-      orderBy: {
-        date: "asc",
-      },
-    });
-
-    const weeklyData = weeks.map((week) => {
-      const weekStart = startOfWeek(week);
-      const weekEnd = endOfWeek(week);
-      const weekHours = learningTime.filter(
-        (lh) => lh.date >= weekStart && lh.date <= weekEnd
-      );
-      const totalHours = weekHours.reduce((sum, entry) => sum + entry.hours, 0);
-      return {
-        date: format(week, "MMM d"),
+        date: formattedDate,
         hours: Number(totalHours.toFixed(2)),
       };
     });
-    return weeklyData;
-  } catch (error) {
-    throw error;
-  }
-}
-
-/**
- * Get learning time in months
- * @param request - The incoming request
- * @returns {Promise<{ date: string, hours: number }[]>} - The learning time in months
- */
-async function getLearningMonths(request: Request) {
-  const startOfCurrentMonth = startOfMonth(today);
-  const currentMonth = date.getMonth();
-
-  const months = Array.from({ length: currentMonth + 1 }, (_, i) =>
-    subMonths(startOfCurrentMonth, i)
-  ).reverse();
-
-  try {
-    const userId = await getUserId(request);
-    const learningTime = await prisma.learningTime.findMany({
-      where: {
-        userId,
-        date: {
-          gte: subMonths(startOfCurrentMonth, 6),
-        },
-      },
-      orderBy: {
-        date: "asc",
-      },
-    });
-
-    const monthlyData = months.map((month) => {
-      const monthStart = startOfMonth(month);
-      const monthEnd = endOfMonth(month);
-      const monthHours = learningTime.filter(
-        (lh) => lh.date >= monthStart && lh.date <= monthEnd
-      );
-      const totalHours = monthHours.reduce(
-        (sum, entry) => sum + entry.hours,
-        0
-      );
-      return {
-        date: format(month, "MMM yyyy"),
-        hours: Number(totalHours.toFixed(2)),
-      };
-    });
-    return monthlyData;
   } catch (error) {
     throw error;
   }
@@ -187,12 +155,7 @@ export type TimeData = {
   hours: number;
 };
 
-/**
- * Get learning time
- * @param {Request} request - The incoming request
- * @returns {Promise<TimeData[]>} - The learning time
- */
-export async function getLearningTime(request: Request) {
+export async function getLearningTime(request: Request): Promise<TimeData[]> {
   const url = new URL(request.url);
   const filter =
     (url.searchParams.get("filter") as "days" | "weeks" | "months") ?? "days";
@@ -207,16 +170,16 @@ export async function getLearningTime(request: Request) {
     let result: TimeData[];
     switch (filter) {
       case "days":
-        result = await getLearningHours(request);
+        result = await getLearningData(request, "days", 7);
         break;
       case "weeks":
-        result = await getLearningWeeks(request);
+        result = await getLearningData(request, "weeks", 8);
         break;
       case "months":
-        result = await getLearningMonths(request);
+        result = await getLearningData(request, "months", 6);
         break;
       default:
-        result = await getLearningHours(request);
+        result = await getLearningData(request, "days", 7);
         break;
     }
     cache.set<TimeData[]>(cacheKey, result, 5000);
@@ -229,14 +192,12 @@ export async function getLearningTime(request: Request) {
 /**
  * Get user courses
  * @param {Request} request
- * @returns {Promise<ICourseProgress[]>}
+ * @returns {Promise<ICourse[]>}
  */
-export async function getUserCourses(
-  request: Request
-): Promise<CourseProgress[]> {
+export async function getUserCourses(request: Request): Promise<Course[]> {
   try {
     const userId = await getUserId(request);
-    const userCourses = await prisma.courseProgress.findMany({
+    const userCourses = await prisma.course.findMany({
       where: { users: { some: { id: userId } } },
     });
     return userCourses;
@@ -248,17 +209,20 @@ export async function getUserCourses(
 /**
  * Get user modules
  * @param {Request} request - The incoming request
- * @returns {Promise<ICourseProgress[]>} - The user modules
+ * @returns {Promise<ICourse[]>} - The user modules
  */
-export async function getUserModules(
-  request: Request
-): Promise<ModuleProgress[]> {
+export async function getUserModules(request: Request): Promise<Module[]> {
+  const url = new URL(request.url);
+  const search = url.searchParams.get("userModule") ?? "";
   try {
     const userId = await getUserId(request);
-    const userModules = await prisma.moduleProgress.findMany({
-      where: { users: { some: { id: userId } } },
+    const userModules = await prisma.module.findMany({
+      where: {
+        OR: [{ title: { contains: search } }],
+        users: { some: { id: userId } },
+      },
       include: {
-        courseProgress: true,
+        course: true,
       },
       orderBy: {
         order: "asc",
@@ -277,16 +241,16 @@ export async function getUserModules(
  */
 export async function checkCatalog(userId: string): Promise<boolean> {
   const [courses, modules] = await Promise.all([
-    prisma.courseProgress.findMany({
+    prisma.course.findMany({
       where: {
         users: { some: { id: userId } },
-        NOT: { status: Status.COMPLETED },
+        NOT: { status: STATUS.COMPLETED },
       },
     }),
-    prisma.moduleProgress.findMany({
+    prisma.module.findMany({
       where: {
         users: { some: { id: userId } },
-        NOT: { status: Status.COMPLETED },
+        NOT: { status: STATUS.COMPLETED },
       },
     }),
   ]);
@@ -338,8 +302,34 @@ async function getFileContent(path: string) {
   }
 }
 
-// Reuse the courses array in the addCourseToCatalog function and addModuleToCatalog function
-const courses: Course[] = [];
+async function getGithubCourses(): Promise<GithubCourse[]> {
+  const cacheKey = "github-courses";
+  const cachedCourses = cache.get<GithubCourse[]>(cacheKey);
+  if (cachedCourses) {
+    return cachedCourses;
+  }
+
+  try {
+    const meta = await getMeta();
+    const githubCourses: GithubCourse[] = await Promise.all(
+      meta.map(async (folder) => {
+        const jsonContent = await getFileContent(folder.path);
+        return JSON.parse(jsonContent);
+      })
+    );
+
+    const uniqueCourses = Array.from(
+      new Map(
+        githubCourses.filter(Boolean).map((course) => [course.id, course])
+      ).values()
+    );
+
+    cache.set<GithubCourse[]>(cacheKey, uniqueCourses);
+    return uniqueCourses;
+  } catch (error) {
+    throw error;
+  }
+}
 
 /**
  * Get courses
@@ -348,30 +338,35 @@ const courses: Course[] = [];
  */
 export async function getCourses(
   request: Request
-): Promise<{ courses: Course[]; inCatalog: boolean }> {
+): Promise<{ courses: GithubCourse[]; inCatalog: boolean }> {
   try {
     const userId = await getUserId(request);
     const inCatalog = await checkCatalog(userId);
-
-    const cachedCourses = cache.get<Course[]>("courses");
-    if (cachedCourses) {
-      for (const cachedCourse of cachedCourses) {
-        courses.push(cachedCourse);
-      }
-      return { courses: cachedCourses, inCatalog };
-    }
-
-    const meta = await getMeta();
-    for (const folder of meta) {
-      const jsonContent = await getFileContent(folder.path);
-      const course = JSON.parse(jsonContent);
-      //Prevent duplicate courses
-      if (!courses.find((c) => c.id === course.id)) {
-        courses.push(course);
-      }
-    }
-    cache.set<Course[]>("courses", courses);
+    const courses = await getGithubCourses();
     return { courses, inCatalog };
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function getModules(
+  request: Request
+): Promise<{ modules: GithubModule[]; inCatalog: boolean }> {
+  const url = new URL(request.url);
+  const search = url.searchParams.get("module");
+  try {
+    const { courses, inCatalog } = await getCourses(request);
+    const modules = courses.reduce((acc, course) => {
+      if (course.modules) {
+        acc.push(...course.modules);
+      }
+      return acc;
+    }, [] as GithubModule[]);
+
+    const filteredModules = modules.filter((module) =>
+      module.title.toLowerCase().includes(search?.toLowerCase() ?? "")
+    );
+    return { modules: filteredModules, inCatalog };
   } catch (error) {
     throw error;
   }
@@ -410,7 +405,7 @@ export async function handleActions(request: Request) {
 async function deleteCourse(formData: FormData, userId: string) {
   try {
     const courseId = String(formData.get("itemId"));
-    await prisma.courseProgress.delete({
+    await prisma.course.delete({
       where: { id: courseId, users: { some: { id: userId } } },
     });
     return { success: true, message: "Course deleted from catalog." };
@@ -422,7 +417,7 @@ async function deleteCourse(formData: FormData, userId: string) {
 async function deleteModule(formData: FormData, userId: string) {
   try {
     const moduleId = String(formData.get("itemId"));
-    await prisma.moduleProgress.delete({
+    await prisma.module.delete({
       where: { id: moduleId, users: { some: { id: userId } } },
     });
     return { success: true, message: "Module deleted from catalog." };
@@ -434,55 +429,51 @@ async function deleteModule(formData: FormData, userId: string) {
 async function addModuleToCatalog(formData: FormData, userId: string) {
   const moduleId = formData.get("itemId") as string;
   invariant(moduleId, "Module ID is required.");
-
-  let module: Module | undefined;
-  for (const course of courses) {
-    module = course.modules.find((m) => m.id === String(moduleId));
-    if (module) break;
+  const githubCourses = await getGithubCourses();
+  let githubModule: GithubModule | undefined;
+  for (const githubCourse of githubCourses) {
+    githubModule = githubCourse.modules.find((m) => m.id === String(moduleId));
+    if (githubModule) break;
   }
-  invariant(module, "Module not found.");
+  invariant(githubModule, "Github Module not found.");
 
   try {
     return await prisma.$transaction(async (txn) => {
-      const existingModuleProgress = await txn.moduleProgress.findFirst({
-        where: { title: module.title, users: { some: { id: userId } } },
+      const existingModule = await txn.module.findFirst({
+        where: { title: githubModule.title, users: { some: { id: userId } } },
       });
 
-      if (existingModuleProgress) {
+      if (existingModule) {
         return { success: false, message: "Module already in catalog" };
       }
 
-      const moduleProgress = await txn.moduleProgress.create({
+      const module = await txn.module.create({
         data: {
-          title: module.title,
-          slug: slugify(module.title, { lower: true }),
+          title: githubModule.title,
+          slug: slugify(githubModule.title, { lower: true }),
           users: { connect: { id: userId } },
-          status: Status.IN_PROGRESS,
+          status: STATUS.IN_PROGRESS,
           order: 1,
           test: {
             create: {
-              title: `${module.title} test`,
+              title: `${githubModule.title} test`,
               users: { connect: { id: userId } },
             },
           },
-          checkpoint: {
-            create: {
-              title: `${module.title} checkpoint`,
-              gradingMethod: module?.gradingMethod,
-              users: { connect: { id: userId } },
-            },
-          },
+          checkpoint: githubModule?.checkpoint
+            ? {
+                create: {
+                  title: `${githubModule.title} checkpoint`,
+                  users: { connect: { id: userId } },
+                },
+              }
+            : undefined,
         },
       });
 
       await Promise.all([
-        createSubModuleProgresses(
-          txn,
-          module.subModules,
-          moduleProgress,
-          userId
-        ),
-        createBadges(txn, moduleProgress, userId),
+        createSubModules(txn, githubModule.subModules, module, userId),
+        createBadges(txn, module, userId),
       ]);
       return { success: true, message: "Module added to catalog" };
     });
@@ -501,33 +492,34 @@ export async function addCourseToCatalog(formData: FormData, userId: string) {
   try {
     const courseId = formData.get("itemId") as string;
     invariant(courseId, "Course ID is required.");
-    const course = courses.find((c) => c.id === String(courseId));
-    invariant(course, "Course not found.");
+    const githubCourses = await getGithubCourses();
+    const githubCourse = githubCourses.find((c) => c.id === String(courseId));
+    invariant(githubCourse, "Course not found.");
 
     return await prisma.$transaction(async (txn) => {
-      const existingCourseProgress = await txn.courseProgress.findFirst({
-        where: { id: course.title, users: { some: { id: userId } } },
+      const existingCourse = await txn.course.findFirst({
+        where: { title: githubCourse.title, users: { some: { id: userId } } },
       });
-      if (existingCourseProgress) {
+      if (existingCourse) {
         return { success: false, message: "Course already in catalog" };
       }
-      const courseProgress = await txn.courseProgress.create({
+      const course = await txn.course.create({
         data: {
-          title: course.title,
-          slug: slugify(course.title, { lower: true }),
+          title: githubCourse.title,
+          slug: slugify(githubCourse.title, { lower: true }),
           users: { connect: { id: userId } },
           project: {
             create: {
-              title: `${course.title} project`,
-              slug: slugify(course.title, { lower: true }),
+              title: `${githubCourse.title} project`,
+              testEnvironment: githubCourse?.testEnvironment,
+              slug: slugify(githubCourse.title, { lower: true }),
               contributors: { connect: { id: userId } },
             },
           },
         },
-        include: { moduleProgress: true },
       });
 
-      await createModuleProgresses(txn, course.modules, courseProgress, userId);
+      await createModule(txn, githubCourse.modules, course, userId);
       return { success: true, message: "Course added to catalog" };
     });
   } catch (error) {
@@ -538,173 +530,180 @@ export async function addCourseToCatalog(formData: FormData, userId: string) {
 /**
  * Create module progresses
  * @param {Prisma.TransactionClient} txn - The transaction client
- * @param {IModule[]} modules - The modules
- * @param {CourseProgress} courseProgress - The course progress
+ * @param {GithubModule[]} githubModules - The modules
+ * @param {Course} course - The course progress
  * @param {String} userId - The user ID
  * @returns {Promise<void>}
  */
-async function createModuleProgresses(
+async function createModule(
   txn: Prisma.TransactionClient,
-  modules: Module[],
-  courseProgress: CourseProgress,
+  githubModules: GithubModule[],
+  course: Course,
   userId: string
 ): Promise<void> {
-  for (const [moduleIndex, module] of modules.entries()) {
-    const moduleProgress = await upsertModuleProgress(
-      txn,
-      module,
-      moduleIndex,
-      courseProgress.id,
-      userId
-    );
-    await createSubModuleProgresses(
-      txn,
-      module.subModules,
-      moduleProgress,
-      userId
-    );
-    await createBadges(txn, moduleProgress, userId);
+  try {
+    for (const [moduleIndex, githubModule] of githubModules.entries()) {
+      const module = await upsertModule(
+        txn,
+        githubModule,
+        moduleIndex,
+        course.id,
+        userId
+      );
+      await createSubModules(txn, githubModule.subModules, module, userId);
+      await createBadges(txn, module, userId);
+    }
+  } catch (error) {
+    throw error;
   }
 }
 
 /**
  * Upsert module progress
  * @param {Prisma.TransactionClient} txn - The transaction client
- * @param {Module} module - The module
+ * @param {GithubModule} githubModule - The module
  * @param {number} moduleIndex - The module index
- * @param {string} courseProgressId - The course progress ID
+ * @param {string} courseId - The course progress ID
  * @param {string} userId - The user ID
- * @returns {Promise<ModuleProgress>}
+ * @returns {Promise}
  */
-async function upsertModuleProgress(
+async function upsertModule(
   txn: Prisma.TransactionClient,
-  module: Module,
+  githubModule: GithubModule,
   moduleIndex: number,
-  courseProgressId: string,
+  courseId: string,
   userId: string
-): Promise<ModuleProgress> {
-  const existingModuleProgress = await txn.moduleProgress.findFirst({
-    where: { title: module.title, users: { some: { id: userId } } },
-  });
+) {
+  try {
+    const existingModule = await txn.module.findFirst({
+      where: { title: githubModule.title, users: { some: { id: userId } } },
+    });
 
-  if (existingModuleProgress) {
-    return txn.moduleProgress.update({
-      where: { id: existingModuleProgress.id },
-      data: {
-        courseProgressId,
-        premium: moduleIndex !== 0,
-        status: existingModuleProgress.status,
-        order: moduleIndex + 1,
-      },
-    });
-  } else {
-    return txn.moduleProgress.create({
-      data: {
-        title: module.title,
-        slug: slugify(module.title, { lower: true }),
-        premium: moduleIndex !== 0,
-        order: moduleIndex + 1,
-        users: { connect: { id: userId } },
-        courseProgress: { connect: { id: courseProgressId } },
-        test: {
-          create: {
-            title: `${module.title} test`,
-            users: { connect: { id: userId } },
-          },
+    if (existingModule) {
+      return txn.module.update({
+        where: { id: existingModule.id },
+        data: {
+          courseId,
+          premium: moduleIndex !== 0,
+          status: existingModule.status,
+          order: moduleIndex + 1,
         },
-        checkpoint: {
-          create: {
-            title: `${module.title} checkpoint`,
-            gradingMethod: module?.gradingMethod,
-            users: { connect: { id: userId } },
+      });
+    } else {
+      return txn.module.create({
+        data: {
+          title: githubModule.title,
+          slug: slugify(githubModule.title, { lower: true }),
+          premium: moduleIndex !== 0,
+          order: moduleIndex + 1,
+          users: { connect: { id: userId } },
+          course: { connect: { id: courseId } },
+          test: {
+            create: {
+              title: `${githubModule.title} test`,
+              users: { connect: { id: userId } },
+            },
           },
+          checkpoint: githubModule?.checkpoint
+            ? {
+                create: {
+                  title: `${githubModule.title} checkpoint`,
+                  users: { connect: { id: userId } },
+                },
+              }
+            : undefined,
         },
-      },
-    });
+      });
+    }
+  } catch (error) {
+    throw error;
   }
 }
 
 /**
  * Create sub module progresses
  * @param {Prisma.TransactionClient} txn - The transaction client
- * @param {ISubModule[]} subModules - The sub modules
- * @param {ModuleProgress} moduleProgress - The module progress
+ * @param {GithubModule[]} githubSubModules - The sub modules
+ * @param {Module} module - The module progress
  * @param {String} userId - The user ID
  * @returns {Promise<void>}
  */
-async function createSubModuleProgresses(
+async function createSubModules(
   txn: Prisma.TransactionClient,
-  subModules: SubModule[],
-  moduleProgress: ModuleProgress,
+  githubSubModules: GithubSubModule[],
+  module: Module,
   userId: string
 ) {
-  for (const [subModuleIndex, subModule] of subModules.entries()) {
-    const subModuleProgress = await upsertSubModuleProgress(
-      txn,
-      subModule,
+  try {
+    for (const [
       subModuleIndex,
-      moduleProgress.id,
-      userId
-    );
-    await createLessonProgresses(
-      txn,
-      subModule.lessons,
-      subModuleProgress,
-      userId
-    );
-    return subModuleProgress;
+      githubSubModule,
+    ] of githubSubModules.entries()) {
+      const subModule = await upsertSubModule(
+        txn,
+        githubSubModule,
+        subModuleIndex,
+        module.id,
+        userId
+      );
+      await createLessons(txn, githubSubModule.lessons, subModule, userId);
+      return subModule;
+    }
+  } catch (error) {
+    throw error;
   }
 }
 
 /**
  * Upsert sub module progress
  * @param {Prisma.TransactionClient} txn - The transaction client
- * @param {SubModule} subModule - The sub module
+ * @param {GithubSubModule} githubSubModule - The sub module
  * @param {number} subModuleIndex - The sub module index
- * @param {string} moduleProgressId - The module progress ID
+ * @param {string} moduleId - The module progress ID
  * @param {string} userId - The user ID
- * @returns {Promise<SubModuleProgress>}
+ * @returns {Promise<SubModule>}
  */
-async function upsertSubModuleProgress(
+async function upsertSubModule(
   txn: Prisma.TransactionClient,
-  subModule: SubModule,
+  githubSubModule: GithubSubModule,
   subModuleIndex: number,
-  moduleProgressId: string,
+  moduleId: string,
   userId: string
 ) {
-  const existingSubModuleProgress = await txn.subModuleProgress.findFirst({
-    where: { title: subModule.title, users: { some: { id: userId } } },
+  const existingSubModule = await txn.subModule.findFirst({
+    where: { title: githubSubModule.title, users: { some: { id: userId } } },
   });
 
-  if (existingSubModuleProgress) {
-    return txn.subModuleProgress.update({
-      where: { id: existingSubModuleProgress.id },
+  if (existingSubModule) {
+    return txn.subModule.update({
+      where: { id: existingSubModule.id },
       data: {
-        moduleProgressId,
+        moduleId,
         order: subModuleIndex + 1,
       },
     });
   } else {
-    return txn.subModuleProgress.create({
+    return txn.subModule.create({
       data: {
-        title: subModule.title,
-        slug: slugify(subModule.title, { lower: true }),
+        title: githubSubModule.title,
+        slug: slugify(githubSubModule.title, { lower: true }),
         order: subModuleIndex + 1,
         users: { connect: { id: userId } },
-        moduleProgress: { connect: { id: moduleProgressId } },
+        module: { connect: { id: moduleId } },
         test: {
           create: {
-            title: `${subModule.title} test`,
+            title: `${githubSubModule.title} test`,
             users: { connect: { id: userId } },
           },
         },
-        checkpoint: {
-          create: {
-            title: `${subModule.title} checkpoint`,
-            gradingMethod: subModule?.gradingMethod,
-            users: { connect: { id: userId } },
-          },
-        },
+        checkpoint: githubSubModule?.checkpoint
+          ? {
+              create: {
+                title: `${githubSubModule.title} checkpoint`,
+                users: { connect: { id: userId } },
+              },
+            }
+          : undefined,
       },
     });
   }
@@ -713,38 +712,38 @@ async function upsertSubModuleProgress(
 /**
  * Create lesson progresses
  * @param {Prisma.TransactionClient} txn - The transaction client
- * @param {Lesson[]} lessons - The lessons
- * @param {SubModuleProgress} subModuleProgress - The sub module progress
+ * @param {GithubLesson[]} githubLessons - The lessons
+ * @param {SubModule} subModule - The sub module progress
  * @param {String} userId - The user ID
  * @returns {Promise<void>}
  */
-async function createLessonProgresses(
+async function createLessons(
   txn: Prisma.TransactionClient,
-  lessons: Lesson[],
-  subModuleProgress: SubModuleProgress,
+  githubLessons: GithubLesson[],
+  subModule: SubModule,
   userId: string
 ): Promise<void> {
-  for (const [lessonIndex, lesson] of lessons.entries()) {
-    const existingLessonProgress = await txn.lessonProgress.findFirst({
-      where: { title: lesson.title, users: { some: { id: userId } } },
+  for (const [lessonIndex, githubLesson] of githubLessons.entries()) {
+    const existingLesson = await txn.lesson.findFirst({
+      where: { title: githubLesson.title, users: { some: { id: userId } } },
     });
 
-    if (existingLessonProgress) {
-      await txn.lessonProgress.update({
-        where: { id: existingLessonProgress.id },
+    if (existingLesson) {
+      await txn.lesson.update({
+        where: { id: existingLesson.id },
         data: {
-          subModuleProgressId: subModuleProgress.id,
+          subModuleId: subModule.id,
           order: lessonIndex + 1,
         },
       });
     } else {
-      await txn.lessonProgress.create({
+      await txn.lesson.create({
         data: {
-          title: lesson.title,
-          slug: slugify(lesson.title, { lower: true }),
+          title: githubLesson.title,
+          slug: slugify(githubLesson.title, { lower: true }),
           order: lessonIndex + 1,
           users: { connect: { id: userId } },
-          subModuleProgress: { connect: { id: subModuleProgress.id } },
+          subModule: { connect: { id: subModule.id } },
         },
       });
     }
@@ -754,35 +753,35 @@ async function createLessonProgresses(
 /**
  * Create badges
  * @param {Prisma.TransactionClient} txn - The transaction client
- * @param {ModuleProgress} moduleProgress - The module progress
+ * @param {Module} module - The module
  * @param {String} userId - The user ID
  * @returns {Promise<void>}
  */
 async function createBadges(
   txn: Prisma.TransactionClient,
-  moduleProgress: ModuleProgress,
+  module: Module,
   userId: string
 ): Promise<void> {
   const badges = [
     {
       title: "novice",
-      unlocked_description: `Awesome work! You've already conquered 25% of the journey and are well on your way to grasping the fundamentals in ${moduleProgress.title}. Keep practicing to unlock more achievements as you continue your learning adventure!`,
-      locked_description: `Earn this badge by conquering 25% of the ${moduleProgress.title} roadmap. That means completing all the essential lessons, tests, and sub-module checkpoints along the way`,
+      unlocked_description: `Awesome work! You've already conquered 25% of the journey and are well on your way to grasping the fundamentals in ${module.title}. Keep practicing to unlock more achievements as you continue your learning adventure!`,
+      locked_description: `Earn this badge by conquering 25% of the ${module.title} roadmap. That means completing all the essential lessons, tests, and sub-module checkpoints along the way`,
     },
     {
       title: "adept",
-      unlocked_description: `Congratulations! You've grasped the fundamentals of ${moduleProgress.title} and can tackle most tasks with confidence. Keep exploring to unlock even more achievements!`,
-      locked_description: `Earn this badge by conquering 50% of the ${moduleProgress.title} roadmap. That means completing all the essential lessons, tests, and sub-module checkpoints along the way`,
+      unlocked_description: `Congratulations! You've grasped the fundamentals of ${module.title} and can tackle most tasks with confidence. Keep exploring to unlock even more achievements!`,
+      locked_description: `Earn this badge by conquering 50% of the ${module.title} roadmap. That means completing all the essential lessons, tests, and sub-module checkpoints along the way`,
     },
     {
       title: "proficient",
       unlocked_description: `Congratulations! You've leveled up your skills and earned the proficient badge. Now you possess a solid grasp of the concepts and can confidently put them to work in real-world situations. Keep pushing forward to unlock even more achievements and reach mastery!`,
-      locked_description: `Earn this badge by conquering 75% of the ${moduleProgress.title} roadmap. That means completing all the essential lessons, tests, and sub-module checkpoints along the way`,
+      locked_description: `Earn this badge by conquering 75% of the ${module.title} roadmap. That means completing all the essential lessons, tests, and sub-module checkpoints along the way`,
     },
     {
       title: "virtuoso",
-      unlocked_description: `Congratulations! You've mastered ${moduleProgress.title}, conquering even the most intricate challenges. With your newfound skills, you're now an inspiration to others. Now, it's time to claim your expertise with official certification. Keep going to complete the course and become certified!`,
-      locked_description: `Earn this badge by conquering 100% of the ${moduleProgress.title} roadmap. That means completing all the essential lessons, tests, and sub-module checkpoints along the way`,
+      unlocked_description: `Congratulations! You've mastered ${module.title}, conquering even the most intricate challenges. With your newfound skills, you're now an inspiration to others. Now, it's time to claim your expertise with official certification. Keep going to complete the course and become certified!`,
+      locked_description: `Earn this badge by conquering 100% of the ${module.title} roadmap. That means completing all the essential lessons, tests, and sub-module checkpoints along the way`,
     },
   ];
 
@@ -792,7 +791,7 @@ async function createBadges(
       locked_description: badge.locked_description,
       unlocked_description: badge.unlocked_description,
       level: badge.title.toUpperCase(),
-      moduleProgressId: moduleProgress.id,
+      moduleId: module.id,
       userId,
     })),
   });

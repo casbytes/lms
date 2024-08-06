@@ -8,7 +8,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   try {
     await Promise.all([
       prisma.user.count(),
-      prisma.courseProgress.count(),
+      prisma.course.count(),
       fetch(`${new URL(request.url).protocol}${host}`, {
         method: "HEAD",
         headers: { "X-Healthcheck": "true" },

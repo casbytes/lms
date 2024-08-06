@@ -58,6 +58,8 @@ export default function CoursesRoute() {
   } = useLoaderData<typeof loader>();
   const item = { test, checkpoint };
 
+  console.log(test, checkpoint, module);
+
   return (
     <Container className="max-w-3xl lg:max-w-7xl">
       <BackButton to="/dashboard" buttonText="dashboard" />

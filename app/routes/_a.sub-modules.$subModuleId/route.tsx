@@ -1,5 +1,5 @@
 import React from "react";
-import { LoaderFunctionArgs, defer } from "@remix-run/node";
+import { ActionFunctionArgs, LoaderFunctionArgs, defer } from "@remix-run/node";
 import { Await, useLoaderData } from "@remix-run/react";
 import {
   getCheckpoint,
@@ -8,6 +8,7 @@ import {
   getSubModule,
   getTest,
   getTypeformUrl,
+  updateLesson,
 } from "./utils.server";
 import { BackButton } from "~/components/back-button";
 import { Container } from "~/components/container";
@@ -26,22 +27,34 @@ import { metaFn } from "~/utils/meta";
 export const meta = metaFn;
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const lessons = getLessons(request, params);
-  const currentLesson = getLessonContent(request, params);
-  const videoSource = getVideoSource();
-  const test = await getTest(request, params);
-  const checkpoint = await getCheckpoint(request, params);
-  const subModule = await getSubModule(request, params);
-  const type = await getTypeformUrl(request);
-  return defer({
-    lessons,
-    currentLesson,
-    subModule,
-    test,
-    checkpoint,
-    type,
-    videoSource,
-  });
+  try {
+    const lessons = getLessons(request, params);
+    const currentLesson = getLessonContent(request, params);
+    const videoSource = getVideoSource();
+    const test = await getTest(request, params);
+    const checkpoint = await getCheckpoint(request, params);
+    const subModule = await getSubModule(request, params);
+    const type = await getTypeformUrl(request);
+    return defer({
+      lessons,
+      currentLesson,
+      subModule,
+      test,
+      checkpoint,
+      type,
+      videoSource,
+    });
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function action({ request, params }: ActionFunctionArgs) {
+  try {
+    return updateLesson(request, params);
+  } catch (error) {
+    throw error;
+  }
 }
 
 export default function ModulesRoute() {
@@ -57,18 +70,18 @@ export default function ModulesRoute() {
 
   const redirectUrl =
     type && type === "module"
-      ? `/modules/${subModule?.moduleProgressId}`
-      : `/courses/${subModule?.moduleProgress?.courseProgressId}?moduleId=${subModule?.moduleProgressId}`;
+      ? `/modules/${subModule?.moduleId}`
+      : `/courses/${subModule?.module?.courseId}?moduleId=${subModule?.moduleId}`;
 
   const defaultTitle = "Matters choke!";
   const title = subModule?.title ?? defaultTitle;
-  const buttonText = subModule?.moduleProgress?.title;
+  const buttonText = subModule?.module?.title;
 
   const item = { test, checkpoint };
 
   return (
     <Container className="max-w-3xl lg:max-w-7xl">
-      {subModule?.moduleProgress ? (
+      {subModule?.module ? (
         <BackButton to={redirectUrl} buttonText={buttonText} />
       ) : null}
       <PageTitle title={title} className="mb-8" />

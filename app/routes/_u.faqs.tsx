@@ -43,7 +43,7 @@ export default function FAQS() {
           <AccordionItem
             value={faq.data.question}
             key={faq.data.question}
-            className="mb-4"
+            className="mb-2"
           >
             <AccordionTrigger className="text-lg font-bold">
               {index + 1}. {faq.data.question}

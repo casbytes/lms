@@ -15,8 +15,6 @@ import {
   AccordionTrigger,
 } from "~/components/ui/accordion";
 import { getUser } from "~/utils/session.server";
-import { TaskTable } from "~/components/task";
-import { TaskPopover } from "~/components/task/task-popover";
 import { getVideoSource } from "~/utils/helpers.server";
 import { metaFn } from "~/utils/meta";
 
@@ -42,20 +40,20 @@ export default function CheckPointRoute() {
     useLoaderData<typeof loader>();
   const data = useActionData<typeof action>();
 
-  // let moduleProgressId = checkpoint?.moduleProgressId;
-  // let subModuleProgressId = checkpoint?.subModuleProgressId;
+  // let moduleId = checkpoint?.moduleId;
+  // let subModuleId = checkpoint?.subModuleId;
 
-  const moduleTest = checkpoint?.moduleProgressId ? true : false;
+  const moduleTest = checkpoint?.moduleId ? true : false;
   const defaultTitle = "Matters choke!";
   const checkpointTitle = checkpoint.title ?? defaultTitle;
 
   const moduleOrSubModuleTitle = moduleTest
-    ? checkpoint?.moduleProgress?.title
-    : checkpoint?.subModuleProgress?.title ?? defaultTitle;
+    ? checkpoint?.module?.title
+    : checkpoint?.subModule?.title ?? defaultTitle;
 
   const moduleOrSubModuleUrl = moduleTest
-    ? `/courses/${checkpoint?.moduleProgress?.courseProgressId}?moduleId=${checkpoint?.moduleProgressId}`
-    : `/sub-modules/${checkpoint?.subModuleProgressId}`;
+    ? `/courses/${checkpoint?.module?.courseId}?moduleId=${checkpoint?.moduleId}`
+    : `/sub-modules/${checkpoint?.subModuleId}`;
 
   React.useEffect(() => {
     if (data?.checkpointResponse) {
@@ -97,7 +95,6 @@ export default function CheckPointRoute() {
           <IFrame src={videoSource} videoId={checkpointContent.data.videoId} />
         ) : null}
       </>
-      <TaskPopover user={user} task={checkpoint} />
     </Container>
   );
 }

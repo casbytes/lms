@@ -1,16 +1,17 @@
 import { Params } from "@remix-run/react";
 import matter from "gray-matter";
 import invariant from "tiny-invariant";
-import { prisma } from "~/utils/db.server";
+import { MDX, prisma } from "~/utils/db.server";
 import { getContentFromGithub } from "~/utils/octokit.server";
 import { getUserId } from "~/utils/session.server";
 import { cache } from "~/utils/node-cache.server";
 
 export async function getProject(request: Request, params: Params<string>) {
   const projectId = params.projectId;
+  invariant(projectId, "Project ID is required to get Project");
+
   const cacheKey = `project-${projectId}`;
   try {
-    invariant(projectId, "Project ID is required to get Project");
     const userId = await getUserId(request);
     const project = await prisma.project.findFirst({
       where: {
@@ -18,8 +19,7 @@ export async function getProject(request: Request, params: Params<string>) {
         contributors: { some: { id: userId } },
       },
       include: {
-        links: true,
-        courseProgress: true,
+        course: true,
       },
     });
 
@@ -27,28 +27,26 @@ export async function getProject(request: Request, params: Params<string>) {
       throw new Error("Project not found.");
     }
 
-    type ProjectContent = {
-      data: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        [key: string]: any;
-      };
-      mdx: string;
-    };
-
     if (cache.has(cacheKey)) {
-      return { project, projectContent: cache.get(cacheKey) as ProjectContent };
+      return { project, projectContent: cache.get<MDX>(cacheKey) as MDX };
     }
     const repo = "meta";
-    const path = `course-projects/${project.courseProgress.slug}.mdx`;
-    const { content } = await getContentFromGithub({
+    const path = `course-projects/${project.course.slug}.mdx`;
+    const { content: mdx } = await getContentFromGithub({
       repo,
       path,
     });
 
-    const { data, content: mdx } = matter(content);
-    cache.set<ProjectContent>(cacheKey, { data, mdx });
-    return { project, projectContent: { data, mdx } };
+    const { data, content } = matter(mdx);
+    cache.set<MDX>(cacheKey, { data, content });
+    return { project, projectContent: { data, content } };
   } catch (error) {
     throw error;
   }
+}
+
+export async function updateProject(request: Request) {
+  console.log(request);
+
+  return null;
 }

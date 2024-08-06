@@ -8,22 +8,21 @@ import { SlLock } from "react-icons/sl";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/libs/shadcn";
-import { capitalizeFirstLetter } from "~/utils/helpers";
-import { TestStatus } from "~/constants/enums";
+import { capitalizeFirstLetter, TEST_STATUS } from "~/utils/helpers";
 
 type TestProps = {
   test: Test;
 };
 
 export function Test({ test }: TestProps) {
-  const LOCKED = test.status === TestStatus.LOCKED;
-  const AVAILABLE = test.status === TestStatus.AVAILABLE;
-  const COMPLETED = test.status === TestStatus.COMPLETED;
+  const LOCKED = test.status === TEST_STATUS.LOCKED;
+  const AVAILABLE = test.status === TEST_STATUS.AVAILABLE;
+  const COMPLETED = test.status === TEST_STATUS.COMPLETED;
 
   const testUrl = `/test?testId=${test.id}&${
-    test?.moduleProgressId
-      ? `moduleId=${test.moduleProgressId}`
-      : `submoduleId=${test.subModuleProgressId}`
+    test?.moduleId
+      ? `moduleId=${test.moduleId}`
+      : `submoduleId=${test.subModuleId}`
   }`;
 
   return (

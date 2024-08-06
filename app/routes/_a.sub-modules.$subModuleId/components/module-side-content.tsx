@@ -3,10 +3,10 @@ import { Await } from "@remix-run/react";
 import { CourseTitle } from "~/components/course-title";
 import { PendingStatus, Status } from "~/components/status";
 import { Lessons } from "./lessons";
-import type { LessonProgress } from "~/utils/db.server";
+import type { Lesson } from "~/utils/db.server";
 
 type ModuleSideContentProps = {
-  lessons: Promise<LessonProgress[]>;
+  lessons: Promise<Lesson[]>;
 };
 
 export function ModuleSideContent({ lessons }: ModuleSideContentProps) {
@@ -31,7 +31,7 @@ export function ModuleSideContent({ lessons }: ModuleSideContentProps) {
 function PendingLessons() {
   return (
     <ul className="space-y-3">
-      {Array(10).map((_, i) => (
+      {Array.from({ length: 10 }, (_, i) => (
         <li key={i} className="bg-gray-300 h-8 rounded-md animate-pulse" />
       ))}
     </ul>

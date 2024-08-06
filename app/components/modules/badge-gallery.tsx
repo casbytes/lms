@@ -1,16 +1,19 @@
-import type { Badge as IBadge, ModuleProgress } from "~/utils/db.server";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { type Badge as IBadge, type Module } from "~/utils/db.server";
 import { cn } from "~/libs/shadcn";
 import { Badge } from "../ui/badge";
-import { capitalizeFirstLetter } from "~/utils/helpers";
-import { BadgeStatus } from "~/constants/enums";
+import { BADGE_STATUS, capitalizeFirstLetter } from "~/utils/helpers";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "../ui/hover-card";
 
-type BadgeWithModuleProgress = IBadge & {
-  moduleProgress?: ModuleProgress;
+type BadgeWithModule = IBadge & {
+  module?: Module;
 };
 
 type BadgeGalleryProps = {
-  badges: BadgeWithModuleProgress[];
+  badges: BadgeWithModule[];
 };
 
 export function BadgeGallery({ badges }: BadgeGalleryProps) {
@@ -21,12 +24,11 @@ export function BadgeGallery({ badges }: BadgeGalleryProps) {
       </p>
       <ul className="flex justify-evenly flex-wrap gap-4 p-2 mb-2">
         {badges.map((badge) => {
-          const LOCKED = badge.status === BadgeStatus.LOCKED;
-          const UNLOCKED = badge.status === BadgeStatus.UNLOCKED;
-
+          const LOCKED = badge.status === BADGE_STATUS.LOCKED;
+          const UNLOCKED = badge.status === BADGE_STATUS.UNLOCKED;
           return (
-            <Popover key={badge.id}>
-              <PopoverTrigger>
+            <HoverCard key={badge.id}>
+              <HoverCardTrigger>
                 <li
                   key={badge.id}
                   className="flex flex-col items-center text-lg relative"
@@ -43,11 +45,14 @@ export function BadgeGallery({ badges }: BadgeGalleryProps) {
 
                   <span className="uppercase text-sm">{badge.status}</span>
                 </li>
-              </PopoverTrigger>
-              <PopoverContent
-                className={cn("px-6 py-4 mx-auto bg-slate-200 relative", {
-                  "bg-sky-200": UNLOCKED,
-                })}
+              </HoverCardTrigger>
+              <HoverCardContent
+                className={cn(
+                  "px-6 py-4 mx-auto max-w-xl text-sm bg-slate-200 relative",
+                  {
+                    "bg-sky-200": UNLOCKED,
+                  }
+                )}
               >
                 <Badge
                   className={cn("top-1 left-1 uppercase absolute", {
@@ -70,16 +75,15 @@ export function BadgeGallery({ badges }: BadgeGalleryProps) {
                     "bg-slate-500 hover:bg-slate-400": LOCKED,
                   })}
                 >
-                  {capitalizeFirstLetter(badge.moduleProgress!.title)}{" "}
-                  {badge.title}
+                  {capitalizeFirstLetter(badge.module!.title)} {badge.title}
                 </Badge>
                 <p className="mt-4">
                   {UNLOCKED
                     ? badge.unlocked_description
                     : badge.locked_description}
                 </p>
-              </PopoverContent>
-            </Popover>
+              </HoverCardContent>
+            </HoverCard>
           );
         })}
       </ul>

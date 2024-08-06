@@ -11,7 +11,6 @@ import {
   AccordionTrigger,
 } from "~/components/ui/accordion";
 import { Markdown } from "~/components/markdown";
-import { Badge } from "~/components/ui/badge";
 import { readContent } from "~/utils/helpers.server";
 
 export const meta = metaFn;
@@ -44,14 +43,14 @@ export default function CoursesRoute() {
           <AccordionItem
             value={course.data.title}
             key={course.data.title}
-            className="mb-4"
+            className="mb-2"
           >
             <AccordionTrigger className="text-lg font-bold">
               {course.data.title}
             </AccordionTrigger>
-            <AccordionContent className="mt-2 px-4">
+            <AccordionContent className="mt-2">
               <p className="text-slate-600">{course.data.description}</p>
-              <Badge className="my-4">Modules</Badge>
+              <h2 className="my-2 text-lg">Modules</h2>
               <Markdown source={course.content} />
             </AccordionContent>
           </AccordionItem>

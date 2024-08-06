@@ -31,30 +31,37 @@ export async function deleteUser(
     const user = await prisma.user.findUnique({
       where: { id: userId },
     });
+
     if (!user) {
       throw new Error("User not found.");
     }
-    await Promise.all([
-      /**
-       * Delete user from Stripe
-       * The user subscription will be canceled and the customer will be deleted
-       */
-      deleteStripeCustomer({
+
+    await prisma.$transaction(async (txn) => {
+      await deleteStripeCustomer({
         stripeCustomerId: user.stripeCustomerId!,
       }),
-      prisma.courseProgress.deleteMany({
-        where: { users: { some: { id: userId } } },
-      }),
-      /**
-       * Delete individual user modules progress if any
-       */
-      prisma.moduleProgress.deleteMany({
-        where: { users: { some: { id: userId } } },
-      }),
-      prisma.user.delete({
-        where: { id: user.id },
-      }),
-    ]);
+        await txn.course.deleteMany({
+          where: { users: { some: { id: userId } } },
+        }),
+        /**
+         * Delete individual user modules progress if any
+         */
+        await txn.module.deleteMany({
+          where: { users: { some: { id: userId } } },
+        }),
+        await txn.test.deleteMany({
+          where: { id: user.id },
+        }),
+        await txn.project.deleteMany({
+          where: { id: user.id },
+        }),
+        await txn.checkpoint.deleteMany({
+          where: { id: user.id },
+        }),
+        await txn.user.delete({
+          where: { id: user.id },
+        });
+    });
 
     /**
      * !Send googbye email

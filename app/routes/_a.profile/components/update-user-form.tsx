@@ -43,7 +43,7 @@ export function UpdateUserForm({ user }: { user: User }) {
   return (
     <Form
       method="post"
-      className="flex flex-col gap-8 bg-sky-300/50 rounded-md p-8"
+      className="flex flex-col gap-8 bg-sky-300/50 rounded-md p-8 border border-sky-500 shadow-lg"
     >
       <h2 className="text-2xl text-sky-800 font-bold text-center">
         Update profile

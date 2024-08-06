@@ -1,18 +1,17 @@
-import type { CourseProgress, ModuleProgress } from "~/utils/db.server";
+import { type Course, type Module as IModule } from "~/utils/db.server";
 import { TableCell, TableRow } from "~/components/ui/table";
 import { Link } from "@remix-run/react";
-import { capitalizeFirstLetter } from "~/utils/helpers";
+import { capitalizeFirstLetter, STATUS } from "~/utils/helpers";
 import { Button } from "~/components/ui/button";
 import { FaRegEye } from "react-icons/fa6";
-import { Status } from "~/constants/enums";
 import { DeleteConfirmationDialog } from "./delete-confirmation-dialog";
 
-type ModuleWithCourse = ModuleProgress & {
-  courseProgress?: CourseProgress;
+type ModuleWithCourse = IModule & {
+  course?: Course;
 };
 
-export function Module({ module }: { module: ModuleWithCourse }) {
-  const disabled = module.status === Status.LOCKED;
+export function UserModule({ module }: { module: ModuleWithCourse }) {
+  const disabled = module.status === STATUS.LOCKED;
 
   return (
     <TableRow>
@@ -36,7 +35,7 @@ export function Module({ module }: { module: ModuleWithCourse }) {
             <FaRegEye size={20} />
           </Link>
         </Button>
-        {module.courseProgress ? null : (
+        {module.courseId ? null : (
           <DeleteConfirmationDialog
             title={module.title}
             itemId={module.id}

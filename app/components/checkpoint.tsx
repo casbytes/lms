@@ -7,22 +7,21 @@ import { SlLock } from "react-icons/sl";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/libs/shadcn";
-import { capitalizeFirstLetter } from "~/utils/helpers";
-import { Status } from "~/constants/enums";
+import { capitalizeFirstLetter, STATUS } from "~/utils/helpers";
 
 type CheckpointProps = {
   checkpoint: ICheckpoint;
 };
 
 export function Checkpoint({ checkpoint }: CheckpointProps) {
-  const LOCKED = checkpoint.status === Status.LOCKED;
-  const IN_PROGRESS = checkpoint.status === Status.IN_PROGRESS;
-  const COMPLETED = checkpoint.status === Status.COMPLETED;
+  const LOCKED = checkpoint.status === STATUS.LOCKED;
+  const IN_PROGRESS = checkpoint.status === STATUS.IN_PROGRESS;
+  const COMPLETED = checkpoint.status === STATUS.COMPLETED;
 
   const checkpointUrl = `/checkpoint/${checkpoint.id}?${
-    checkpoint?.moduleProgressId
-      ? `moduleId=${checkpoint.moduleProgressId}`
-      : `submoduleId=${checkpoint.subModuleProgressId}`
+    checkpoint?.moduleId
+      ? `moduleId=${checkpoint.moduleId}`
+      : `submoduleId=${checkpoint.subModuleId}`
   }`;
 
   return (

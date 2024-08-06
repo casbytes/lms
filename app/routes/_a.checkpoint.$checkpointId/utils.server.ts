@@ -5,8 +5,8 @@ import { prisma } from "~/utils/db.server";
 import { getContentFromGithub } from "~/utils/octokit.server";
 import { getUserId, getUser } from "~/utils/session.server";
 import { ensurePrimary } from "~/utils/litefs.server";
-import { CheckpointStatus, Status } from "~/constants/enums";
 import { cache } from "~/utils/node-cache.server";
+import { CHECKPOINT_STATUS } from "~/utils/helpers";
 
 const { NODE_ENV } = process.env;
 
@@ -118,12 +118,12 @@ export async function getCheckpoint(request: Request, params: Params<string>) {
         id: checkpointId,
         OR: [
           {
-            moduleProgressId: {
+            moduleId: {
               equals: id,
             },
           },
           {
-            subModuleProgressId: {
+            subModuleId: {
               equals: id,
             },
           },
@@ -131,17 +131,16 @@ export async function getCheckpoint(request: Request, params: Params<string>) {
         users: { some: { id: userId } },
       },
       include: {
-        links: true,
-        moduleProgress: {
+        module: {
           include: {
-            courseProgress: true,
+            course: true,
           },
         },
-        subModuleProgress: {
+        subModule: {
           include: {
-            moduleProgress: {
+            module: {
               include: {
-                courseProgress: true,
+                course: true,
               },
             },
           },
@@ -170,13 +169,13 @@ export async function getCheckpoint(request: Request, params: Params<string>) {
       };
     }
 
-    const path = checkpoint?.moduleProgress
+    const path = checkpoint?.module
       ? "checkpoint.mdx"
-      : `${checkpoint?.subModuleProgress?.slug}/checkpoint.mdx`;
+      : `${checkpoint?.subModule?.slug}/checkpoint.mdx`;
 
-    const repo = checkpoint?.moduleProgress
-      ? `${checkpoint?.moduleProgress?.slug}`
-      : (checkpoint?.subModuleProgress?.moduleProgress?.slug as string);
+    const repo = checkpoint?.module
+      ? `${checkpoint?.module?.slug}`
+      : (checkpoint?.subModule?.module?.slug as string);
 
     const { content } = await getContentFromGithub({
       repo,
@@ -271,10 +270,10 @@ async function autoGrade(userId: string, checkpointId: string) {
     prisma.checkpoint.findUnique({
       where: { id: checkpointId },
       include: {
-        moduleProgress: true,
-        subModuleProgress: {
+        module: true,
+        subModule: {
           include: {
-            moduleProgress: true,
+            module: true,
           },
         },
       },
@@ -283,15 +282,15 @@ async function autoGrade(userId: string, checkpointId: string) {
 
   const userGithubUsername = user!.githubUsername;
   const testEnvironment = "node";
-  const checkpointPath = checkpoint?.moduleProgressId
-    ? `${checkpoint.moduleProgress?.title}-checkpoint`
-    : `${checkpoint!.subModuleProgress?.moduleProgress.title}/sub-modules/${
-        checkpoint?.subModuleProgress?.title
+  const checkpointPath = checkpoint?.moduleId
+    ? `${checkpoint.module?.title}-checkpoint`
+    : `${checkpoint!.subModule?.module.title}/sub-modules/${
+        checkpoint?.subModule?.title
       }-checkpoint`;
 
-  const checkpointRepo = checkpoint?.moduleProgressId
-    ? checkpoint.moduleProgress?.title
-    : checkpoint!.subModuleProgress?.moduleProgress.title;
+  const checkpointRepo = checkpoint?.moduleId
+    ? checkpoint.module?.title
+    : checkpoint!.subModule?.module.title;
 
   const baseUrl =
     NODE_ENV === "production"
@@ -335,7 +334,7 @@ async function submitTask(checkpointId: string, userId: string) {
       },
     },
     data: {
-      status: CheckpointStatus.SUBMITTED,
+      status: CHECKPOINT_STATUS.IN_PROGRESS,
     },
   });
   if (!checkpoint) {
@@ -353,7 +352,7 @@ async function submitTask(checkpointId: string, userId: string) {
  * @param checkpointId - The ID of the checkpoint to update the next module or sub module progress
  * @param userId - The ID of the user to update the next module or sub module progress for
  */
-async function updateNextModuleOrSubModuleProgress(
+async function updateNextModuleOrSubModule(
   userId: string,
   checkpointId: string,
   data?: ApiResponse

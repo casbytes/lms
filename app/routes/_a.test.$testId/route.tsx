@@ -53,8 +53,8 @@ export default function TestRoute() {
     Array(questions.length).fill([])
   );
 
-  const moduleProgressId = test?.moduleProgressId;
-  const subModuleProgressId = test?.subModuleProgressId;
+  const moduleId = test?.moduleId;
+  const subModuleId = test?.subModuleId;
 
   /**
    * Calculates the scores of the user based on the answers provided
@@ -100,8 +100,8 @@ export default function TestRoute() {
         {
           testId: test.id,
           intent: "submit",
-          moduleProgressId: moduleProgressId ?? null,
-          subModuleProgressId: subModuleProgressId ?? null,
+          moduleId: moduleId ?? null,
+          subModuleId: subModuleId ?? null,
           score: getUserScore().toFixed(0),
         },
         { method: "POST" }
@@ -113,17 +113,17 @@ export default function TestRoute() {
     });
   }
 
-  const moduleTest = test?.moduleProgressId ? true : false;
+  const moduleTest = test?.moduleId ? true : false;
   const defaultTitle = "Matters choke!";
   const testTitle = test.title ?? defaultTitle;
 
   const moduleOrSubModuleTitle = moduleTest
-    ? test?.moduleProgress?.title
-    : test?.subModuleProgress?.title ?? defaultTitle;
+    ? test?.module?.title
+    : test?.subModule?.title ?? defaultTitle;
 
   const moduleOrSubModuleUrl = moduleTest
-    ? `/courses/${test?.moduleProgressId}`
-    : `/sub-modules/${test?.subModuleProgressId}`;
+    ? `/courses/${test?.moduleId}`
+    : `/sub-modules/${test?.subModuleId}`;
 
   const currentQuestion = questions[currentQuestionIndex];
   const currentAnswer = userAnswers[currentQuestionIndex];

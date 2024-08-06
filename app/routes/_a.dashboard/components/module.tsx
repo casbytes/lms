@@ -2,7 +2,7 @@ import { TableCell, TableRow } from "~/components/ui/table";
 import { capitalizeFirstLetter } from "~/utils/helpers";
 import { ConfirmationDialog } from "./confirmation-dialog";
 import type { User } from "~/utils/db.server";
-import type { Module } from "../utils.server";
+import type { GithubModule } from "../utils.server";
 
 export function Module({
   user,
@@ -10,14 +10,14 @@ export function Module({
   inCatalog,
 }: {
   user: User;
-  module: Module;
+  module: GithubModule;
   inCatalog: boolean;
 }) {
   const moduleWithType = { ...module, type: "module" as const };
   return (
-    <TableRow className="w-full">
+    <TableRow className="w-full flex justify-between">
       <TableCell>{capitalizeFirstLetter(module.title)}</TableCell>
-      <TableCell className="flex gap-6 items-center justify-end">
+      <TableCell>
         <ConfirmationDialog
           user={user}
           item={moduleWithType}

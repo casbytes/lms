@@ -5,8 +5,7 @@ import { FaProjectDiagram } from "react-icons/fa";
 import { LuCircleDotDashed } from "react-icons/lu";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/libs/shadcn";
-import { capitalizeFirstLetter } from "~/utils/helpers";
-import { Status } from "~/constants/enums";
+import { capitalizeFirstLetter, STATUS } from "~/utils/helpers";
 
 type ProjectProps = {
   user: User;
@@ -14,19 +13,19 @@ type ProjectProps = {
 };
 
 export function Project({ project, user }: ProjectProps) {
-  const isActive = user.subscribed;
-  const completed = project?.status === Status.COMPLETED;
-  const inProgress = project?.status === Status.IN_PROGRESS;
-  const locked = project?.status === Status.LOCKED || !isActive;
+  const IS_ACTIVE = user.subscribed;
+  const COMPLETED = project?.status === STATUS.COMPLETED;
+  const IN_PROGRESS = project?.status === STATUS.IN_PROGRESS;
+  const LOCKED = project?.status === STATUS.LOCKED || !IS_ACTIVE;
   return (
     <div className="w-full">
       <Button
-        // disabled={locked}
-        aria-label={project?.title}
+        // disabled={LOCKED}
+        aria-label={project.title}
         className={cn(
           "overflow-x-auto flex border-l-8 border-b-2 text-zinc-700 border-zinc-500 bg-zinc-200 hover:bg-zinc-300 justify-between w-full text-lg",
           {
-            "border-sky-600": completed,
+            "border-sky-600": COMPLETED,
           }
         )}
       >
@@ -35,24 +34,24 @@ export function Project({ project, user }: ProjectProps) {
           className="flex gap-4 items-center"
         >
           <div className="sr-only">project status</div>
-          {locked ? (
+          {LOCKED ? (
             <FaProjectDiagram size={20} />
-          ) : inProgress ? (
+          ) : IN_PROGRESS ? (
             <LuCircleDotDashed size={20} />
           ) : (
             <FaProjectDiagram
               className={cn("text-zinc-600", {
-                "text-sky-700": completed,
+                "text-sky-700": COMPLETED,
               })}
               size={20}
             />
           )}
           <div className="flex items-center gap-4">
-            {capitalizeFirstLetter(project?.title ?? "Matters choke!")}{" "}
+            {capitalizeFirstLetter(project.title)}{" "}
           </div>{" "}
         </Link>
 
-        {!isActive ? (
+        {!IS_ACTIVE ? (
           <BsLockFill className="text-zinc-500 absolute sm:static right-8" />
         ) : (
           <BsUnlockFill className="text-zinc-500 absolute sm:static right-8" />

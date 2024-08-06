@@ -1,126 +1,103 @@
 import React from "react";
 import { Await } from "@remix-run/react";
-import { ImSpinner2 } from "react-icons/im";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "~/components/ui/table";
+import type { GithubModule } from "../utils.server";
+import { User } from "~/utils/db.server";
+import { PendingCard } from "./pending-card";
 import { Module } from "./module";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "~/components/ui/accordion";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import { capitalizeFirstLetter } from "~/utils/helpers";
-import type { Course, Module as IModule } from "../utils.server";
-import { User } from "~/utils/db.server";
-
-type CourseWithModules = Course & {
-  modules: IModule[];
-};
+import { ModuleSearchInput } from "./module-search-input";
+import { ConfirmationDialog } from "./confirmation-dialog";
+import { Separator } from "~/components/ui/separator";
 
 type ModulesProps = {
   user: User;
-  courseData: Promise<{ courses: CourseWithModules[]; inCatalog: boolean }>;
+  moduleData: Promise<{ modules: GithubModule[]; inCatalog: boolean }>;
 };
 
-export function Modules({ courseData, user }: ModulesProps) {
+export function Modules({ moduleData, user }: ModulesProps) {
   return (
     <React.Suspense fallback={<PendingCard />}>
-      <Await resolve={courseData}>
-        {(courseData) => (
-          <div>
-            <div className="rounded-md bg-cyan-300/30 p-6 flex flex-col items-center">
-              <h2 className="text-xl font-bold mb-4 text-cyan-600">Modules</h2>
-              <Dialog>
-                <div className="w-full">
-                  <Button className="w-full" asChild>
-                    <DialogTrigger className="w-full bg-cyan-600 hover:bg-cyan-500">
-                      View Modules
-                    </DialogTrigger>
-                  </Button>
-                  <p className="mt-2 max-w-xs text-center mx-auto text-slate-600 text-sm">
-                    Click the button above to view all modules.
-                  </p>
-                </div>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-scroll">
-                  <DialogTitle>Courses</DialogTitle>
-                  <Accordion type="single" collapsible>
-                    {courseData.courses && courseData.courses?.length ? (
-                      courseData.courses.map((course) => (
-                        <AccordionItem value={course.title!} key={course.id}>
-                          <AccordionTrigger className="text-lg">
-                            {capitalizeFirstLetter(course.title!)}
-                          </AccordionTrigger>
-                          <AccordionContent>
-                            <Table>
-                              <TableHeader>
-                                <TableRow className="w-full">
-                                  <TableHead>Module Title</TableHead>
-                                  <TableHead className="flex gap-6 items-center justify-end">
-                                    {/* 🤷‍♂️  */}
-                                    Add to catalog
-                                  </TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody className="text-slate-600 font-black">
-                                {course.modules?.length ? (
-                                  course.modules.map((module) => (
-                                    <Module
-                                      user={user}
-                                      key={module.id}
-                                      module={module}
-                                      inCatalog={courseData.inCatalog}
-                                    />
-                                  ))
-                                ) : (
-                                  <TableRow>
-                                    <TableCell colSpan={2}>
-                                      No modules available
-                                    </TableCell>
-                                  </TableRow>
-                                )}
-                              </TableBody>
-                            </Table>
-                          </AccordionContent>
-                        </AccordionItem>
+      <Await resolve={moduleData}>
+        {(moduleData) => {
+          const { inCatalog, modules } = moduleData;
+
+          return (
+            <div>
+              <div className="rounded-md bg-slate-300/30 p-2 h-full flex flex-col items-center shadow-lg">
+                <Dialog>
+                  <div className="w-full flex flex-col">
+                    <div className="flex justify-between items-center mb-2">
+                      <DialogTitle>Modules</DialogTitle>
+                      {modules?.length ? (
+                        <Button
+                          size={"sm"}
+                          variant={"secondary"}
+                          className="self-end"
+                          asChild
+                        >
+                          <DialogTrigger>View All</DialogTrigger>
+                        </Button>
+                      ) : null}
+                    </div>
+                    <Separator className="mb-2" />
+                    <ul className="space-y-1">
+                      {modules?.length ? (
+                        modules.slice(0, 6).map((module, index: number) => (
+                          <li
+                            key={module.id}
+                            className="flex justify-between text-sm"
+                          >
+                            {index + 1}. {capitalizeFirstLetter(module.title)}
+                            <div>
+                              <ConfirmationDialog
+                                item={{ ...module, type: "module" as const }}
+                                inCatalog={inCatalog}
+                              />
+                            </div>
+                          </li>
+                        ))
+                      ) : (
+                        <li className="text-center text-sm text-slate-500 mt-4">
+                          No modules in your catalog.
+                          <br />
+                          Add a module to your catalog to begin.
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-scroll">
+                    <DialogTitle>Modules</DialogTitle>
+                    <ModuleSearchInput searchValue="module" />
+                    {modules?.length ? (
+                      modules.map((module) => (
+                        <Module
+                          module={module}
+                          key={module.id}
+                          user={user}
+                          inCatalog={inCatalog}
+                        />
                       ))
                     ) : (
-                      <p>No courses available</p>
+                      <p className="text-center text-sm text-slate-500 mt-4">
+                        No modules in your catalog.
+                        <br />
+                        Add a module to your catalog to begin.
+                      </p>
                     )}
-                  </Accordion>
-                  <DialogFooter>
-                    <Button variant={"outline"} asChild>
-                      <DialogTrigger>Close</DialogTrigger>
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        }}
       </Await>
     </React.Suspense>
-  );
-}
-
-function PendingCard() {
-  return (
-    <div className="w-full flex items-center justify-center p-16 bg-indigo-200/30 rounded-md">
-      <ImSpinner2 size={50} className="animate-spin text-slate-600 " />
-    </div>
   );
 }

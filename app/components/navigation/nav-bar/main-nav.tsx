@@ -81,8 +81,9 @@ export function MainNav({
                         key={`${item.href}-${index}`}
                         to={item.href}
                         aria-label={item.label}
+                        prefetch="intent"
                         className={({ isActive }) =>
-                          isActive ? "text-blue-600 rounded-md" : ""
+                          isActive ? "text-blue-600" : ""
                         }
                       >
                         <Button variant="link" className="text-lg capitalize">

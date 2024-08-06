@@ -1,11 +1,11 @@
 import React from "react";
 import { Await } from "@remix-run/react";
 import { SubModule } from "./sub-module";
-import type { User, SubModuleProgress } from "~/utils/db.server";
+import type { User, SubModule as ISubModule } from "~/utils/db.server";
 
 type SubModulesProps = {
   user: User;
-  subModules: Promise<SubModuleProgress[]>;
+  subModules: Promise<ISubModule[]>;
   isPremium?: boolean;
 };
 
@@ -15,7 +15,7 @@ export function SubModules({ subModules, isPremium, user }: SubModulesProps) {
       <Await resolve={subModules}>
         {(subModules) => (
           <div className="flex flex-col gap-6">
-            {subModules.length ? (
+            {subModules?.length ? (
               subModules.map((submodule, index: number) => (
                 <SubModule
                   key={submodule.id}

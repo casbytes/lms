@@ -1,6 +1,6 @@
 import React from "react";
 import type {
-  ModuleProgress,
+  Module,
   Project as IProject,
   User,
   Badge,
@@ -15,7 +15,7 @@ import { BadgeGallery, Modules } from "~/components/modules";
 type CourseSideContentProps = {
   user: User;
   project: IProject;
-  modules: Promise<ModuleProgress[]>;
+  modules: Promise<Module[]>;
   badges: Promise<Badge[]>;
 };
 

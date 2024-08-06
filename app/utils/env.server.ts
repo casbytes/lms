@@ -13,9 +13,11 @@ export const schema = z.object({
   GITHUB_TOKEN: z.string(),
   RESEND_API_KEY: z.string(),
   STRIPE_SECRET_KEY: z.string(),
+  STRIPE_WEBHOOK_SECRET: z.string(),
 });
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace NodeJS {
     interface ProcessEnv extends z.infer<typeof schema> {}
   }
@@ -25,6 +27,7 @@ export function init() {
   const parsed = schema.safeParse(process.env);
 
   if (parsed.success === false) {
+    // eslint-disable-next-line no-console
     console.error(
       "❌ Invalid environment variables:",
       parsed.error.flatten().fieldErrors
@@ -44,6 +47,7 @@ export function getEnv() {
 type ENV = ReturnType<typeof getEnv>;
 
 declare global {
+  // eslint-disable-next-line no-var
   var ENV: ENV;
   interface Window {
     ENV: ENV;

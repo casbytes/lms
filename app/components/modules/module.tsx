@@ -1,5 +1,5 @@
 import { useNavigation, useSearchParams, useSubmit } from "@remix-run/react";
-import type { User, ModuleProgress } from "~/utils/db.server";
+import { type User, type Module as IModule } from "~/utils/db.server";
 import { SheetClose } from "../ui/sheet";
 import { Button } from "../ui/button";
 import { cn } from "~/libs/shadcn";
@@ -7,13 +7,12 @@ import { CgSpinnerTwo } from "react-icons/cg";
 import { SlLock } from "react-icons/sl";
 import { LuCircleDotDashed } from "react-icons/lu";
 import { FiCheckCircle } from "react-icons/fi";
-import { capitalizeFirstLetter } from "~/utils/helpers";
+import { capitalizeFirstLetter, STATUS } from "~/utils/helpers";
 import { BsLockFill, BsUnlockFill } from "react-icons/bs";
-import { Status } from "~/constants/enums";
 
 type ModuleItemProps = {
   user: User;
-  module: ModuleProgress;
+  module: IModule;
 };
 
 export function Module({ module, user }: ModuleItemProps) {
@@ -30,10 +29,10 @@ export function Module({ module, user }: ModuleItemProps) {
   /**
    * The user is not subscribed and the module is premium (paid)
    */
-  const locked =
-    module.status === Status.LOCKED || (!isSubscribed && isPremium);
-  const COMPLETED = module.status === Status.COMPLETED;
-  const IN_PROGRESS = module.status === Status.IN_PROGRESS;
+  const LOCKED =
+    module.status === STATUS.LOCKED || (!isSubscribed && isPremium);
+  const COMPLETED = module.status === STATUS.COMPLETED;
+  const IN_PROGRESS = module.status === STATUS.IN_PROGRESS;
 
   return (
     <li className="w-full">
@@ -54,7 +53,7 @@ export function Module({ module, user }: ModuleItemProps) {
             <div className="sr-only">Module status</div>
             {module.id === moduleId ? (
               <CgSpinnerTwo size={20} className="animate-spin" />
-            ) : locked ? (
+            ) : LOCKED ? (
               <SlLock size={20} />
             ) : IN_PROGRESS ? (
               <LuCircleDotDashed size={20} />

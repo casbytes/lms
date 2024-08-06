@@ -37,7 +37,7 @@ export function Div(props: React.HTMLAttributes<HTMLDivElement>): JSX.Element {
   const { className, children, ...rest } = props;
 
   if (className) {
-    if (className.includes("remark-container info")) {
+    if (className.includes("remark-container tip")) {
       return (
         <div
           className={cn(

@@ -1,18 +1,14 @@
-import { useSubmit, useNavigation, useNavigate } from "@remix-run/react";
-import type {
-  LessonProgress,
-  ModuleProgress,
-  SubModuleProgress,
-} from "~/utils/db.server";
+import { useNavigate, useSearchParams, useFetcher } from "@remix-run/react";
+import type { Lesson, Module, SubModule } from "~/utils/db.server";
 import { FaSpinner } from "react-icons/fa6";
 import { FiCheckCircle } from "react-icons/fi";
 import { RiArrowLeftSLine, RiArrowRightSLine } from "react-icons/ri";
 import { Button } from "~/components/ui/button";
-import { Status } from "~/constants/enums";
+import { STATUS } from "~/utils/helpers";
 
-type LessonWithModule = LessonProgress & {
-  subModuleProgress: SubModuleProgress & {
-    moduleProgress: ModuleProgress;
+type LessonWithModule = Lesson & {
+  subModule: SubModule & {
+    module: Module;
   };
 };
 
@@ -25,26 +21,37 @@ type PaginationProps = {
 };
 
 export function Pagination({ currentLessonData }: PaginationProps) {
-  const submit = useSubmit();
+  const f = useFetcher();
   const navigate = useNavigate();
-  const navigation = useNavigation();
-  const lessonSlug = navigation.formData?.get("lessonSlug");
+  const [, setSearchParams] = useSearchParams();
+  const lessonId = f.formData?.get("lessonId");
   const { previousLesson, currentLesson, nextLesson } = currentLessonData;
-  const moduleTitle = currentLesson.subModuleProgress?.moduleProgress?.title;
-  const redirectUrl = `/courses/${currentLesson?.subModuleProgress?.moduleProgress?.courseProgressId}?moduleId=${currentLesson?.subModuleProgress?.moduleProgressId}`;
+  const moduleTitle = currentLesson.subModule?.module?.title;
+  const redirectUrl = `/courses/${currentLesson?.subModule?.module?.courseId}?moduleId=${currentLesson?.subModule?.moduleId}`;
+
+  function handleSetSearchParams(lessonId: string) {
+    setSearchParams((params) => {
+      params.set("lessonId", lessonId);
+      return params;
+    });
+  }
+
+  function submit(lessonId: string) {
+    f.submit({ lessonId }, { method: "post" });
+  }
 
   return (
     <div className="flex flex-col gap-4 md:flex-row justify-between">
       {previousLesson ? (
         <Button
-          onClick={() => submit({ lessonSlug: previousLesson.slug })}
+          onClick={() => handleSetSearchParams(previousLesson.id)}
           variant="outline"
           aria-label={previousLesson.title}
           className="flex items-center"
-          disabled={lessonSlug === previousLesson.slug}
+          disabled={lessonId === previousLesson.id}
         >
           <>
-            {lessonSlug === previousLesson.slug ? (
+            {lessonId === previousLesson.id ? (
               <FaSpinner size={20} className="mr-4 text-sky-600 animate-spin" />
             ) : (
               <RiArrowLeftSLine size={20} className="inline h-6 w-6" />
@@ -68,15 +75,18 @@ export function Pagination({ currentLessonData }: PaginationProps) {
 
       {nextLesson ? (
         <Button
-          onClick={() => submit({ lessonSlug: nextLesson.slug })}
+          onClick={() => {
+            submit(currentLesson.id);
+            handleSetSearchParams(nextLesson.id);
+          }}
           variant="outline"
           aria-label={nextLesson.title}
           className="flex items-center"
-          disabled={lessonSlug === nextLesson.slug}
+          disabled={lessonId === nextLesson.id}
         >
           <>
             {nextLesson.title}{" "}
-            {lessonSlug === nextLesson.slug ? (
+            {lessonId === nextLesson.id ? (
               <FaSpinner size={20} className="ml-4 text-sky-600 animate-spin" />
             ) : (
               <RiArrowRightSLine size={20} className="inline h-6 w-6" />
@@ -85,17 +95,20 @@ export function Pagination({ currentLessonData }: PaginationProps) {
         </Button>
       ) : (
         <Button
-          onClick={() => submit({ lessonSlug: currentLesson.slug })}
+          onClick={() => {
+            submit(currentLesson.id);
+            handleSetSearchParams(currentLesson.id);
+          }}
           variant="outline"
           aria-label={currentLesson.title}
           className="flex items-center"
           disabled={
-            currentLesson.status === Status.COMPLETED ||
-            lessonSlug === currentLesson.slug
+            currentLesson.status === STATUS.COMPLETED ||
+            lessonId === currentLesson.id
           }
         >
           <>
-            {lessonSlug === currentLesson.slug ? (
+            {lessonId === currentLesson.id ? (
               <FaSpinner size={20} className="mr-4 text-sky-600 animate-spin" />
             ) : (
               <FiCheckCircle className="inline h-6 w-6 mr-4 text-blue-600" />

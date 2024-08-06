@@ -1,5 +1,10 @@
 import React from "react";
-import { Outlet, useLoaderData, useSearchParams } from "@remix-run/react";
+import {
+  Outlet,
+  useLoaderData,
+  useMatches,
+  useSearchParams,
+} from "@remix-run/react";
 import { Footer } from "~/components/footer";
 import { AuthDialog } from "./components/auth-dialog";
 import { ActionFunctionArgs } from "@remix-run/node";
@@ -17,6 +22,8 @@ export async function loader({ request }: ActionFunctionArgs) {
 export default function UnAuthApp() {
   const { response } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
+  const matches = useMatches();
+  const indexRoute = matches.every((match) => match.pathname === "/");
 
   React.useEffect(() => {
     if (response) {
@@ -46,14 +53,14 @@ export default function UnAuthApp() {
   React.useEffect(() => {
     const params = ["email", "error", "success"];
     for (const param of params) {
-      if (searchParams.has(param)) {
+      if (searchParams.has(param) && indexRoute) {
         setSearchParams((params) => {
           params.delete(param);
           return params;
         });
       }
     }
-  }, [searchParams, setSearchParams]);
+  }, [indexRoute, searchParams, setSearchParams]);
 
   return (
     <>

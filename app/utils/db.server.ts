@@ -10,34 +10,25 @@ import {
   Module,
   SubModule,
   Lesson,
-  CourseProgress,
-  ModuleProgress,
-  SubModuleProgress,
-  LessonProgress,
   Badge,
   Checkpoint,
   Test as ITest,
   Project,
-  Link,
-  TaskComment,
-  Event as PEvent,
 } from "@prisma/client";
-
-export const prisma = remember("prisma", () => new PrismaClient());
 
 type User = Omit<PUser, "createdAt" | "updatedAt"> & {
   createdAt: Date | string;
   updatedAt: Date | string;
 };
 
-type Event = Omit<PEvent, "createdAt" | "updatedAt" | "eventDate"> & {
-  createdAt: Date | string;
-  updatedAt: Date | string;
-  eventDate: Date | string;
-};
-
 type Test = Omit<ITest, "nextAttemptAt"> & {
   nextAttemptAt: Date | string | null;
+};
+
+type MDX = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: { [key: string]: any };
+  content: string;
 };
 
 export type {
@@ -48,15 +39,39 @@ export type {
   Module,
   SubModule,
   Lesson,
-  CourseProgress,
-  ModuleProgress,
-  SubModuleProgress,
-  LessonProgress,
   Badge,
   Checkpoint,
   Test,
   Project,
-  Link,
-  TaskComment,
-  Event,
+  MDX,
 };
+
+export const prisma = remember("prisma", () => {
+  const logThreshold = 20;
+
+  const client = new PrismaClient({
+    log: [
+      { level: "query", emit: "event" },
+      { level: "error", emit: "stdout" },
+      { level: "warn", emit: "stdout" },
+    ],
+  });
+  client.$on("query", async (e) => {
+    if (e.duration < logThreshold) return;
+    const color =
+      e.duration < logThreshold * 1.1
+        ? "green"
+        : e.duration < logThreshold * 1.2
+        ? "blue"
+        : e.duration < logThreshold * 1.3
+        ? "yellow"
+        : e.duration < logThreshold * 1.4
+        ? "redBright"
+        : "red";
+    const dur = chalk[color](`${e.duration}ms`);
+    // eslint-disable-next-line no-console
+    console.info(`prisma:query - ${dur} - ${e.query}`);
+  });
+  void client.$connect();
+  return client;
+});

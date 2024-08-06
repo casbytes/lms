@@ -19,7 +19,12 @@ export function LinkList({ links, deleteLink }: LinkListProps) {
                 key={`${link}-${index}`}
                 className="flex justify-between items-center"
               >
-                <Link target="_blank" className="text-blue-600" to={link}>
+                <Link
+                  target="_blank"
+                  className="text-blue-600"
+                  to={link}
+                  rel="noreferrer"
+                >
                   {link}
                 </Link>
                 <Button

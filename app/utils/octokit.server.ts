@@ -1,10 +1,6 @@
 import { Octokit } from "@octokit/rest";
-import { remember } from "@epic-web/remember";
 
-export const octokit = remember(
-  "octokit",
-  () => new Octokit({ auth: process.env.GITHUB_TOKEN })
-);
+export const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
 interface GCFProps {
   repo: string;
   path: string;

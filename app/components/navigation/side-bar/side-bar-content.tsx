@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { Link } from "@remix-run/react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
 import { FiLogOut } from "react-icons/fi";

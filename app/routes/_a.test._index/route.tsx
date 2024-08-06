@@ -16,18 +16,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export default function TestIndexRoute() {
   const test = useLoaderData<typeof loader>();
-  const moduleTest = test?.moduleProgressId ? true : false;
+  const moduleTest = test?.moduleId ? true : false;
 
   const defaultTitle = "Matters choke!";
   const testTitle = test.title ?? defaultTitle;
 
   const moduleOrSubModuleTitle = moduleTest
-    ? test?.moduleProgress?.title
-    : test?.subModuleProgress?.title ?? defaultTitle;
+    ? test?.module?.title
+    : test?.subModule?.title ?? defaultTitle;
 
   const moduleOrSubModuleUrl = moduleTest
-    ? `/courses/${test?.moduleProgress?.courseProgressId}?moduleId=${test?.moduleProgressId}`
-    : `/sub-modules/${test?.subModuleProgressId}`;
+    ? `/courses/${test?.module?.courseId}?moduleId=${test?.moduleId}`
+    : `/sub-modules/${test?.subModuleId}`;
 
   return (
     <Container className="max-w-6xl bg-header-2 bg-no-repeat min-h-screen relative">
@@ -63,9 +63,9 @@ export default function TestIndexRoute() {
         >
           <Link
             to={`/test/${test.id}?${
-              test?.moduleProgressId
-                ? `moduleId=${test.moduleProgressId}`
-                : `submoduleId=${test.subModuleProgressId}`
+              test?.moduleId
+                ? `moduleId=${test.moduleId}`
+                : `submoduleId=${test.subModuleId}`
             }`}
             className="w-full"
           >

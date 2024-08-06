@@ -36,12 +36,12 @@ export function DeleteConfirmationDialog({
   };
   return (
     <Dialog>
-      <Button size="sm" variant={"ghost"} className="py-1 font-black" asChild>
+      <Button size="sm" variant={"ghost"} className="font-black" asChild>
         <DialogTrigger disabled={isDeleting}>
           {isDeleting && currentItemId === itemId ? (
-            <CgSpinnerTwo size={20} className="animate-spin" />
+            <CgSpinnerTwo size={15} className="animate-spin" />
           ) : (
-            <MdDeleteForever size={20} className="text-red-500" />
+            <MdDeleteForever size={15} className="text-red-500" />
           )}{" "}
         </DialogTrigger>
       </Button>

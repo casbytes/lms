@@ -15,12 +15,12 @@ export async function getTest(request: Request) {
       where: {
         OR: [
           {
-            moduleProgressId: {
+            moduleId: {
               equals: id,
             },
           },
           {
-            subModuleProgressId: {
+            subModuleId: {
               equals: id,
             },
           },
@@ -28,8 +28,8 @@ export async function getTest(request: Request) {
         users: { some: { id: userId } },
       },
       include: {
-        moduleProgress: true,
-        subModuleProgress: true,
+        module: true,
+        subModule: true,
       },
     });
     if (!test) {

@@ -11,7 +11,7 @@ type AccountDetailsProps = {
 
 export function AccountDetails({ user }: AccountDetailsProps) {
   return (
-    <div className="rounded-md bg-gray-300/50 p-6 flex flex-col justify-center items-center">
+    <div className="rounded-md bg-gray-300/50 p-6 flex flex-col justify-center items-center border border-gray-500 shadow-lg">
       <h2 className="text-2xl font-bold mb-4">Account details</h2>
       <Table>
         <TableBody className="text-lg text-slate-600">

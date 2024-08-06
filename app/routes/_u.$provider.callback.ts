@@ -4,6 +4,7 @@ import { ensurePrimary } from "litefs-js/remix";
 import { handleMagiclinkAuth } from "~/utils/session.server";
 
 const { NODE_ENV } = process.env;
+const P_MODE = NODE_ENV === "production";
 
 export async function loader(loaderArgs: LoaderFunctionArgs) {
   try {
@@ -11,7 +12,7 @@ export async function loader(loaderArgs: LoaderFunctionArgs) {
       loaderArgs.params.provider && loaderArgs.params.provider === "magic-link",
       "Invalid provider."
     );
-    if (NODE_ENV === "production") {
+    if (P_MODE) {
       await ensurePrimary();
     }
     return handleMagiclinkAuth(loaderArgs);

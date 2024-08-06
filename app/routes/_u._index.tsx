@@ -10,8 +10,8 @@ import {
   sessionKey,
 } from "~/utils/session.server";
 import { toast } from "~/components/ui/use-toast";
-import { Role } from "~/constants/enums";
 import { metaFn } from "~/utils/meta";
+import { ROLE } from "~/utils/helpers";
 
 export const meta = metaFn;
 
@@ -22,8 +22,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
     if (session.has(sessionKey)) {
       const user = await getUser(request);
       const redirectUrl =
-        user.role === Role.USER ? user?.currentUrl ?? "/dashboard" : "/a";
-      return redirect(redirectUrl);
+        user.role === ROLE.USER
+          ? !user.completedOnboarding
+            ? "/onboarding"
+            : user.currentUrl ?? "/dashboard"
+          : "/a";
+      throw redirect(redirectUrl);
     }
     if (session.has("error")) {
       error = session.get("error");

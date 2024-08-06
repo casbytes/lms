@@ -36,7 +36,7 @@ export default function Profile() {
 
   React.useEffect(() => {
     if (ad) {
-      if (ad?.success) {
+      if (ad.success) {
         toast({
           title: "Profile updated",
         });

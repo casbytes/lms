@@ -1,12 +1,7 @@
 import { LuLayoutDashboard } from "react-icons/lu";
 import { GoProjectRoadmap } from "react-icons/go";
-import {
-  FaRegCalendarCheck,
-  FaRegCircleUser,
-  FaRegCreditCard,
-  FaUsers,
-} from "react-icons/fa6";
-import { FaProjectDiagram, FaTasks } from "react-icons/fa";
+import { FaRegCircleUser, FaRegCreditCard, FaUsers } from "react-icons/fa6";
+import { FaTasks } from "react-icons/fa";
 export { RootLayout } from "./root-layout";
 
 export const unAuthMenuItems = [
@@ -25,12 +20,6 @@ export const userMenuItems = [
     icon: <GoProjectRoadmap size={30} />,
     label: "onboarding",
     href: "onboarding",
-  },
-
-  {
-    icon: <FaRegCalendarCheck size={30} />,
-    label: "events",
-    href: "events",
   },
   {
     icon: <FaRegCreditCard size={30} />,
@@ -56,20 +45,9 @@ export const adminMenuItems = [
     href: "a/tasks",
   },
   {
-    icon: <FaProjectDiagram size={30} />,
-    label: "projects",
-    href: "a/projects",
-  },
-  {
     icon: <FaUsers size={30} />,
     label: "users",
     href: "a/users",
-  },
-
-  {
-    icon: <FaRegCalendarCheck size={30} />,
-    label: "events",
-    href: "a/events",
   },
   {
     icon: <FaRegCircleUser size={30} />,

@@ -7,8 +7,8 @@ import { Test } from "~/components/test";
 
 type AssessmentProps = {
   item: {
-    test: ITest;
-    checkpoint: ICheckpoint;
+    test: ITest | null;
+    checkpoint: ICheckpoint | null;
   };
 };
 
@@ -16,8 +16,8 @@ export function Assessment({ item }: AssessmentProps) {
   const { test, checkpoint } = item;
   return (
     <div className="flex flex-col gap-4">
-      <Test test={test} />
-      <Checkpoint checkpoint={checkpoint} />
+      {test ? <Test test={test} /> : null}
+      {checkpoint ? <Checkpoint checkpoint={checkpoint} /> : null}
     </div>
   );
 }

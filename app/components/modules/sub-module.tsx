@@ -1,16 +1,15 @@
 import { Link, useMatches } from "@remix-run/react";
-import type { User, SubModuleProgress } from "~/utils/db.server";
+import { type User, type SubModule as ISubmodule } from "~/utils/db.server";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/libs/shadcn";
 import { LuCircleDotDashed } from "react-icons/lu";
 import { FiCheckCircle } from "react-icons/fi";
 import { SlLock } from "react-icons/sl";
-import { capitalizeFirstLetter } from "~/utils/helpers";
-import { Status } from "~/constants/enums";
+import { capitalizeFirstLetter, STATUS } from "~/utils/helpers";
 
 type SubModuleItemProps = {
   user: User;
-  submodule: SubModuleProgress;
+  submodule: ISubmodule;
   isPremium?: boolean;
   index: number;
 };
@@ -23,9 +22,9 @@ export function SubModule({
 }: SubModuleItemProps) {
   const isSubscribed = user.subscribed;
   const LOCKED =
-    submodule.status === Status.LOCKED || (!isSubscribed && isPremium);
-  const IN_PROGRESS = submodule.status === Status.IN_PROGRESS;
-  const COMPLETED = submodule.status === Status.COMPLETED;
+    submodule.status === STATUS.LOCKED || (!isSubscribed && isPremium);
+  const IN_PROGRESS = submodule.status === STATUS.IN_PROGRESS;
+  const COMPLETED = submodule.status === STATUS.COMPLETED;
 
   const matches = useMatches();
 

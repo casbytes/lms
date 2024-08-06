@@ -6,14 +6,10 @@ import { Link } from "@remix-run/react";
 export function MembershipCard({ user }: { user: User }) {
   const isSubscribed = user.subscribed;
   return (
-    <div className="rounded-md bg-orange-300/35 p-6 flex flex-col items-center">
-      <h2 className="text-2xl mb-4 text-orange-500">Membership</h2>
-      {isSubscribed ? (
-        <FaLockOpen className="h-12 w-12 text-orange-400" />
-      ) : (
-        <FaLock className="font-bold h-12 w-12 text-orange-400" />
-      )}
-      <p className="text-lg text-slate-600 text-center max-w-xs mt-4">
+    <div className="rounded-md bg-orange-300/35 p-4 flex flex-col items-center border-orange-500 border shadow-lg">
+      <h2 className="mb-4 text-orange-500">Membership</h2>
+
+      <p className=" text-slate-600 text-center max-w-xs mt-4">
         {isSubscribed
           ? "You have unlocked all courses. Enjoy your learning experience."
           : "Subscribe now to access all courses."}
@@ -23,7 +19,12 @@ export function MembershipCard({ user }: { user: User }) {
         size="lg"
         className="mt-4 bg-orange-300/50 hover:bg-orange-200 text-orange-600"
       >
-        <Link to="/subscription">
+        <Link to="/subscription" className="flex gap-4 items-center">
+          {isSubscribed ? (
+            <FaLockOpen className="h-6 w-6 text-orange-400" />
+          ) : (
+            <FaLock className="font-bold h-6 w-6 text-orange-400" />
+          )}
           {isSubscribed ? "Subscribed" : "Subscribe"}
         </Link>
       </Button>

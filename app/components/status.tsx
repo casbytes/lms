@@ -3,11 +3,10 @@ import { SlLock } from "react-icons/sl";
 import { FiCheckCircle } from "react-icons/fi";
 import { LuCircleDotDashed, LuSigmaSquare } from "react-icons/lu";
 import { Badge } from "./ui/badge";
-import { Status as IStatus } from "~/constants/enums";
-import { BsLockFill, BsUnlockFill } from "react-icons/bs";
+import { STATUS } from "~/utils/helpers";
 
 type ItemProps = {
-  status: IStatus;
+  status: STATUS;
 };
 
 type ACCProps = {
@@ -18,19 +17,19 @@ type ACCProps = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function Status({ status }: any) {
+export function Status({ status }: { status: any }) {
   const memoizedModuleStatus = React.useMemo(() => {
     if (!status) return { completed: 0, inProgress: 0, locked: 0, total: 0 };
     return status.reduce(
       (acc: ACCProps, item: ItemProps) => {
-        switch (item.status as IStatus) {
-          case IStatus.COMPLETED:
+        switch (item.status as STATUS) {
+          case STATUS.COMPLETED:
             acc.completed++;
             break;
-          case IStatus.IN_PROGRESS:
+          case STATUS.IN_PROGRESS:
             acc.inProgress++;
             break;
-          case IStatus.LOCKED:
+          case STATUS.LOCKED:
             acc.locked++;
             break;
         }
@@ -43,14 +42,6 @@ export function Status({ status }: any) {
 
   return (
     <ul className="gap-4 grid grid-cols-1 sm:grid-cols-2 border-l-4 border-blue-600 text-sm p-2">
-      <li className="flex items-center">
-        <BsLockFill size={25} className="text-zinc-500 mr-2" />
-        <Badge className="rounded-md ml-2 text-md">Free</Badge>
-      </li>
-      <li className="flex items-center">
-        <BsUnlockFill size={25} className="text-zinc-500 mr-2" />
-        <Badge className="rounded-md ml-2 text-md">Subscribed</Badge>
-      </li>
       <li className="flex items-center">
         <FiCheckCircle size={25} className="mr-2 text-blue-600" />
         Completed:{" "}

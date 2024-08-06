@@ -1,5 +1,5 @@
 import React from "react";
-import type { Badge, ModuleProgress, User } from "~/utils/db.server";
+import type { Badge, Module as IModule, User } from "~/utils/db.server";
 import { Await } from "@remix-run/react";
 import { CourseTitle } from "~/components/course-title";
 import { PendingStatus, Status } from "~/components/status";
@@ -8,7 +8,7 @@ import { BadgeGallery, Module } from "~/components/modules";
 
 type CourseSideContentProps = {
   user: User;
-  module: Promise<ModuleProgress>;
+  module: Promise<IModule>;
   moduleBadges: Promise<Badge[]>;
 };
 
@@ -57,7 +57,7 @@ export function SideContent({
 function PendingBadges() {
   return (
     <div className="flex gap-4 m-2">
-      {Array.from({ length: 4 }).map((_, i) => (
+      {Array.from({ length: 4 }, (_, i) => (
         <div
           key={i}
           className="h-8 bg-slate-400 rounded-md w-full animate-pulse"

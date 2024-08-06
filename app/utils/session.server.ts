@@ -10,7 +10,7 @@ import {
 import { ensurePrimary } from "./litefs.server";
 import { type User, prisma } from "./db.server";
 import { Emails } from "~/services/resend/emails.server";
-import { Role } from "~/constants/enums";
+import { ROLE } from "./helpers";
 
 export interface SessionData {
   userId: string;
@@ -19,13 +19,6 @@ export interface SessionData {
 interface SessionError {
   error: string;
 }
-
-export const adminRoles: Role[] = [
-  Role.ADMIN,
-  Role.MODERATOR,
-  Role.TRAINER,
-  Role.MENTOR,
-];
 
 const { SECRET, NODE_ENV, BASE_URL, DEV_BASE_URL } = process.env;
 const MODE = NODE_ENV;
@@ -111,7 +104,7 @@ export async function signOut(request: Request) {
 export async function getUserId(request: Request): Promise<string> {
   try {
     const session = await getUserSession(request);
-    const userId: string | undefined = session?.get("userId");
+    const userId: string | undefined = session?.get(sessionKey);
     if (!userId) {
       session.flash("error", "Unauthorized.");
       throw redirect("/", await commitAuthSession(session));
@@ -135,6 +128,9 @@ export async function getUser(request: Request): Promise<User> {
       where: { id: userId },
     });
     if (!user) {
+      if (session.has(sessionKey)) {
+        session.unset(sessionKey);
+      }
       session.flash("error", "Unauthorized.");
       throw redirect("/", await commitAuthSession(session));
     }
@@ -144,12 +140,12 @@ export async function getUser(request: Request): Promise<User> {
   }
 }
 
-export async function checkRole(request: Request) {
+export async function checkAdmin(request: Request) {
   try {
     const user = await getUser(request);
     const session = await getUserSession(request);
-    if (!adminRoles.includes(user.role as Role)) {
-      session.flash("error", "Unauthorized.");
+    if (user.role !== (ROLE.ADMIN as ROLE)) {
+      session.flash("error", "Forbidden.");
       throw redirect("/dashboard");
     }
     return null;
@@ -233,9 +229,9 @@ export async function handleMagiclinkAuth({
   invariant(params.provider, "Invalid provider.");
   const url = new URL(request.url);
   const token = url.searchParams.get("token");
+  invariant(token, "Invalid token.");
 
   try {
-    invariant(token, "Invalid token.");
     const { email, authState } = JWT.verify(token, SECRET!) as {
       email: string;
       authState: string;
@@ -262,9 +258,9 @@ export async function handleMagiclinkAuth({
       });
     }
 
-    session.set("userId", user.id);
+    session.set(sessionKey, user.id);
 
-    if (adminRoles.includes(user.role as Role)) {
+    if (user.role === (ROLE.ADMIN as ROLE)) {
       return redirect("/a", await commitAuthSession(session));
     } else {
       const redirectUrl = user.completedOnboarding
