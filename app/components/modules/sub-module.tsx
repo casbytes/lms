@@ -20,11 +20,12 @@ export function SubModule({
   isPremium,
   user,
 }: SubModuleItemProps) {
-  const isSubscribed = user.subscribed;
-  const LOCKED =
-    submodule.status === STATUS.LOCKED || (!isSubscribed && isPremium);
+  const IS_SUBSCRIBED = user.subscribed;
   const IN_PROGRESS = submodule.status === STATUS.IN_PROGRESS;
   const COMPLETED = submodule.status === STATUS.COMPLETED;
+  const LOCKED =
+    submodule.status === STATUS.LOCKED ||
+    (!IS_SUBSCRIBED && isPremium && !IN_PROGRESS);
 
   const matches = useMatches();
 
@@ -35,7 +36,7 @@ export function SubModule({
 
   return (
     <Button
-      // disabled={locked}
+      // disabled={LOCKED}
       className="rounded-md text-black bg-stone-200 hover:bg-stone-300 py-4 relative border-b-2 border-zinc-600"
     >
       <Link

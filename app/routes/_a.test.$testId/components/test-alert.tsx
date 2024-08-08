@@ -23,23 +23,21 @@ export function TestAlert() {
             Doing so will automatically submit your test with your current
             answers.
           </li>
-          <h3 className="text-lg font-bold">Retake Eligibility:</h3>
+        </ul>
+        <h3 className="text-lg font-bold">Retake Eligibility:</h3>
+        <ul className="list-disc list-inside">
           <li>
-            <ul className="list-disc list-inside">
-              <li>
-                Scores below 80% require a 24-hour waiting period before
-                retaking the test.
-              </li>
-              <li>
-                Subsequent retakes will have a waiting period that increases by
-                24 hours for each attempt (e.g., 48 hours for the second try, 72
-                hours for the third try, and so on).
-              </li>
-              <li>
-                This is to enable you to review the material and improve your
-                knowledge before retaking the test.
-              </li>
-            </ul>
+            Scores below 80% require a 24-hour waiting period before retaking
+            the test.
+          </li>
+          <li>
+            Subsequent retakes will have a waiting period that increases by 24
+            hours for each attempt (e.g., 48 hours for the second try, 72 hours
+            for the third try, and so on).
+          </li>
+          <li>
+            This is to enable you to review the material and improve your
+            knowledge before retaking the test.
           </li>
         </ul>
       </AlertDescription>

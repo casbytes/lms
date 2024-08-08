@@ -1,5 +1,4 @@
 import React from "react";
-import { useNavigate } from "@remix-run/react";
 import { useInterval } from "use-interval";
 import { format, addSeconds } from "date-fns";
 import { TestAlert } from "./test-alert";
@@ -7,12 +6,12 @@ import { Progress } from "~/components/ui/progress";
 import { Badge } from "~/components/ui/badge";
 import { cn } from "~/libs/shadcn";
 import { Separator } from "~/components/ui/separator";
+import { useLocalStorageState } from "~/utils/hooks";
 
 type TestHeaderProps = {
   progress: number;
   questionsLength: number;
-  submitForm: () => Promise<void>;
-  redirectUrl: string;
+  submitForm: () => void;
   currentQuestionIndex: number;
 };
 
@@ -22,45 +21,42 @@ export function TestHeader({
   questionsLength,
   currentQuestionIndex,
 }: TestHeaderProps) {
-  const timePerQuestion = 1.5 * 60;
-  const totalTime = timePerQuestion * questionsLength;
-
-  const [alert, setAlert] = React.useState(true);
-  const [timeLeft, setTimeLeft] = React.useState(totalTime);
-
-  const navigate = useNavigate();
-
-  const ALERT_TIMEOUT = 30000;
-  const INTERVAL = 1000;
+  const TIME_KEY = "testTime";
+  const timePerQuestion = 90; // 1.5 * 60 = 1/2 min.
+  const ALERT_TIMEOUT = 30000; // 30 secs.
+  const INTERVAL = 1000; // 1sec.
   const SUBMIT_TIME = 0;
-  const WARNING_TIME = 300; // 5 minutes (5 * 60 = 300 seconds)
+  const WARNING_TIME = 180; // 3 minutes (3 * 60 = 180 seconds)
   const ONE_MINUTE = 60;
+
+  const totalTime = timePerQuestion * questionsLength;
+  const [timeLeft, setTimeLeft] = useLocalStorageState(TIME_KEY, totalTime);
+  const [alert, setAlert] = useLocalStorageState("testAlert", true);
 
   function formatTime(seconds: number) {
     const time = addSeconds(new Date(SUBMIT_TIME), seconds);
     return format(time, "mm:ss");
   }
 
-  const submitAndNavigate = React.useCallback(async () => {
-    submitForm().then(() => navigate(-2));
-  }, [submitForm, navigate]);
-
   useInterval(() => {
-    setTimeLeft((prevTime) => prevTime - 1);
+    setTimeLeft((prevTime) => {
+      if (prevTime <= 1) {
+        submitForm();
+        return 0;
+      } else {
+        const newTimeLeft = prevTime - 1;
+        window.localStorage.setItem(TIME_KEY, newTimeLeft.toString());
+        return newTimeLeft;
+      }
+    });
   }, INTERVAL);
-
-  React.useEffect(() => {
-    if (timeLeft === SUBMIT_TIME) {
-      submitAndNavigate();
-    }
-  }, [submitAndNavigate, timeLeft]);
 
   React.useEffect(() => {
     const timer = window.setTimeout(() => {
       setAlert(false);
     }, ALERT_TIMEOUT);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [setAlert]);
 
   return (
     <>
@@ -70,7 +66,7 @@ export function TestHeader({
           Time left:{" "}
           <Badge
             className={cn("text-lg", {
-              "bg-yellow-500 hover:bg-yellow-400": timeLeft <= WARNING_TIME,
+              "bg-red-500 hover:bg-red-400": timeLeft <= WARNING_TIME,
             })}
           >
             <span

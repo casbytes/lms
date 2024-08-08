@@ -8,7 +8,11 @@ import { SlLock } from "react-icons/sl";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/libs/shadcn";
-import { capitalizeFirstLetter, TEST_STATUS } from "~/utils/helpers";
+import {
+  capitalizeFirstLetter,
+  safeParseDate,
+  TEST_STATUS,
+} from "~/utils/helpers";
 
 type TestProps = {
   test: Test;
@@ -43,7 +47,7 @@ export function Test({ test }: TestProps) {
           <MdQuiz
             size={20}
             className={cn("text-zinc-700", {
-              "bg-sky-700": COMPLETED,
+              "text-sky-700": COMPLETED,
             })}
           />
         </div>
@@ -60,7 +64,10 @@ export function Test({ test }: TestProps) {
             <span className="text-sm ml-4">
               Retake on:{" "}
               <Badge>
-                {format(new Date(test.nextAttemptAt), "do MMMM, 'at' h:mm a")}
+                {format(
+                  safeParseDate(test.nextAttemptAt),
+                  "do MMM, 'at' h:mm a"
+                )}
               </Badge>
             </span>
           ) : null}

@@ -1,6 +1,11 @@
 import invariant from "tiny-invariant";
 import { type Params } from "@remix-run/react";
-import { type Module, type SubModule, prisma, Badge } from "~/utils/db.server";
+import {
+  type Module,
+  type SubModule,
+  type Badge,
+  prisma,
+} from "~/utils/db.server";
 import { getUserId } from "~/utils/session.server";
 import { BADGE_STATUS, STATUS } from "~/utils/helpers";
 
@@ -8,19 +13,18 @@ import { BADGE_STATUS, STATUS } from "~/utils/helpers";
  * Get default Module
  * @param {String} userId
  * @param {String} courseId
- * @returns {Promise<Module>}
+ * @returns {Promise<Module | null>}
  */
 async function getDefaultModule(
   userId: string,
   courseId: string
-): Promise<Module | void> {
+): Promise<Module> {
   try {
     const module = await prisma.module.findFirst({
       where: { users: { some: { id: userId } }, courseId: courseId },
-      orderBy: {
-        order: "asc",
-      },
+      orderBy: { order: "asc" },
     });
+
     if (!module) {
       throw new Error("First module not found");
     }
@@ -51,26 +55,26 @@ function getModuleIdFromRequest(request: Request): string | null {
  */
 async function getModuleIdToUse(
   request: Request,
-  userId: string,
-  courseId: string
+  params: Params<string>
 ): Promise<string> {
+  invariant(params.courseId, "Course ID is required to get module.");
+  const courseId = params.courseId;
+  const userId = await getUserId(request);
+
+  let module: Module;
   const moduleId = getModuleIdFromRequest(request);
-  let module;
   if (!moduleId) {
     module = await getDefaultModule(userId, courseId);
   }
-  const moduleIdToUse = moduleId ?? module!.id;
-  return moduleIdToUse;
+  return moduleId ?? module!.id;
 }
 
 export async function getModule(
   request: Request,
   params: Params<string>
 ): Promise<Module> {
-  invariant(params.courseId, "Course ID is required to get test.");
-  const courseId = params.courseId;
-  const userId = await getUserId(request);
-  const moduleIdToUse = await getModuleIdToUse(request, userId, courseId);
+  invariant(params.courseId, "Course ID is required to get module.");
+  const moduleIdToUse = await getModuleIdToUse(request, params);
   const module = await prisma.module.findUnique({
     where: {
       id: moduleIdToUse,
@@ -84,10 +88,8 @@ export async function getModule(
 
 export async function getTest(request: Request, params: Params<string>) {
   try {
-    invariant(params.courseId, "Course ID is required to get test.");
-    const courseId = params.courseId;
     const userId = await getUserId(request);
-    const moduleIdToUse = await getModuleIdToUse(request, userId, courseId);
+    const moduleIdToUse = await getModuleIdToUse(request, params);
 
     const test = await prisma.test.findFirst({
       where: {
@@ -95,10 +97,7 @@ export async function getTest(request: Request, params: Params<string>) {
         users: { some: { id: userId } },
       },
     });
-
-    if (!test) {
-      return null;
-    }
+    if (!test) return null;
     return test;
   } catch (error) {
     throw error;
@@ -107,10 +106,8 @@ export async function getTest(request: Request, params: Params<string>) {
 
 export async function getCheckpoint(request: Request, params: Params<string>) {
   try {
-    invariant(params.courseId, "Course ID is required to get checkpoint.");
-    const courseId = params.courseId;
     const userId = await getUserId(request);
-    const moduleIdToUse = await getModuleIdToUse(request, userId, courseId);
+    const moduleIdToUse = await getModuleIdToUse(request, params);
 
     const checkpoint = await prisma.checkpoint.findFirst({
       where: {
@@ -118,10 +115,7 @@ export async function getCheckpoint(request: Request, params: Params<string>) {
         users: { some: { id: userId } },
       },
     });
-
-    if (!checkpoint) {
-      return null;
-    }
+    if (!checkpoint) return null;
     return checkpoint;
   } catch (error) {
     throw error;
@@ -160,32 +154,16 @@ export async function getModules(
   request: Request,
   params: Params<string>
 ): Promise<Module[]> {
+  invariant(params.courseId, "Course ID is required to get modules.");
   try {
-    invariant(params.courseId, "Course ID is required to get modules.");
     const courseId = params.courseId;
     const userId = await getUserId(request);
 
-    /**
-     * Get the first module of the course
-     * This is to ensure that the first module is always in progress
-     */
-    const firstModule = await prisma.module.findFirst({
-      where: {
-        users: { some: { id: userId } },
-        courseId: courseId,
-      },
-      orderBy: {
-        order: "asc",
-      },
-    });
-
-    if (!firstModule) {
-      throw new Error("First Module not found.");
-    }
-
+    // const firstModule = await getDefaultModule(userId, courseId);
+    const moduleIdToUse = await getModuleIdToUse(request, params);
     const firstSubModule = await prisma.subModule.findFirst({
       where: {
-        moduleId: firstModule.id,
+        moduleId: moduleIdToUse,
         users: { some: { id: userId } },
       },
       orderBy: {
@@ -196,11 +174,6 @@ export async function getModules(
     if (!firstSubModule) {
       throw new Error("First Sub Module not found.");
     }
-
-    await prisma.subModule.update({
-      where: { id: firstSubModule.id },
-      data: { status: STATUS.IN_PROGRESS },
-    });
 
     const [modules] = await Promise.all([
       prisma.module.findMany({
@@ -216,7 +189,8 @@ export async function getModules(
        * If the user have started the course, set the first module and sub module to IN_PROGRESS
        */
       updateFirstModule(userId, courseId),
-      updateFirstSubModule(userId, firstModule.id),
+      updateFirstSubModule(userId, moduleIdToUse),
+      // updateFirstSubModule(userId, firstModule.id),
     ]);
 
     return modules;
@@ -308,10 +282,8 @@ export async function getModuleBadges(
   params: Params<string>
 ): Promise<Badge[]> {
   try {
-    invariant(params.courseId, "Course ID is required to get badges.");
-    const courseId = params.courseId;
     const userId = await getUserId(request);
-    const moduleIdToUse = await getModuleIdToUse(request, userId, courseId);
+    const moduleIdToUse = await getModuleIdToUse(request, params);
 
     const badges = await prisma.badge.findMany({
       where: { userId, moduleId: moduleIdToUse },
@@ -349,7 +321,7 @@ async function enableBadge(userId: string, moduleId: string, badges: Badge[]) {
 
   const currentPercentage = (completedSubmodules / totalSubtmodules) * 100;
 
-  enum BadgeLevels {
+  enum BADGE_LEVELS {
     NOVICE = "NOVICE",
     ADEPT = "ADEPT",
     PROFICIENT = "PROFICIENT",
@@ -360,7 +332,7 @@ async function enableBadge(userId: string, moduleId: string, badges: Badge[]) {
     if (
       currentPercentage >= 25 &&
       badge.status === BADGE_STATUS.LOCKED &&
-      badge.level === BadgeLevels.NOVICE
+      badge.level === BADGE_LEVELS.NOVICE
     ) {
       await prisma.badge.update({
         where: { id: badge.id },
@@ -370,7 +342,7 @@ async function enableBadge(userId: string, moduleId: string, badges: Badge[]) {
     if (
       currentPercentage >= 50 &&
       badge.status === BADGE_STATUS.LOCKED &&
-      badge.level === BadgeLevels.ADEPT
+      badge.level === BADGE_LEVELS.ADEPT
     ) {
       await prisma.badge.update({
         where: { id: badge.id },
@@ -380,7 +352,7 @@ async function enableBadge(userId: string, moduleId: string, badges: Badge[]) {
     if (
       currentPercentage >= 75 &&
       badge.status === BADGE_STATUS.LOCKED &&
-      badge.level === BadgeLevels.PROFICIENT
+      badge.level === BADGE_LEVELS.PROFICIENT
     ) {
       await prisma.badge.update({
         where: { id: badge.id },
@@ -390,7 +362,7 @@ async function enableBadge(userId: string, moduleId: string, badges: Badge[]) {
     if (
       currentPercentage >= 100 &&
       badge.status === BADGE_STATUS.LOCKED &&
-      badge.level === BadgeLevels.VIRTUOSO
+      badge.level === BADGE_LEVELS.VIRTUOSO
     ) {
       await prisma.badge.update({
         where: { id: badge.id },
@@ -411,10 +383,8 @@ export async function getSubModules(
   params: Params<string>
 ): Promise<SubModule[]> {
   try {
-    invariant(params.courseId, "Course ID is required to get sub modules.");
-    const courseId = params.courseId;
     const userId = await getUserId(request);
-    const moduleIdToUse = await getModuleIdToUse(request, userId, courseId);
+    const moduleIdToUse = await getModuleIdToUse(request, params);
 
     const subModules = await prisma.subModule.findMany({
       where: {

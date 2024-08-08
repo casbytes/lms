@@ -34,7 +34,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   try {
-    return updateProject(request);
+    return await updateProject(request);
   } catch (error) {
     throw error;
   }
@@ -43,7 +43,6 @@ export async function action({ request }: ActionFunctionArgs) {
 export default function ProjectRoute() {
   const { project, projectContent, videoSource, user } =
     useLoaderData<typeof loader>();
-  const data = useActionData<typeof action>();
 
   const projectTitle = project.title;
   return (
@@ -60,9 +59,7 @@ export default function ProjectRoute() {
             <AccordionTrigger className="text-lg bg-zinc-300 p-2 rounded-md text-blue-600">
               Status and links
             </AccordionTrigger>
-            <AccordionContent className="pt-4">
-              <TaskTable task={project} />
-            </AccordionContent>
+            <AccordionContent className="pt-4"></AccordionContent>
           </AccordionItem>
         </Accordion>
         <Markdown source={projectContent.content} />

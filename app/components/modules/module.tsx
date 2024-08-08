@@ -23,16 +23,17 @@ export function Module({ module, user }: ModuleItemProps) {
   const currentModuleId = searchParams.get("moduleId");
 
   const isCurrentModule = currentModuleId === module.id;
-  const isSubscribed = user.subscribed;
-  const isPremium = module.premium;
 
   /**
    * The user is not subscribed and the module is premium (paid)
    */
-  const LOCKED =
-    module.status === STATUS.LOCKED || (!isSubscribed && isPremium);
-  const COMPLETED = module.status === STATUS.COMPLETED;
+  const IS_SUBSCRIBED = user.subscribed;
+  const IS_PREMIUM = module.premium;
   const IN_PROGRESS = module.status === STATUS.IN_PROGRESS;
+  const COMPLETED = module.status === STATUS.COMPLETED;
+  const LOCKED =
+    module.status === STATUS.LOCKED ||
+    (!IS_SUBSCRIBED && IS_PREMIUM && !IN_PROGRESS);
 
   return (
     <li className="w-full">
@@ -65,7 +66,7 @@ export function Module({ module, user }: ModuleItemProps) {
             </div>{" "}
           </div>
 
-          {isSubscribed ? (
+          {IS_SUBSCRIBED ? (
             <BsUnlockFill className="text-zinc-500 absolute sm:static right-8" />
           ) : (
             <BsLockFill className="text-zinc-500 absolute sm:static right-8" />

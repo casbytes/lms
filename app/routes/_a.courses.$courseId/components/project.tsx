@@ -13,10 +13,10 @@ type ProjectProps = {
 };
 
 export function Project({ project, user }: ProjectProps) {
-  const IS_ACTIVE = user.subscribed;
+  const IS_SUBSCRIBED = user.subscribed;
   const COMPLETED = project?.status === STATUS.COMPLETED;
   const IN_PROGRESS = project?.status === STATUS.IN_PROGRESS;
-  const LOCKED = project?.status === STATUS.LOCKED || !IS_ACTIVE;
+  const LOCKED = project?.status === STATUS.LOCKED || !IS_SUBSCRIBED;
   return (
     <div className="w-full">
       <Button
@@ -51,7 +51,7 @@ export function Project({ project, user }: ProjectProps) {
           </div>{" "}
         </Link>
 
-        {!IS_ACTIVE ? (
+        {!IS_SUBSCRIBED ? (
           <BsLockFill className="text-zinc-500 absolute sm:static right-8" />
         ) : (
           <BsUnlockFill className="text-zinc-500 absolute sm:static right-8" />

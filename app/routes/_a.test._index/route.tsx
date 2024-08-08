@@ -35,12 +35,14 @@ export default function TestIndexRoute() {
         <BackButton
           to={moduleOrSubModuleUrl}
           buttonText={moduleOrSubModuleTitle}
+          className="-mb-2"
         />
         <PageTitle title={`Test Your Knowledge: ${moduleOrSubModuleTitle}`} />
         <div className="flex flex-col md:flex-row gap-2 mt-4 items-center">
-          <div className="flex flex-col gap-6 z-20">
-            <p className="text-xl text-zinc-700">
-              Welcome to the {testTitle}! <br />
+          <div className="flex flex-col gap-2 z-20">
+            <p className="text-lg text-zinc-700">
+              Welcome to the <span className="text-sky-600">{testTitle}!</span>{" "}
+              <br />
               This test is designed to assess your understanding of{" "}
               {moduleOrSubModuleTitle}.
             </p>

@@ -3,12 +3,12 @@ export function Rules() {
   return (
     <>
       <h2>
-        <strong className="text-xl font-black text-sky-700">Test Rules:</strong>
+        <strong className="text-lg font-black text-sky-700">Test Rules:</strong>
       </h2>
-      <ol className="space-y-2 list-decimal list-inside">
-        <h3 className="text-xl font-black">Starting the Test:</h3>
+      <ol className="space-y-2 list-decimal list-inside text-sm">
+        <h3 className="text-lg font-black">Starting the Test:</h3>
         <li>Click the "Start Test" button to begin.</li>
-        <h3 className="text-xl font-black">Answering Questions:</h3>
+        <h3 className="text-lg font-black">Answering Questions:</h3>
         <li>Read each question thoroughly and select the correct answer(s).</li>
         <li>
           <strong className="text-lg">Multiple Choice:</strong> If instructed to
@@ -16,13 +16,13 @@ export function Rules() {
         </li>
         <li>For non-multiple-choice questions, select only one answer.</li>
         <li>Click "Next Question" to proceed to the next question.</li>
-        <h3 className="text-xl font-black">Finishing the Test:</h3>
+        <h3 className="text-lg font-black">Finishing the Test:</h3>
         <li>Review your answers carefully before clicking "Submit."</li>
         <li>
           <strong>Important:</strong> The test is timed and will automatically
           submit when the time elapses.
         </li>
-        <h3 className="text-xl font-black">Test Conduct:</h3>
+        <h3 className="text-lg font-black">Test Conduct:</h3>
         <li>
           Do not use any external resources during the test to ensure fair
           evaluation.
@@ -33,10 +33,10 @@ export function Rules() {
           current answers.
         </li>
         <li>
-          Do not navigate away: Avoid navigating away from the quiz page. Doing
+          Do not navigate away: Avoid navigating away from the test page. Doing
           so will automatically submit your test with your current answers.
         </li>
-        <h3 className="text-xl font-black">Retake Eligibility:</h3>
+        <h3 className="text-lg font-black">Retake Eligibility:</h3>
         <li>
           <ul className="list-disc list-inside">
             <li>

@@ -100,7 +100,7 @@ export async function getCheckpoint(request: Request, params: Params<string>) {
  * Get subModule lessons
  * @param {Request} request
  * @param {Params<string>} params
- * @returns {Promise<types.Lesson[]>}
+ * @returns {Promise<Lesson[]>}
  */
 export async function getLessons(
   request: Request,
@@ -116,9 +116,8 @@ export async function getLessons(
         subModuleId: subModuleId,
         users: { some: { id: userId } },
       },
-      orderBy: {
-        order: "asc",
-      },
+      select: { id: true, status: true },
+      orderBy: { order: "asc" },
     });
 
     if (!firstLesson) {
@@ -158,7 +157,7 @@ if (MODE === "production") {
 }
 async function updateFirstLessonStatus(
   userId: string,
-  lesson: Lesson
+  lesson: { id: string; status: string }
 ): Promise<Lesson | void> {
   if (lesson.status !== STATUS.LOCKED) {
     return;
@@ -233,7 +232,7 @@ export async function getLessonContent(
     const cacheKey = `lesson-${currentLesson.id}`;
     if (cache.has(cacheKey)) {
       return {
-        mdx: cache.get<MDX>(cacheKey)!,
+        mdx: cache.get(cacheKey) as MDX,
         ...lessonData,
       };
     }

@@ -11,18 +11,13 @@ type OptionsProps = {
   currentQuestionIndex: number;
 };
 
-export function Options({
+function Ops({
   userAnswers,
   currentAnswer,
   currentQuestion,
   setUserAnswers,
   currentQuestionIndex,
 }: OptionsProps) {
-  /**
-   * Handles the change of an option in a question
-   * @param {Number} optionId
-   * @param {Boolean} checked
-   */
   function handleOptionChange(optionId: number, checked: boolean) {
     const newAnswers = [...userAnswers];
     newAnswers[currentQuestionIndex] = checked
@@ -61,3 +56,5 @@ export function Options({
     </ul>
   );
 }
+
+export const Options = React.memo(Ops);

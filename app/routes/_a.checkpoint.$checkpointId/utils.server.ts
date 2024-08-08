@@ -1,7 +1,7 @@
 import matter from "gray-matter";
 import invariant from "tiny-invariant";
 import { Params } from "@remix-run/react";
-import { prisma } from "~/utils/db.server";
+import { MDX, prisma } from "~/utils/db.server";
 import { getContentFromGithub } from "~/utils/octokit.server";
 import { getUserId, getUser } from "~/utils/session.server";
 import { ensurePrimary } from "~/utils/litefs.server";
@@ -9,6 +9,7 @@ import { cache } from "~/utils/node-cache.server";
 import { CHECKPOINT_STATUS } from "~/utils/helpers";
 
 const { NODE_ENV } = process.env;
+const MODE = NODE_ENV;
 
 type Message = {
   ruleId: string;
@@ -154,18 +155,10 @@ export async function getCheckpoint(request: Request, params: Params<string>) {
 
     const cacheKey = `checkpoint-${checkpointId}`;
 
-    type CheckpointContent = {
-      data: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        [key: string]: any;
-      };
-      mdx: string;
-    };
-
     if (cache.has(cacheKey)) {
       return {
         checkpoint,
-        checkpointContent: cache.get(cacheKey) as CheckpointContent,
+        checkpointContent: cache.get(cacheKey) as MDX,
       };
     }
 
@@ -173,17 +166,17 @@ export async function getCheckpoint(request: Request, params: Params<string>) {
       ? "checkpoint.mdx"
       : `${checkpoint?.subModule?.slug}/checkpoint.mdx`;
 
-    const repo = checkpoint?.module
-      ? `${checkpoint?.module?.slug}`
-      : (checkpoint?.subModule?.module?.slug as string);
+    const repo =
+      checkpoint?.module?.slug ??
+      (checkpoint?.subModule?.module?.slug as string);
 
-    const { content } = await getContentFromGithub({
+    const { content: mdx } = await getContentFromGithub({
       repo,
       path,
     });
 
-    const { data, content: mdx } = matter(content);
-    cache.set<CheckpointContent>(cacheKey, { data, mdx });
+    const { data, content } = matter(mdx);
+    cache.set<MDX>(cacheKey, { data, content });
     return {
       checkpoint,
       checkpointContent: { data, mdx },
@@ -197,7 +190,7 @@ export async function getCheckpoint(request: Request, params: Params<string>) {
 // Action uitls
 //################
 const CUT_OFF_SCORE = 80;
-export async function updateCheckpoint(request: Request) {
+export async function gradeCheckpoint(request: Request) {
   const userId = await getUserId(request);
   const user = await getUser(request);
   const formData = await request.formData();
@@ -208,51 +201,6 @@ export async function updateCheckpoint(request: Request) {
     | "submitTask";
   invariant(intent, "Intent is required to update Checkpoint");
   invariant(checkpointId, "Checkpoint ID is required to update Checkpoint");
-
-  switch (intent) {
-    /**
-     * Add link
-     */
-    case "addLink": {
-      const title = formData.get("linkType") as string;
-      const url = formData.get("url") as string;
-      invariant(title, "Title is required to add link");
-      invariant(url, "URL is required to add link");
-      return await addLink(title, url, checkpointId);
-    }
-
-    case "deleteLink": {
-      const linkId = formData.get("linkId") as string;
-      invariant(linkId, "Link ID is required to delete link");
-      return await deleteLink(linkId);
-    }
-
-    case "submitTask": {
-      const checkpoint = await prisma.checkpoint.findUnique({
-        where: { id: checkpointId },
-        select: { gradingMethod: true },
-      });
-      if (!checkpoint) {
-        return formatResponse({
-          error: "Checkpoint not found",
-        });
-      }
-      if (checkpoint?.gradingMethod === "AUTO") {
-        const userGithubUsername = user?.githubUsername;
-        if (!userGithubUsername) {
-          return formatResponse({
-            error: "Please add your github username to your profile.",
-          });
-        }
-        return await autoGrade(userId, checkpointId);
-      } else {
-        return await submitTask(userId, checkpointId);
-      }
-    }
-
-    default:
-      throw new Error("Invalid intent");
-  }
 }
 
 /**
@@ -281,21 +229,21 @@ async function autoGrade(userId: string, checkpointId: string) {
   ]);
 
   const userGithubUsername = user!.githubUsername;
-  const testEnvironment = "node";
+  if (!userGithubUsername) {
+    return formatResponse({ error: "User does not have a github username" });
+  }
+  const testEnvironment = checkpoint?.testEnvironment ?? "node";
   const checkpointPath = checkpoint?.moduleId
-    ? `${checkpoint.module?.title}-checkpoint`
-    : `${checkpoint!.subModule?.module.title}/sub-modules/${
+    ? `${checkpoint.module?.slug}-checkpoint`
+    : `${checkpoint!.subModule?.module.slug}/sub-modules/${
         checkpoint?.subModule?.title
       }-checkpoint`;
 
-  const checkpointRepo = checkpoint?.moduleId
-    ? checkpoint.module?.title
-    : checkpoint!.subModule?.module.title;
+  const checkpointRepo =
+    checkpoint?.module?.slug ?? checkpoint?.subModule?.module.slug;
 
   const baseUrl =
-    NODE_ENV === "production"
-      ? process.env.CHECKER_URL
-      : "http://localhost:8080";
+    MODE === "production" ? process.env.CHECKER_URL : "http://localhost:8080";
   const url = `${baseUrl}/${userGithubUsername}?checkpointPath=${checkpointPath}&checkpointRepo=${checkpointRepo}`;
 
   const response = await fetch(url, {
@@ -319,95 +267,13 @@ async function autoGrade(userId: string, checkpointId: string) {
 }
 
 /**
- * Submits a task
- * @param checkpointId - The ID of the checkpoint to submit
- * @param userId - The ID of the user submitting the task
+ * Format the response
+ * @param error - error message
+ * @param message - message
+ * @param lintReulsts - lint results
+ * @param testResults - test results
+ * @returns {ApiResponse}
  */
-async function submitTask(checkpointId: string, userId: string) {
-  const checkpoint = await prisma.checkpoint.update({
-    where: {
-      id: checkpointId,
-      users: {
-        some: {
-          id: userId,
-        },
-      },
-    },
-    data: {
-      status: CHECKPOINT_STATUS.IN_PROGRESS,
-    },
-  });
-  if (!checkpoint) {
-    return formatResponse({
-      error: "Failed to submit task, please try again",
-    });
-  }
-  return formatResponse({
-    message: "Task submitted successfully",
-  });
-}
-
-/**
- * Updates the next module or sub module progress
- * @param checkpointId - The ID of the checkpoint to update the next module or sub module progress
- * @param userId - The ID of the user to update the next module or sub module progress for
- */
-async function updateNextModuleOrSubModule(
-  userId: string,
-  checkpointId: string,
-  data?: ApiResponse
-) {
-  return null;
-}
-
-/**
- * Adds a link
- * @param title - The title of the link
- * @param url - The URL of the link
- * @param checkpointId - The ID of the checkpoint to add the link to
- */
-async function addLink(title: string, url: string, checkpointId: string) {
-  const createdLink = await prisma.link.create({
-    data: {
-      title,
-      url,
-      checkpoint: {
-        connect: {
-          id: checkpointId,
-        },
-      },
-    },
-  });
-  if (!createdLink) {
-    return formatResponse({
-      error: "Failed to add link",
-    });
-  }
-  return formatResponse({
-    message: "Link added successfully",
-  });
-}
-
-/**
- * Deletes a link
- * @param linkId - The ID of the link to delete
- */
-async function deleteLink(linkId: string) {
-  const link = await prisma.link.delete({
-    where: {
-      id: linkId,
-    },
-  });
-  if (!link) {
-    return formatResponse({
-      error: "Failed to delete link",
-    });
-  }
-  return formatResponse({
-    message: "Link deleted successfully",
-  });
-}
-
 function formatResponse({
   error = null,
   message = null,

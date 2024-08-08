@@ -5,7 +5,7 @@ import { PageTitle } from "~/components/page-title";
 import { BackButton } from "~/components/back-button";
 import { toast } from "~/components/ui/use-toast";
 import { ActionFunctionArgs, LoaderFunctionArgs, json } from "@remix-run/node";
-import { getCheckpoint, updateCheckpoint } from "./utils.server";
+import { getCheckpoint, gradeCheckpoint } from "./utils.server";
 import { useActionData, useLoaderData } from "@remix-run/react";
 import { IFrame } from "~/components/iframe";
 import {
@@ -21,18 +21,26 @@ import { metaFn } from "~/utils/meta";
 export const meta = metaFn;
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const videoSource = getVideoSource();
-  const { checkpoint, checkpointContent } = await getCheckpoint(
-    request,
-    params
-  );
-  const user = await getUser(request);
-  return json({ checkpoint, checkpointContent, user, videoSource });
+  try {
+    const videoSource = getVideoSource();
+    const { checkpoint, checkpointContent } = await getCheckpoint(
+      request,
+      params
+    );
+    const user = await getUser(request);
+    return json({ checkpoint, checkpointContent, user, videoSource });
+  } catch (error) {
+    throw error;
+  }
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const checkpointResponse = await updateCheckpoint(request);
-  return json({ checkpointResponse });
+  try {
+    const checkpointResponse = await gradeCheckpoint(request);
+    return json({ checkpointResponse });
+  } catch (error) {
+    throw error;
+  }
 }
 
 export default function CheckPointRoute() {
@@ -43,15 +51,15 @@ export default function CheckPointRoute() {
   // let moduleId = checkpoint?.moduleId;
   // let subModuleId = checkpoint?.subModuleId;
 
-  const moduleTest = checkpoint?.moduleId ? true : false;
+  const moduleCheckpoint = Boolean(checkpoint?.moduleId);
   const defaultTitle = "Matters choke!";
   const checkpointTitle = checkpoint.title ?? defaultTitle;
 
-  const moduleOrSubModuleTitle = moduleTest
+  const moduleOrSubModuleTitle = moduleCheckpoint
     ? checkpoint?.module?.title
     : checkpoint?.subModule?.title ?? defaultTitle;
 
-  const moduleOrSubModuleUrl = moduleTest
+  const moduleOrSubModuleUrl = moduleCheckpoint
     ? `/courses/${checkpoint?.module?.courseId}?moduleId=${checkpoint?.moduleId}`
     : `/sub-modules/${checkpoint?.subModuleId}`;
 

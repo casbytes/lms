@@ -38,7 +38,7 @@ export function Lesson({ lesson }: LessonProps) {
           }}
           disabled={disabled}
           className={cn(
-            "flex items-center justify-start bg-slate-300/50 hover:bg-slate-300 text-black w-full",
+            "flex items-center justify-start bg-slate-300/50 hover:bg-slate-300 text-black w-full disabled:cursor-not-allowed",
             {
               "border-2 border-sky-700 text-sky-800 bg-slate-200":
                 currentLessonId === lesson.id,

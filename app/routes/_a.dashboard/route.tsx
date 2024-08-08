@@ -69,7 +69,7 @@ export default function Dashboard() {
     <Container className="bg-2 bg-no-repeat">
       <div className="lg:px-8 max-w-7xl mx-auto">
         <PageTitle title="Dashboard" className="mb-12" />
-        <div className="flex flex-col gap-4 bg-white p-4 h-auto rounded-md drop-shadow-sm">
+        <div className="flex flex-col gap-4 bg-white p-4 rounded-md shadow-sm">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <UserCard user={user} />
             <Courses courseData={courseData} />

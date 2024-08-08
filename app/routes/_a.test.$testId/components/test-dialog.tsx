@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigation, useNavigate } from "@remix-run/react";
+import { useNavigation } from "@remix-run/react";
 import { FaSpinner } from "react-icons/fa6";
 import {
   DialogClose,
@@ -11,64 +11,39 @@ import {
 import { Button } from "~/components/ui/button";
 
 type TestDialogProps = {
-  submitForm: () => Promise<void>;
-  isFormSubmitted: boolean;
-  dialogButtonRef: ReturnType<typeof React.useRef>;
+  submitForm: () => void;
 };
 
-export function TestDialog({
-  submitForm,
-  dialogButtonRef,
-  isFormSubmitted,
-}: TestDialogProps) {
-  const navigate = useNavigate();
+export function TestDialog({ submitForm }: TestDialogProps) {
   const navigation = useNavigation();
-
   const isSubmitting = navigation.formData?.get("intent") === "submit";
-  const handleButtonClick = React.useCallback(async () => {
-    submitForm().then(() => navigate(-2));
-  }, [navigate, submitForm]);
 
-  /**
-   * useEffect to handle window or tab change
-   */
   React.useEffect(() => {
-    async function handleTabChange() {
-      if (document.hidden && dialogButtonRef.current) {
-        if (!isFormSubmitted) {
-          (dialogButtonRef.current as HTMLButtonElement).click();
-          await handleButtonClick();
-        }
+    const handleTabChange = () => {
+      if (document.hidden) {
+        submitForm();
       }
-    }
+    };
 
     document.addEventListener("visibilitychange", handleTabChange);
     return () => {
       document.removeEventListener("visibilitychange", handleTabChange);
     };
-  }, [dialogButtonRef, handleButtonClick, isFormSubmitted, navigate]);
+  }, [submitForm]);
 
   return (
     <DialogContent className="max-w-lg">
       <DialogHeader>
-        <DialogTitle>Are you sure you want to leave this page?</DialogTitle>
+        <DialogTitle>Are you sure you want to submit your test?</DialogTitle>
       </DialogHeader>
 
       <DialogFooter className="justify-between gap-4">
         <DialogClose asChild>
-          <Button
-            type="button"
-            variant="destructive"
-            disabled={isSubmitting || isFormSubmitted}
-          >
+          <Button type="button" variant="destructive" disabled={isSubmitting}>
             No
           </Button>
         </DialogClose>
-        <Button
-          type="button"
-          onClick={handleButtonClick}
-          disabled={isSubmitting || isFormSubmitted}
-        >
+        <Button type="button" onClick={submitForm} disabled={isSubmitting}>
           {isSubmitting ? <FaSpinner className="mr-2 animate-spin" /> : null}
           Yes
         </Button>
