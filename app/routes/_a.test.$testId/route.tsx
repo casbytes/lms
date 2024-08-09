@@ -16,6 +16,7 @@ import { TestHeader } from "./components/header";
 import { Question } from "./components/question";
 import { getUser } from "~/utils/session.server";
 import { metaFn } from "~/utils/meta";
+import { Blocker } from "./components/blocker";
 
 export const meta = metaFn;
 
@@ -54,7 +55,7 @@ export default function TestRoute() {
 
   const moduleId = test?.moduleId ?? null;
   const subModuleId = test?.subModuleId ?? null;
-  const moduleTest = Boolean(test?.moduleId);
+  const moduleTest = Boolean(moduleId);
 
   const defaultTitle = "Matters choke!";
   const testTitle = test.title;
@@ -68,8 +69,6 @@ export default function TestRoute() {
   const currentQuestion = testQuestions[currentQuestionIndex];
   const currentAnswer = userAnswers[currentQuestionIndex];
   const testQuestionsLength = testQuestions.length;
-  const checkPrev = currentQuestionIndex === 0;
-  const checkNext = currentQuestionIndex < testQuestions.length - 1;
   const progress = ((currentQuestionIndex + 1) / testQuestionsLength) * 100;
 
   React.useEffect(() => {
@@ -92,10 +91,9 @@ export default function TestRoute() {
     submit(
       {
         score,
-        moduleId,
-        subModuleId,
         testId: test.id,
         intent: "submit",
+        itemId: moduleId ?? subModuleId,
         redirectUrl: moduleOrSubModuleUrl,
       },
       { method: "POST" }
@@ -121,31 +119,32 @@ export default function TestRoute() {
   if (isServer) return <FullPagePendingUI />;
 
   return (
-    <Dialog>
-      <Container className="max-w-4xl">
-        <BackButton to={moduleOrSubModuleUrl} buttonText={testTitle} />
-        <PageTitle title={`${moduleOrSubModuleTitle} 👀`} />
-        <TestHeader
-          progress={progress}
-          submitForm={handleSubmit}
-          questionsLength={testQuestionsLength}
-          currentQuestionIndex={currentQuestionIndex}
-        />
-        <Question currentQuestion={currentQuestion} />
-        <Options
-          userAnswers={userAnswers}
-          currentAnswer={currentAnswer}
-          currentQuestion={currentQuestion}
-          setUserAnswers={setUserAnswers}
-          currentQuestionIndex={currentQuestionIndex}
-        />
+    <Container className="max-w-4xl">
+      <BackButton to={moduleOrSubModuleUrl} buttonText={testTitle} />
+      <PageTitle title={`${moduleOrSubModuleTitle} 👀`} />
+      <Blocker isSubmitted={isSubmitted} submitTest={handleSubmit} />
+      <TestHeader
+        progress={progress}
+        submitTest={handleSubmit}
+        questionsLength={testQuestionsLength}
+        currentQuestionIndex={currentQuestionIndex}
+      />
+      <Question currentQuestion={currentQuestion} />
+      <Options
+        userAnswers={userAnswers}
+        currentAnswer={currentAnswer}
+        currentQuestion={currentQuestion}
+        setUserAnswers={setUserAnswers}
+        currentQuestionIndex={currentQuestionIndex}
+      />
+      <Dialog>
         <Pagination
-          checkNext={checkNext}
-          checkPrev={checkPrev}
+          testQuestionsLength={testQuestionsLength}
+          currentQuestionIndex={currentQuestionIndex}
           setCurrentQuestionIndex={setCurrentQuestionIndex}
         />
-        <TestDialog submitForm={handleSubmit} />
-      </Container>
-    </Dialog>
+        <TestDialog submitTest={handleSubmit} />
+      </Dialog>
+    </Container>
   );
 }

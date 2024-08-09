@@ -38,10 +38,11 @@ function Ops({
           key={`option-${option.id}-${index}`}
           className="flex flex-col p-2 items-start justify-start"
         >
-          <label className="flex gap-4 items-start">
+          <label className="flex gap-4 items-start w-full">
             <span className="mt-4">{indexToLetter(index)}.</span>
             <input
               type="checkbox"
+              id={`option-${option.id}`}
               checked={currentAnswer.includes(option.id)}
               onChange={(e) => handleOptionChange(option.id, e.target.checked)}
               className="mt-[1.35rem]"

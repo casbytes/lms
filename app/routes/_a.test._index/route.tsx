@@ -35,7 +35,7 @@ export default function TestIndexRoute() {
         <BackButton
           to={moduleOrSubModuleUrl}
           buttonText={moduleOrSubModuleTitle}
-          className="-mb-2"
+          className="-mt-2 -mb-1"
         />
         <PageTitle title={`Test Your Knowledge: ${moduleOrSubModuleTitle}`} />
         <div className="flex flex-col md:flex-row gap-2 mt-4 items-center">

@@ -11,13 +11,13 @@ import { useLocalStorageState } from "~/utils/hooks";
 type TestHeaderProps = {
   progress: number;
   questionsLength: number;
-  submitForm: () => void;
+  submitTest: () => void;
   currentQuestionIndex: number;
 };
 
 export function TestHeader({
   progress,
-  submitForm,
+  submitTest,
   questionsLength,
   currentQuestionIndex,
 }: TestHeaderProps) {
@@ -41,7 +41,8 @@ export function TestHeader({
   useInterval(() => {
     setTimeLeft((prevTime) => {
       if (prevTime <= 1) {
-        submitForm();
+        submitTest();
+        window.localStorage.removeItem(TIME_KEY);
         return 0;
       } else {
         const newTimeLeft = prevTime - 1;

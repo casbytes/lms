@@ -1,8 +1,8 @@
 import invariant from "tiny-invariant";
 import schedule from "node-schedule";
 import { Params, redirect } from "@remix-run/react";
-import { getUser, getUserId } from "~/utils/session.server";
-import { prisma, Test, User } from "~/utils/db.server";
+import { getUserId } from "~/utils/session.server";
+import { prisma, Test } from "~/utils/db.server";
 import { STATUS, TEST_STATUS } from "~/utils/helpers";
 import { getContentFromGithub } from "~/utils/octokit.server";
 import { cache } from "~/utils/node-cache.server";
@@ -21,7 +21,7 @@ export interface Question {
 }
 
 //################
-// Server utils
+// Loader utils
 //################
 /**
  * Get a test
@@ -58,7 +58,8 @@ export async function getTest(request: Request, params: Params<string>) {
 
     const cacheKey = `test-${test.id}`;
     if (cache.has(cacheKey)) {
-      return { test, testQuestions: cache.get(cacheKey) as Question[] };
+      const testQuestions = cache.get(cacheKey) as Question[];
+      return { test, testQuestions };
     }
     const { content } = await getContentFromGithub({
       repo,
@@ -134,18 +135,14 @@ const CUT_OFF_SCORE = 80;
  * @returns {Promise<any>}
  */
 export async function updateTest(request: Request) {
-  const { userId, score, intent, testId, moduleId, subModuleId, redirectUrl } =
+  // itemId can be moduleId or subModuleId
+  const { userId, score, intent, testId, itemId, redirectUrl } =
     await getFormData(request);
-  invariant(intent, "Invalid intent");
-  const user = await getUser(request);
+  invariant(intent === "submit", "Invalid intent");
+  invariant(itemId, "Item ID is required to update test");
 
   try {
-    const existingTest = await findExistingTest(
-      userId,
-      testId,
-      moduleId,
-      subModuleId
-    );
+    const existingTest = await findExistingTest(userId, testId, itemId);
     if (!existingTest) throw new Error("Existing test not found.");
     const nextAttemptAt = calculateNextAttempt(existingTest, score);
 
@@ -156,8 +153,8 @@ export async function updateTest(request: Request) {
       attempts: { increment: number };
       nextAttemptAt?: Date | null;
       users: { connect: { id: string } };
-      moduleId?: string | null;
-      subModuleId?: string | null;
+      moduleId: string | null;
+      subModuleId: string | null;
     } = {
       score,
       status:
@@ -166,9 +163,8 @@ export async function updateTest(request: Request) {
       attempts: { increment: 1 },
       nextAttemptAt,
       users: { connect: { id: userId } },
-      moduleId: moduleId === "null" ? null : moduleId ?? existingTest.moduleId,
-      subModuleId:
-        subModuleId === "null" ? null : subModuleId ?? existingTest.subModuleId,
+      moduleId: existingTest.moduleId ?? null,
+      subModuleId: existingTest.subModuleId ?? null,
     };
 
     const testResponse = await updateTestStatus(testId, updateData);
@@ -185,15 +181,15 @@ export async function updateTest(request: Request) {
         testResponse.subModule?.checkpoint?.id ??
         null;
 
+      const moduleId = testResponse.moduleId ?? null;
+      const subModuleId = testResponse.subModuleId ?? null;
+
       if (checkpointId) {
         await updateCheckpointStatus(checkpointId, userId);
+      } else if (moduleId !== null) {
+        await updateStatusAndFindNextModule(moduleId, userId);
       } else {
-        await updateNextModuleOrSubmodule(
-          testResponse,
-          moduleId,
-          subModuleId,
-          user
-        );
+        await updateStatusAndFindNextSubmodule(subModuleId!, userId);
       }
     }
     return redirect(redirectUrl);
@@ -214,8 +210,7 @@ async function getFormData(request: Request) {
     score: Number(formData.get("score")),
     intent: String(formData.get("intent")),
     testId: String(formData.get("testId")),
-    moduleId: formData.get("moduleId") as string | null,
-    subModuleId: formData.get("subModuleId") as string | null,
+    itemId: formData.get("itemId") as string | null,
     redirectUrl: formData.get("redirectUrl") as string,
   };
 }
@@ -223,16 +218,15 @@ async function getFormData(request: Request) {
 async function findExistingTest(
   userId: string,
   testId: string,
-  moduleId: string | null,
-  subModuleId: string | null
+  itemId: string
 ) {
   return prisma.test.findFirst({
     where: {
       id: testId,
       users: { some: { id: userId } },
       OR: [
-        { moduleId: { equals: moduleId } },
-        { subModuleId: { equals: subModuleId } },
+        { moduleId: { equals: itemId } },
+        { subModuleId: { equals: itemId } },
       ],
     },
   });
@@ -265,45 +259,96 @@ async function updateTestStatus(testId: string, updateData: any) {
   });
 }
 
-async function updateNextModuleOrSubmodule(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  testResponse: any,
-  moduleId: string | null,
-  subModuleId: string | null,
-  user: User
+async function updateStatusAndFindNextModule(moduleId: string, userId: string) {
+  //Get the module
+  const module = await prisma.module.findUniqueOrThrow({
+    where: { id: moduleId, users: { some: { id: userId } } },
+    select: { id: true, order: true },
+  });
+
+  const user = await prisma.user.findUniqueOrThrow({
+    where: { id: userId },
+    select: { subscribed: true },
+  });
+
+  //Update the module status to COMPLETED
+  await prisma.module.update({
+    where: { id: module.id, users: { some: { id: userId } } },
+    data: { status: STATUS.COMPLETED },
+  });
+
+  //Find the next module
+  const nextModule = await prisma.module.findFirst({
+    where: {
+      order: { equals: module.order + 1 },
+      users: { some: { id: userId } },
+    },
+    select: { id: true },
+  });
+
+  if (user.subscribed) {
+    if (nextModule) {
+      await prisma.module.update({
+        where: { id: nextModule.id, users: { some: { id: userId } } },
+        data: { status: STATUS.IN_PROGRESS },
+      });
+    } else {
+      await updateCourseProject(moduleId, userId);
+    }
+  }
+}
+
+async function updateStatusAndFindNextSubmodule(
+  subModuleId: string,
+  userId: string
 ) {
   try {
-    if (moduleId) {
-      const module = await prisma.module.findUnique({
-        where: { id: moduleId },
-      });
-      if (!module) return;
+    // Fetch the submodule along with its parent module
+    const subModule = await prisma.subModule.findUniqueOrThrow({
+      where: { id: subModuleId, users: { some: { id: userId } } },
+      include: { module: true },
+    });
 
-      const nextModule = await prisma.module.findFirst({
-        where: { order: { equals: module.order + 1 } },
-      });
+    const user = await prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: { subscribed: true },
+    });
 
-      if (nextModule) {
-        await prisma.module.update({
-          where: { id: nextModule.id },
+    // Mark the current submodule as completed
+    await prisma.subModule.update({
+      where: { id: subModule.id, users: { some: { id: userId } } },
+      data: { status: STATUS.COMPLETED },
+    });
+
+    // Find the next submodule in the sequence
+    const nextSubmodule = await prisma.subModule.findFirst({
+      where: {
+        moduleId: subModule.module.id,
+        order: { equals: subModule.order + 1 },
+        users: { some: { id: userId } },
+      },
+      select: { id: true },
+    });
+
+    if (user.subscribed) {
+      if (nextSubmodule) {
+        // If there's a next submodule, mark it as in progress
+        await prisma.subModule.update({
+          where: { id: nextSubmodule.id, users: { some: { id: userId } } },
           data: { status: STATUS.IN_PROGRESS },
         });
-      } else if (user.subscribed) {
-        await updateCourseProject(moduleId);
-      }
-    } else if (subModuleId) {
-      const subModule = await prisma.subModule.findUnique({
-        where: { id: subModuleId },
-      });
-      if (!subModule) return;
-      const nextSubmodule = await prisma.subModule.findFirst({
-        where: { order: { equals: subModule.order + 1 } },
-      });
-
-      if (nextSubmodule) {
-        await prisma.subModule.update({
-          where: { id: nextSubmodule.id },
-          data: { status: STATUS.IN_PROGRESS },
+      } else {
+        // If no more submodules, find the corresponding module test and mark it as available
+        const moduleTest = await prisma.test.findFirstOrThrow({
+          where: {
+            moduleId: subModule.module.id,
+            users: { some: { id: userId } },
+          },
+          select: { id: true },
+        });
+        await prisma.test.update({
+          where: { id: moduleTest.id, users: { some: { id: userId } } },
+          data: { status: TEST_STATUS.AVAILABLE },
         });
       }
     }
@@ -319,16 +364,19 @@ async function updateCheckpointStatus(checkpointId: string, userId: string) {
   });
 }
 
-async function updateCourseProject(moduleId: string) {
+async function updateCourseProject(moduleId: string, userId: string) {
   try {
     const course = await prisma.course.findFirst({
-      where: { modules: { some: { id: moduleId } } },
+      where: {
+        modules: { some: { id: moduleId } },
+        users: { some: { id: userId } },
+      },
       include: { project: true },
     });
 
     if (!course?.project) throw new Error("Project not found.");
     await prisma.project.update({
-      where: { id: course.project.id },
+      where: { id: course.project.id, contributors: { some: { id: userId } } },
       data: { status: STATUS.IN_PROGRESS },
     });
   } catch (error) {

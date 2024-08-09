@@ -3,16 +3,19 @@ import { Button } from "~/components/ui/button";
 import { DialogTrigger } from "~/components/ui/dialog";
 
 type PaginationProps = {
-  checkNext: boolean;
-  checkPrev: boolean;
+  testQuestionsLength: number;
+  currentQuestionIndex: number;
   setCurrentQuestionIndex: React.Dispatch<React.SetStateAction<number>>;
 };
 
 export function Pagination({
-  checkNext,
-  checkPrev,
+  testQuestionsLength,
+  currentQuestionIndex,
   setCurrentQuestionIndex,
 }: PaginationProps) {
+  const checkPrev = currentQuestionIndex === 0;
+  const checkNext = currentQuestionIndex < testQuestionsLength - 1;
+
   const handleNextQuestion = React.useCallback(() => {
     setCurrentQuestionIndex((prev) => prev + 1);
   }, [setCurrentQuestionIndex]);
