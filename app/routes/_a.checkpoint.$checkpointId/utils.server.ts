@@ -1,166 +1,50 @@
 import matter from "gray-matter";
 import invariant from "tiny-invariant";
 import { Params } from "@remix-run/react";
-import { MDX, prisma } from "~/utils/db.server";
+import { Checkpoint, MDX, Module, prisma, SubModule } from "~/utils/db.server";
 import { getContentFromGithub } from "~/utils/octokit.server";
-import { getUserId, getUser } from "~/utils/session.server";
-import { ensurePrimary } from "~/utils/litefs.server";
+import { getUserId } from "~/utils/session.server";
 import { cache } from "~/utils/node-cache.server";
-import { CHECKPOINT_STATUS } from "~/utils/helpers";
-
-const { NODE_ENV } = process.env;
-const MODE = NODE_ENV;
-
-type Message = {
-  ruleId: string;
-  severity: number;
-  message: string;
-  line: number;
-  column: number;
-  nodeType: string;
-  messageId: string;
-  endLine: number;
-  endColumn: number;
-};
-
-type LintResult = {
-  filePath: string;
-  messages: Message[] | [];
-  suppressedMessages: unknown[];
-  errorCount: number;
-  fatalErrorCount: number;
-  warningCount: number;
-  fixableErrorCount: number;
-  fixableWarningCount: number;
-  source: string;
-  usedDeprecatedRules: unknown[];
-};
-
-type AssertionResult = {
-  ancestorTitles: string[];
-  fullName: string;
-  status: string;
-  title: string;
-  duration: number;
-  failureMessages: string[];
-  meta: Record<string, unknown>;
-};
-
-type TestResultDetail = {
-  assertionResults: AssertionResult[];
-  startTime: number;
-  endTime: number;
-  status: string;
-  message: string;
-  name: string;
-};
-
-type Snapshot = {
-  added: number;
-  failure: boolean;
-  filesAdded: number;
-  filesRemoved: number;
-  filesRemovedList: unknown[];
-  filesUnmatched: number;
-  filesUpdated: number;
-  matched: number;
-  total: number;
-  unchecked: number;
-  uncheckedKeysByFile: unknown[];
-  unmatched: number;
-  updated: number;
-  didUpdate: boolean;
-};
-
-type TestResults = {
-  numTotalTestSuites: number;
-  numPassedTestSuites: number;
-  numFailedTestSuites: number;
-  numPendingTestSuites: number;
-  numTotalTests: number;
-  numPassedTests: number;
-  numFailedTests: number;
-  numPendingTests: number;
-  numTodoTests: number;
-  snapshot: Snapshot;
-  startTime: number;
-  success: boolean;
-  testResults: TestResultDetail[];
-};
-
-type ApiResponse = {
-  lintResults: LintResult[] | null;
-  testResults: TestResults | null;
-  error: string | null;
-};
+import { CHECKPOINT_STATUS, STATUS } from "~/utils/helpers";
+import {
+  computeScore,
+  formatResponse,
+  getRequestUrl,
+  gradeFetch,
+  LINT_CUTOFF_SCORE,
+  TEST_CUTOFF_SCORE,
+  TOTAL_CUTOFF_SCORE,
+  updateModuleStatusAndFindNextModule,
+  updateSubmoduleStatusAndFindNextSubmodule,
+} from "~/utils/helpers.server";
 
 //################
 // Server uitls
 //################
 export async function getCheckpoint(request: Request, params: Params<string>) {
-  /**
-   * Ensure to mutate using the primary instance.
-   */
-  if (NODE_ENV === "production") {
-    await ensurePrimary();
-  }
   const userId = await getUserId(request);
-  const url = new URL(request.url);
-  const searchParams = url.searchParams;
-  const id = searchParams.get("moduleId") ?? searchParams.get("submoduleId");
+  const url = new URL(request.url).searchParams;
+  const moduleOrSubmoduleId = url.get("moduleId") ?? url.get("submoduleId");
   const checkpointId = params.checkpointId;
 
   try {
-    invariant(id, "ID is required to get Checkpoint");
+    invariant(moduleOrSubmoduleId, "ID is required to get Checkpoint");
     invariant(checkpointId, "Checkpoint ID is required to get Checkpoint");
 
-    const checkpoint = await prisma.checkpoint.findFirst({
+    const checkpoint = await prisma.checkpoint.findUniqueOrThrow({
       where: {
         id: checkpointId,
         OR: [
-          {
-            moduleId: {
-              equals: id,
-            },
-          },
-          {
-            subModuleId: {
-              equals: id,
-            },
-          },
+          { moduleId: { equals: moduleOrSubmoduleId } },
+          { subModuleId: { equals: moduleOrSubmoduleId } },
         ],
         users: { some: { id: userId } },
       },
       include: {
-        module: {
-          include: {
-            course: true,
-          },
-        },
-        subModule: {
-          include: {
-            module: {
-              include: {
-                course: true,
-              },
-            },
-          },
-        },
+        module: { include: { course: true } },
+        subModule: { include: { module: { include: { course: true } } } },
       },
     });
-
-    if (!checkpoint) {
-      throw new Error("Checkpoint not found.");
-    }
-
-    const cacheKey = `checkpoint-${checkpointId}`;
-
-    if (cache.has(cacheKey)) {
-      return {
-        checkpoint,
-        checkpointContent: cache.get(cacheKey) as MDX,
-      };
-    }
 
     const path = checkpoint?.module
       ? "checkpoint.mdx"
@@ -170,37 +54,51 @@ export async function getCheckpoint(request: Request, params: Params<string>) {
       checkpoint?.module?.slug ??
       (checkpoint?.subModule?.module?.slug as string);
 
+    const cacheKey = `checkpoint-${checkpointId}`;
+    if (cache.has(cacheKey)) {
+      return {
+        checkpoint,
+        checkpointContent: cache.get(cacheKey) as MDX,
+      };
+    }
+
     const { content: mdx } = await getContentFromGithub({
       repo,
       path,
     });
 
     const { data, content } = matter(mdx);
-    cache.set<MDX>(cacheKey, { data, content });
+    const checkpointMdx = { data, content };
+    cache.set<MDX>(cacheKey, checkpointMdx);
     return {
       checkpoint,
-      checkpointContent: { data, mdx },
+      checkpointContent: checkpointMdx,
     };
   } catch (error) {
     throw error;
   }
 }
 
+type CheckpointWithCourse = Checkpoint & {
+  module: Module & { course: { id: string } };
+  subModule: SubModule & { module: Module & { course: { id: string } } };
+};
+
 //################
 // Action uitls
 //################
-const CUT_OFF_SCORE = 80;
+
 export async function gradeCheckpoint(request: Request) {
-  const userId = await getUserId(request);
-  const user = await getUser(request);
-  const formData = await request.formData();
-  const checkpointId = formData.get("itemId") as string;
-  const intent = formData.get("intent") as
-    | "addLink"
-    | "deleteLink"
-    | "submitTask";
+  const { intent, userId, checkpointId, moduleOrSubmoduleId } =
+    await getFormData(request);
   invariant(intent, "Intent is required to update Checkpoint");
   invariant(checkpointId, "Checkpoint ID is required to update Checkpoint");
+  return await autoGradeCheckpoint(
+    userId,
+    checkpointId,
+    moduleOrSubmoduleId,
+    request
+  );
 }
 
 /**
@@ -209,83 +107,173 @@ export async function gradeCheckpoint(request: Request) {
  * @param path - path to checkpoint on github
  * @returns {}
  */
-async function autoGrade(userId: string, checkpointId: string) {
-  const [user, checkpoint] = await Promise.all([
-    prisma.user.findUnique({
-      where: { id: userId },
-      select: { githubUsername: true },
-    }),
-    prisma.checkpoint.findUnique({
-      where: { id: checkpointId },
-      include: {
-        module: true,
-        subModule: {
-          include: {
-            module: true,
-          },
-        },
-      },
-    }),
-  ]);
+async function autoGradeCheckpoint(
+  userId: string,
+  checkpointId: string,
+  moduleOrSubmoduleId: string,
+  request: Request
+) {
+  try {
+    const [user, checkpoint] = await Promise.all([
+      prisma.user.findUniqueOrThrow({
+        where: { id: userId },
+        select: { githubUsername: true },
+      }),
+      getCurrentCheckpoint(userId, checkpointId, moduleOrSubmoduleId),
+    ]);
 
-  const userGithubUsername = user!.githubUsername;
-  if (!userGithubUsername) {
-    return formatResponse({ error: "User does not have a github username" });
-  }
-  const testEnvironment = checkpoint?.testEnvironment ?? "node";
-  const checkpointPath = checkpoint?.moduleId
-    ? `${checkpoint.module?.slug}-checkpoint`
-    : `${checkpoint!.subModule?.module.slug}/sub-modules/${
-        checkpoint?.subModule?.title
-      }-checkpoint`;
+    const username = user?.githubUsername as string;
+    if (!username) {
+      return formatResponse({ error: "Please, update your Github username." });
+    }
+    const testEnvironment = checkpoint?.testEnvironment;
+    const repo =
+      checkpoint?.module?.slug ??
+      (checkpoint?.subModule?.module.slug as string);
 
-  const checkpointRepo =
-    checkpoint?.module?.slug ?? checkpoint?.subModule?.module.slug;
-
-  const baseUrl =
-    MODE === "production" ? process.env.CHECKER_URL : "http://localhost:8080";
-  const url = `${baseUrl}/${userGithubUsername}?checkpointPath=${checkpointPath}&checkpointRepo=${checkpointRepo}`;
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "X-Forwarded-For": "localhost",
-      "X-Test-Env": testEnvironment,
-      "Content-Type": "application/json",
-    },
-  });
-
-  if (!response.ok) {
-    return formatResponse({
-      error: "Failed to auto grade checkpoint, please try again",
+    const path = getCheckpointPath(checkpoint as CheckpointWithCourse);
+    const url = getRequestUrl({ username, path, repo });
+    const response = await gradeFetch({ url, testEnvironment, request });
+    const computedScores = await computeScore(response);
+    const checkpointStatus = await updateCheckpointStatus({
+      userId,
+      checkpointId,
+      ...computedScores,
     });
+    if (checkpointStatus.status === CHECKPOINT_STATUS.COMPLETED) {
+      if (checkpointStatus.moduleId !== null) {
+        const { moduleId } = checkpointStatus;
+        await updateModuleStatusAndFindNextModule({ userId, moduleId });
+      } else {
+        const { subModuleId } = checkpointStatus as { subModuleId: string };
+        await updateSubmoduleStatusAndFindNextSubmodule({
+          userId,
+          subModuleId,
+        });
+      }
+    }
+    return response;
+  } catch (error) {
+    throw error;
   }
-  const data: ApiResponse = await response.json();
-  return formatResponse({
-    ...data,
-  });
 }
 
 /**
- * Format the response
- * @param error - error message
- * @param message - message
- * @param lintReulsts - lint results
- * @param testResults - test results
- * @returns {ApiResponse}
+ * Update the checkpoint status
+ * @param userId - user id
+ * @param checkpointId - checkpoint id
+ * @param checkpointScore - checkpoint score
+ * @param totalLintsScore - total lints score
+ * @param totalTestsScore - total tests score
+ * @returns {Promise<Checkpoint>}
  */
-function formatResponse({
-  error = null,
-  message = null,
-  lintReulsts = null,
-  testResults = null,
+async function updateCheckpointStatus({
+  userId,
+  checkpointId,
+  totalScore: checkpointScore,
+  totalLintsScore,
+  totalTestsScore,
 }: {
-  error?: string | null;
-  message?: string | null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  lintReulsts?: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  testResults?: any;
+  userId: string;
+  checkpointId: string;
+  totalScore: number;
+  totalLintsScore: number;
+  totalTestsScore: number;
 }) {
-  return { error, message, lintReulsts, testResults };
+  const passedLint = totalLintsScore >= LINT_CUTOFF_SCORE;
+  const passedTest = totalTestsScore >= TEST_CUTOFF_SCORE;
+  const passedCheckpoint = checkpointScore >= TOTAL_CUTOFF_SCORE;
+  const completed = passedLint && passedTest && passedCheckpoint;
+
+  try {
+    return prisma.checkpoint.update({
+      where: { id: checkpointId, users: { some: { id: userId } } },
+      data: {
+        status: completed
+          ? CHECKPOINT_STATUS.COMPLETED
+          : CHECKPOINT_STATUS.IN_PROGRESS,
+        score: Number(checkpointScore.toFixed(0)),
+      },
+    });
+  } catch (error) {
+    throw error;
+  }
+}
+
+/**
+ * Get form data
+ * @param request - request
+ * @returns {Record<string, any>}
+ */
+async function getFormData(request: Request) {
+  const formData = await request.formData();
+  return {
+    userId: await getUserId(request),
+    intent: String(formData.get("intent")),
+    checkpointId: String(formData.get("checkpointId")),
+    moduleOrSubmoduleId: String(formData.get("itemId")),
+  };
+}
+
+/**
+ * Get the checkpoint path
+ * @param checkpoint - checkpoint
+ * @returns {string} - checkpoint path
+ */
+function getCheckpointPath(checkpoint: CheckpointWithCourse) {
+  return checkpoint.module
+    ? `${checkpoint.module.slug}-checkpoint`
+    : `${checkpoint.subModule.module.slug}/sub-modules/${checkpoint.subModule.slug}-checkpoint`;
+}
+
+/**
+ * Find an existing checkpoint
+ * @param userId - user id
+ * @param checkpointId - checkpoint id
+ * @param itemId - module or sub-module id
+ * @returns {Promise<Checkpoint>}
+ */
+async function getCurrentCheckpoint(
+  userId: string,
+  checkpointId: string,
+  moduleOrSubmoduleId: string
+) {
+  try {
+    return prisma.checkpoint.findUniqueOrThrow({
+      where: {
+        id: checkpointId,
+        users: { some: { id: userId } },
+        OR: [
+          { moduleId: { equals: moduleOrSubmoduleId } },
+          { subModuleId: { equals: moduleOrSubmoduleId } },
+        ],
+      },
+      include: {
+        module: { include: { course: true } },
+        subModule: { include: { module: { include: { course: true } } } },
+      },
+    });
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function updateCourseProject(moduleId: string, userId: string) {
+  try {
+    const course = await prisma.course.findFirst({
+      where: {
+        modules: { some: { id: moduleId } },
+        users: { some: { id: userId } },
+      },
+      include: { project: true },
+    });
+
+    if (!course?.project) throw new Error("Project not found.");
+    await prisma.project.update({
+      where: { id: course.project.id, contributors: { some: { id: userId } } },
+      data: { status: STATUS.IN_PROGRESS },
+    });
+  } catch (error) {
+    throw error;
+  }
 }

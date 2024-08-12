@@ -3,19 +3,13 @@ import { Container } from "~/components/container";
 import { Markdown } from "~/components/markdown";
 import { PageTitle } from "~/components/page-title";
 import { BackButton } from "~/components/back-button";
-import { toast } from "~/components/ui/use-toast";
 import { ActionFunctionArgs, LoaderFunctionArgs, json } from "@remix-run/node";
 import { getCheckpoint, gradeCheckpoint } from "./utils.server";
 import { useActionData, useLoaderData } from "@remix-run/react";
 import { IFrame } from "~/components/iframe";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "~/components/ui/accordion";
 import { getUser } from "~/utils/session.server";
 import { getVideoSource } from "~/utils/helpers.server";
+import { CheckpointResponse } from "~/components/checkpoint-response";
 import { metaFn } from "~/utils/meta";
 
 export const meta = metaFn;
@@ -23,12 +17,12 @@ export const meta = metaFn;
 export async function loader({ request, params }: LoaderFunctionArgs) {
   try {
     const videoSource = getVideoSource();
+    const user = await getUser(request);
     const { checkpoint, checkpointContent } = await getCheckpoint(
       request,
       params
     );
-    const user = await getUser(request);
-    return json({ checkpoint, checkpointContent, user, videoSource });
+    return json({ user, videoSource, checkpoint, checkpointContent });
   } catch (error) {
     throw error;
   }
@@ -36,48 +30,32 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   try {
-    const checkpointResponse = await gradeCheckpoint(request);
-    return json({ checkpointResponse });
+    return await gradeCheckpoint(request);
   } catch (error) {
     throw error;
   }
 }
 
 export default function CheckPointRoute() {
-  const { checkpoint, checkpointContent, user, videoSource } =
+  const { checkpoint, checkpointContent, videoSource } =
     useLoaderData<typeof loader>();
-  const data = useActionData<typeof action>();
+  const checkpointResponse = useActionData<typeof action>();
 
-  // let moduleId = checkpoint?.moduleId;
-  // let subModuleId = checkpoint?.subModuleId;
+  const moduleId = checkpoint?.moduleId ?? null;
+  const subModuleId = checkpoint?.subModuleId ?? null;
 
   const moduleCheckpoint = Boolean(checkpoint?.moduleId);
-  const defaultTitle = "Matters choke!";
-  const checkpointTitle = checkpoint.title ?? defaultTitle;
+  const checkpointTitle = checkpoint.title;
 
   const moduleOrSubModuleTitle = moduleCheckpoint
     ? checkpoint?.module?.title
-    : checkpoint?.subModule?.title ?? defaultTitle;
+    : checkpoint?.subModule?.title;
 
   const moduleOrSubModuleUrl = moduleCheckpoint
     ? `/courses/${checkpoint?.module?.courseId}?moduleId=${checkpoint?.moduleId}`
     : `/sub-modules/${checkpoint?.subModuleId}`;
 
-  React.useEffect(() => {
-    if (data?.checkpointResponse) {
-      const { checkpointResponse } = data;
-      if (checkpointResponse.message) {
-        toast({
-          title: checkpointResponse.message,
-        });
-      } else if (checkpointResponse.error) {
-        toast({
-          title: checkpointResponse.error,
-          variant: "destructive",
-        });
-      }
-    }
-  }, [data]);
+  React.useEffect(() => {}, [checkpointResponse]);
 
   return (
     <Container className="max-w-4xl">
@@ -88,21 +66,15 @@ export default function CheckPointRoute() {
         className="mt-4"
       />
       <>
-        <Accordion type="single" collapsible className="w-full">
-          <AccordionItem value="task-details" className="mb-4">
-            <AccordionTrigger className="text-lg bg-zinc-300 p-2 rounded-md text-blue-600">
-              Status and link
-            </AccordionTrigger>
-            <AccordionContent className="pt-4">
-              <TaskTable task={checkpoint} />
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-        <Markdown source={checkpointContent.mdx} />
         {checkpointContent?.data?.videoId ? (
           <IFrame src={videoSource} videoId={checkpointContent.data.videoId} />
         ) : null}
+        <Markdown source={checkpointContent.content} />
       </>
+      <CheckpointResponse
+        item={checkpoint}
+        response={checkpointResponse ?? null}
+      />
     </Container>
   );
 }

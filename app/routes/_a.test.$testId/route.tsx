@@ -57,10 +57,8 @@ export default function TestRoute() {
   const subModuleId = test?.subModuleId ?? null;
   const moduleTest = Boolean(moduleId);
 
-  const defaultTitle = "Matters choke!";
   const testTitle = test.title;
-  const moduleOrSubModuleTitle =
-    test?.module?.title ?? test?.subModule?.title ?? defaultTitle;
+  const moduleOrSubModuleTitle = test?.module?.title ?? test?.subModule?.title;
 
   const moduleOrSubModuleUrl = moduleTest
     ? `/courses/${test?.module?.courseId}?moduleId=${test?.moduleId}`

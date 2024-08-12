@@ -7,6 +7,7 @@ import { Button } from "~/components/ui/button";
 import { Rules } from "./components/rules";
 import { getTest } from "./utils.server";
 import { metaFn } from "~/utils/meta";
+import { TEST_STATUS } from "~/utils/helpers";
 
 export const meta = metaFn;
 
@@ -16,14 +17,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export default function TestIndexRoute() {
   const test = useLoaderData<typeof loader>();
-  const moduleTest = test?.moduleId ? true : false;
 
-  const defaultTitle = "Matters choke!";
-  const testTitle = test.title ?? defaultTitle;
-
+  const moduleTest = Boolean(test?.moduleId);
+  const testTitle = test.title;
   const moduleOrSubModuleTitle = moduleTest
     ? test?.module?.title
-    : test?.subModule?.title ?? defaultTitle;
+    : test?.subModule?.title;
 
   const moduleOrSubModuleUrl = moduleTest
     ? `/courses/${test?.module?.courseId}?moduleId=${test?.moduleId}`
@@ -41,7 +40,7 @@ export default function TestIndexRoute() {
         <div className="flex flex-col md:flex-row gap-2 mt-4 items-center">
           <div className="flex flex-col gap-2 z-20">
             <p className="text-lg text-zinc-700">
-              Welcome to the <span className="text-sky-600">{testTitle}!</span>{" "}
+              Welcome to the <span className="text-sky-700">{testTitle}!</span>{" "}
               <br />
               This test is designed to assess your understanding of{" "}
               {moduleOrSubModuleTitle}.
@@ -59,7 +58,7 @@ export default function TestIndexRoute() {
           </div>
         </div>
         <Button
-          // disabled={test.status === TestStatus.LOCKED}
+          disabled={test.status === TEST_STATUS.LOCKED}
           className="mt-4 w-full text-lg"
           size="lg"
         >

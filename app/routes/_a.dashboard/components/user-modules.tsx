@@ -74,7 +74,7 @@ function Modules({ userModules }: ModulesProps) {
                     className="!p-0 !m-0 font-black text-sky-600"
                     disabled={module.status === STATUS.LOCKED}
                   >
-                    <Link prefetch="intent" to={`/courses/${module.id}`}>
+                    <Link prefetch="intent" to={`/modules/${module.id}`}>
                       <FaRegEye size={15} />
                     </Link>
                   </Button>

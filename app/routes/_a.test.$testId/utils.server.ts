@@ -6,6 +6,10 @@ import { prisma, Test } from "~/utils/db.server";
 import { STATUS, TEST_STATUS } from "~/utils/helpers";
 import { getContentFromGithub } from "~/utils/octokit.server";
 import { cache } from "~/utils/node-cache.server";
+import {
+  updateModuleStatusAndFindNextModule,
+  updateSubmoduleStatusAndFindNextSubmodule,
+} from "~/utils/helpers.server";
 
 export interface Option {
   id: number;
@@ -41,10 +45,7 @@ export async function getTest(request: Request, params: Params<string>) {
   invariant(testId, "Test ID is required to get Test");
 
   try {
-    const test = await getTestById(testId, moduleOrSubmoduleId, userId);
-    if (!test) {
-      throw new Error("Test not found.");
-    }
+    const test = await getCurrentTest({ testId, moduleOrSubmoduleId, userId });
     if (test?.nextAttemptAt) {
       await scheduleStatusUpdate(testId, test.nextAttemptAt);
     }
@@ -80,29 +81,37 @@ export async function getTest(request: Request, params: Params<string>) {
  * @param {String} userId - The user ID
  * @returns {Promise<Test>}
  */
-async function getTestById(
-  testId: string,
-  moduleOrSubmoduleId: string,
-  userId: string
-) {
-  return prisma.test.findFirst({
-    where: {
-      id: testId,
-      OR: [
-        { moduleId: { equals: moduleOrSubmoduleId } },
-        { subModuleId: { equals: moduleOrSubmoduleId } },
-      ],
-      users: { some: { id: userId } },
-    },
-    include: {
-      module: true,
-      subModule: {
-        include: {
-          module: true,
+async function getCurrentTest({
+  testId,
+  moduleOrSubmoduleId,
+  userId,
+}: {
+  testId: string;
+  moduleOrSubmoduleId: string;
+  userId: string;
+}) {
+  try {
+    return prisma.test.findUniqueOrThrow({
+      where: {
+        id: testId,
+        users: { some: { id: userId } },
+        OR: [
+          { moduleId: { equals: moduleOrSubmoduleId } },
+          { subModuleId: { equals: moduleOrSubmoduleId } },
+        ],
+      },
+      include: {
+        module: true,
+        subModule: {
+          include: {
+            module: true,
+          },
         },
       },
-    },
-  });
+    });
+  } catch (error) {
+    throw error;
+  }
 }
 
 /**
@@ -136,15 +145,14 @@ const CUT_OFF_SCORE = 80;
  */
 export async function updateTest(request: Request) {
   // itemId can be moduleId or subModuleId
-  const { userId, score, intent, testId, itemId, redirectUrl } =
+  const { userId, score, intent, testId, moduleOrSubmoduleId, redirectUrl } =
     await getFormData(request);
   invariant(intent === "submit", "Invalid intent");
-  invariant(itemId, "Item ID is required to update test");
+  invariant(moduleOrSubmoduleId, "Item ID is required to update test");
 
   try {
-    const existingTest = await findExistingTest(userId, testId, itemId);
-    if (!existingTest) throw new Error("Existing test not found.");
-    const nextAttemptAt = calculateNextAttempt(existingTest, score);
+    const test = await getCurrentTest({ testId, moduleOrSubmoduleId, userId });
+    const nextAttemptAt = calculateNextAttempt({ test, score });
 
     const updateData: {
       score: number;
@@ -163,8 +171,8 @@ export async function updateTest(request: Request) {
       attempts: { increment: 1 },
       nextAttemptAt,
       users: { connect: { id: userId } },
-      moduleId: existingTest.moduleId ?? null,
-      subModuleId: existingTest.subModuleId ?? null,
+      moduleId: test.moduleId ?? null,
+      subModuleId: test.subModuleId ?? null,
     };
 
     const testResponse = await updateTestStatus(testId, updateData);
@@ -187,9 +195,12 @@ export async function updateTest(request: Request) {
       if (checkpointId) {
         await updateCheckpointStatus(checkpointId, userId);
       } else if (moduleId !== null) {
-        await updateStatusAndFindNextModule(moduleId, userId);
+        await updateModuleStatusAndFindNextModule({ moduleId, userId });
       } else {
-        await updateStatusAndFindNextSubmodule(subModuleId!, userId);
+        await updateSubmoduleStatusAndFindNextSubmodule({
+          subModuleId: subModuleId as string,
+          userId,
+        });
       }
     }
     return redirect(redirectUrl);
@@ -210,37 +221,19 @@ async function getFormData(request: Request) {
     score: Number(formData.get("score")),
     intent: String(formData.get("intent")),
     testId: String(formData.get("testId")),
-    itemId: formData.get("itemId") as string | null,
+    moduleOrSubmoduleId: formData.get("itemId") as string,
     redirectUrl: formData.get("redirectUrl") as string,
   };
 }
 
-async function findExistingTest(
-  userId: string,
-  testId: string,
-  itemId: string
-) {
-  return prisma.test.findFirst({
-    where: {
-      id: testId,
-      users: { some: { id: userId } },
-      OR: [
-        { moduleId: { equals: itemId } },
-        { subModuleId: { equals: itemId } },
-      ],
-    },
-  });
-}
-
-function calculateNextAttempt(existingTest: Test, score: number) {
+function calculateNextAttempt({ test, score }: { test: Test; score: number }) {
   const now = new Date();
   const attemptIncrement = 24 * 60 * 60 * 1000; // 1 day in milliseconds
   const daysUntilNextAttempt =
-    (existingTest?.attempts === 0 ? 1 : existingTest.attempts + 1) *
-    attemptIncrement;
+    (test?.attempts === 0 ? 1 : test.attempts + 1) * attemptIncrement;
   const nextAttemptTime = new Date(now.getTime() + daysUntilNextAttempt);
 
-  if (existingTest?.nextAttemptAt) {
+  if (test?.nextAttemptAt) {
     return score >= CUT_OFF_SCORE ? null : nextAttemptTime;
   } else {
     return score < CUT_OFF_SCORE ? nextAttemptTime : null;
@@ -259,127 +252,9 @@ async function updateTestStatus(testId: string, updateData: any) {
   });
 }
 
-async function updateStatusAndFindNextModule(moduleId: string, userId: string) {
-  //Get the module
-  const module = await prisma.module.findUniqueOrThrow({
-    where: { id: moduleId, users: { some: { id: userId } } },
-    select: { id: true, order: true },
-  });
-
-  const user = await prisma.user.findUniqueOrThrow({
-    where: { id: userId },
-    select: { subscribed: true },
-  });
-
-  //Update the module status to COMPLETED
-  await prisma.module.update({
-    where: { id: module.id, users: { some: { id: userId } } },
-    data: { status: STATUS.COMPLETED },
-  });
-
-  //Find the next module
-  const nextModule = await prisma.module.findFirst({
-    where: {
-      order: { equals: module.order + 1 },
-      users: { some: { id: userId } },
-    },
-    select: { id: true },
-  });
-
-  if (user.subscribed) {
-    if (nextModule) {
-      await prisma.module.update({
-        where: { id: nextModule.id, users: { some: { id: userId } } },
-        data: { status: STATUS.IN_PROGRESS },
-      });
-    } else {
-      await updateCourseProject(moduleId, userId);
-    }
-  }
-}
-
-async function updateStatusAndFindNextSubmodule(
-  subModuleId: string,
-  userId: string
-) {
-  try {
-    // Fetch the submodule along with its parent module
-    const subModule = await prisma.subModule.findUniqueOrThrow({
-      where: { id: subModuleId, users: { some: { id: userId } } },
-      include: { module: true },
-    });
-
-    const user = await prisma.user.findUniqueOrThrow({
-      where: { id: userId },
-      select: { subscribed: true },
-    });
-
-    // Mark the current submodule as completed
-    await prisma.subModule.update({
-      where: { id: subModule.id, users: { some: { id: userId } } },
-      data: { status: STATUS.COMPLETED },
-    });
-
-    // Find the next submodule in the sequence
-    const nextSubmodule = await prisma.subModule.findFirst({
-      where: {
-        moduleId: subModule.module.id,
-        order: { equals: subModule.order + 1 },
-        users: { some: { id: userId } },
-      },
-      select: { id: true },
-    });
-
-    if (user.subscribed) {
-      if (nextSubmodule) {
-        // If there's a next submodule, mark it as in progress
-        await prisma.subModule.update({
-          where: { id: nextSubmodule.id, users: { some: { id: userId } } },
-          data: { status: STATUS.IN_PROGRESS },
-        });
-      } else {
-        // If no more submodules, find the corresponding module test and mark it as available
-        const moduleTest = await prisma.test.findFirstOrThrow({
-          where: {
-            moduleId: subModule.module.id,
-            users: { some: { id: userId } },
-          },
-          select: { id: true },
-        });
-        await prisma.test.update({
-          where: { id: moduleTest.id, users: { some: { id: userId } } },
-          data: { status: TEST_STATUS.AVAILABLE },
-        });
-      }
-    }
-  } catch (error) {
-    throw error;
-  }
-}
-
 async function updateCheckpointStatus(checkpointId: string, userId: string) {
   return prisma.checkpoint.update({
     where: { id: checkpointId, users: { some: { id: userId } } },
     data: { status: STATUS.IN_PROGRESS },
   });
-}
-
-async function updateCourseProject(moduleId: string, userId: string) {
-  try {
-    const course = await prisma.course.findFirst({
-      where: {
-        modules: { some: { id: moduleId } },
-        users: { some: { id: userId } },
-      },
-      include: { project: true },
-    });
-
-    if (!course?.project) throw new Error("Project not found.");
-    await prisma.project.update({
-      where: { id: course.project.id, contributors: { some: { id: userId } } },
-      data: { status: STATUS.IN_PROGRESS },
-    });
-  } catch (error) {
-    throw error;
-  }
 }
