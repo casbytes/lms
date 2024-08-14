@@ -19,7 +19,7 @@ interface Message {
   endColumn: number;
 }
 
-interface LintResult {
+export interface LintResult {
   filePath: string;
   messages: Message[] | [];
   suppressedMessages: unknown[];
@@ -68,7 +68,7 @@ interface Snapshot {
   didUpdate: boolean;
 }
 
-interface TestResults {
+export interface TestResults {
   numTotalTestSuites: number;
   numPassedTestSuites: number;
   numFailedTestSuites: number;

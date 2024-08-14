@@ -125,8 +125,6 @@ model Checkpoint {
   users           User[]
   module          Module?    @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   subModule       SubModule? @relation(fields: [subModuleId], references: [id], onDelete: Cascade)
-
-  @@unique([moduleId, subModuleId])
 }
 
 model Test {
@@ -143,10 +141,6 @@ model Test {
   module        Module?    @relation(fields: [moduleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   subModule     SubModule? @relation(fields: [subModuleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
-
-//||||||||||||||||##########||||||||||||||||//
-//                 PROJECT                  //
-//||||||||||||||||##########||||||||||||||||//
 
 model Project {
   id              String @id @default(uuid())

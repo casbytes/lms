@@ -27,7 +27,7 @@ export function PageTitle({ className, title }: TitleProps) {
         <li className="flex items-center">
           <Badge className="rounded-md text-sm">
             <BsUnlockFill size={15} className="mr-2" />
-            Subscribed
+            Premium
           </Badge>
         </li>
       </ul>

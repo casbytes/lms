@@ -40,6 +40,7 @@ export function ConfirmationDialog({
   const isSubscribed = user?.subscribed;
   const notSubscribed = !inCatalog && !isSubscribed && item.type === "module";
   const isSubmitting = n.formData?.get("intent") === "addGithubCourseToCatalog";
+  console.log(isSubscribed, notSubscribed, isSubmitting);
 
   return (
     <Dialog>
@@ -148,7 +149,6 @@ function Confirm({
           <DialogClose>Cancel</DialogClose>
         </Button>
         <Button
-          size={"sm"}
           className="bg-indigo-500 hover:bg-indigo-400 py-1 font-black"
           disabled={isSubmitting || inCatalog}
           onClick={() => {

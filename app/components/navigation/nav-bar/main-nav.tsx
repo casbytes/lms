@@ -16,6 +16,7 @@ type MainNavProps = {
 type ItemProps = {
   label: string;
   href: string;
+  target?: string;
 };
 
 export function MainNav({
@@ -80,6 +81,7 @@ export function MainNav({
                       <NavLink
                         key={`${item.href}-${index}`}
                         to={item.href}
+                        target={item.target ?? "_self"}
                         aria-label={item.label}
                         prefetch="intent"
                         className={({ isActive }) =>

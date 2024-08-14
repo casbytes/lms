@@ -7,7 +7,7 @@ export { RootLayout } from "./root-layout";
 export const unAuthMenuItems = [
   { label: "courses", href: "courses" },
   { label: "FAQs", href: "faqs" },
-  { label: "blog", href: "blog.casbytes.com" },
+  { label: "blog", href: "https://blog.casbytes.com", target: "_blank" },
 ];
 
 export const userMenuItems = [

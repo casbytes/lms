@@ -58,6 +58,7 @@ export function Modules({ moduleData, user }: ModulesProps) {
                             <div>
                               <ConfirmationDialog
                                 item={{ ...module, type: "module" as const }}
+                                user={user}
                                 inCatalog={inCatalog}
                               />
                             </div>

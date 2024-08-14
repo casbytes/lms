@@ -10,7 +10,7 @@ type MobileNavProps = {
   authApp: boolean;
   handleNavToggle: () => void;
   className?: string;
-  menuItems: { label: string; href: string }[];
+  menuItems: { label: string; href: string; target?: string }[];
 };
 
 export function MobileNav({
@@ -40,7 +40,11 @@ export function MobileNav({
               className="text-lg capitalize"
               asChild
             >
-              <Link to={item.href} prefetch="intent">
+              <Link
+                to={item.href}
+                prefetch="intent"
+                target={item?.target ?? "_self"}
+              >
                 {item.label}
               </Link>
             </Button>

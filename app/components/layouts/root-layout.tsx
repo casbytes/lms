@@ -60,25 +60,25 @@ export function RootLayout() {
     }
   }, [elapsedTime, f]);
 
-  React.useEffect(() => {
-    if (user && !isRunning) {
-      startTimer();
-    }
-    return () => {
-      stopTimer();
-      if (isRunning) {
-        logLearningTime();
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, isRunning, stopTimer, logLearningTime]);
+  // React.useEffect(() => {
+  //   if (user && !isRunning) {
+  //     startTimer();
+  //   }
+  //   return () => {
+  //     stopTimer();
+  //     if (isRunning) {
+  //       logLearningTime();
+  //     }
+  //   };
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [user, isRunning, stopTimer, logLearningTime]);
 
-  const LOG_INTERVAL = 60000; // 1 minute
-  useInterval(() => {
-    if (user) {
-      logLearningTime();
-    }
-  }, LOG_INTERVAL);
+  // const LOG_INTERVAL = 60000; // 1 minute
+  // useInterval(() => {
+  //   if (user) {
+  //     logLearningTime();
+  //   }
+  // }, LOG_INTERVAL);
 
   const START_NAVIGATION_TIME = 1000;
   React.useEffect(() => {

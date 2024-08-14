@@ -80,13 +80,3 @@ export default function ModuleRoute() {
     </Container>
   );
 }
-
-// function PendingAssessment() {
-//   return (
-//     <ul className="space-y-3">
-//       {Array.from({ length: 2 }).map((_, i) => (
-//         <li key={i} className="bg-gray-300 h-8 rounded-md animate-pulse"></li>
-//       ))}
-//     </ul>
-//   );
-// }

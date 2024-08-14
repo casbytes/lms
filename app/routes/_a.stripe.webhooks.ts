@@ -1,4 +1,3 @@
-import invariant from "tiny-invariant";
 import { ActionFunctionArgs, redirect } from "@remix-run/node";
 import { Stripe, constructWebhookEvent } from "~/services/stripe.server";
 import { prisma } from "~/utils/db.server";
@@ -8,15 +7,17 @@ export function loader() {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  async function updateUserSubscription(email: string, subscribed: boolean) {
+  async function updateUserSubscription(
+    stripeCustomerId: string,
+    subscribed: boolean
+  ) {
     return await prisma.user.update({
-      where: { email },
+      where: { stripeCustomerId },
       data: {
         subscribed,
       },
     });
   }
-
   try {
     const event = await constructWebhookEvent(request);
     if (!event) {
@@ -24,27 +25,33 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     switch (event.type) {
-      case "checkout.session.completed": {
-        const checkoutSession = event.data.object as Stripe.Checkout.Session;
-        const customerEmail = checkoutSession.customer_details?.email;
-        invariant(customerEmail, "Customer email is required");
-        return await updateUserSubscription(customerEmail, true);
-      }
-
       case "customer.subscription.updated":
+      case "invoice.payment_succeeded":
         {
-          const subscription = event.data.object as Stripe.Subscription;
-          // Do something with the subscription
-          console.log(subscription);
+          const customer = (
+            event.data.object as Stripe.Subscription | Stripe.Invoice
+          ).customer;
+          await updateUserSubscription(customer as string, true);
+        }
+        break;
+
+      case "customer.subscription.deleted":
+      case "invoice.payment_failed":
+        {
+          const customer = (
+            event.data.object as Stripe.Subscription | Stripe.Invoice
+          ).customer;
+          await updateUserSubscription(customer as string, false);
         }
         break;
 
       default:
-        break;
+        return new Response("Unhandled event type", { status: 400 });
     }
-    return null;
+    return new Response("Success", { status: 200 });
   } catch (error) {
-    console.error(error);
+    // eslint-disable-next-line no-console
+    console.error("Webhook Error:", error);
     return new Response("Webhook Error", { status: 400 });
   }
 }

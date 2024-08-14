@@ -82,7 +82,7 @@ function Modules({ userModules }: ModulesProps) {
                     <DeleteConfirmationDialog
                       title={module.title}
                       itemId={module.id}
-                      itemType="course"
+                      itemType="module"
                     />
                   ) : null}
                 </div>

@@ -5,6 +5,7 @@ export interface SideBarProps {
     icon?: React.ReactNode;
     label: string;
     href: string;
+    target?: string;
   }[];
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;

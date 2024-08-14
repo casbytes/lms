@@ -1,22 +1,17 @@
 import { useNavigate, useSearchParams, useFetcher } from "@remix-run/react";
-import type { Lesson, Module, SubModule } from "~/utils/db.server";
+import type { Lesson } from "~/utils/db.server";
 import { FaSpinner } from "react-icons/fa6";
 import { FiCheckCircle } from "react-icons/fi";
 import { RiArrowLeftSLine, RiArrowRightSLine } from "react-icons/ri";
 import { Button } from "~/components/ui/button";
 import { STATUS } from "~/utils/helpers";
-
-type LessonWithModule = Lesson & {
-  subModule: SubModule & {
-    module: Module;
-  };
-};
+import { LessonWithModule } from "../utils.server";
 
 type PaginationProps = {
   currentLessonData: {
-    previousLesson: LessonWithModule | null;
+    previousLesson: Lesson | null;
     currentLesson: LessonWithModule;
-    nextLesson: LessonWithModule | null;
+    nextLesson: Lesson | null;
   };
 };
 

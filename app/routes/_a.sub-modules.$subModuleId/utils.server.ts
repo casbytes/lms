@@ -1,7 +1,7 @@
 /* eslint-disable no-undefined */
 import invariant from "tiny-invariant";
 import matter from "gray-matter";
-import type { Lesson, MDX, Test } from "~/utils/db.server";
+import type { Lesson, MDX, Module, SubModule, Test } from "~/utils/db.server";
 import { Params } from "@remix-run/react";
 import { getContentFromGithub } from "~/utils/octokit.server";
 import { getUserId } from "~/utils/session.server";
@@ -174,6 +174,12 @@ async function updateFirstLessonStatus(
   });
 }
 
+export type LessonWithModule = Lesson & {
+  subModule: SubModule & {
+    module: Module;
+  };
+};
+
 /**
  * Get lessons content from Github by given submodule ID and lesson slug
  * @param {Request} request
@@ -186,7 +192,7 @@ export async function getLessonContent(
 ): Promise<{
   mdx: MDX;
   previousLesson: Lesson | null;
-  currentLesson: Lesson;
+  currentLesson: LessonWithModule;
   nextLesson: Lesson | null;
 }> {
   try {

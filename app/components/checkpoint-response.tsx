@@ -1,5 +1,9 @@
 import type { Checkpoint, Project } from "~/utils/db.server";
-import type { ApiResponse } from "~/utils/helpers.server";
+import type {
+  ApiResponse,
+  LintResult,
+  TestResults,
+} from "~/utils/helpers.server";
 import {
   Dialog,
   DialogClose,
@@ -61,6 +65,14 @@ export function CheckpointResponse({
           </TableBody>
         </Table>
         <Separator />
+        {response?.error ? <ErrorUI error={response.error} /> : null}
+        {response?.lintResults ? (
+          <LintUI lintResults={response.lintResults} />
+        ) : null}
+        {response?.testResults ? (
+          <TestUI testResults={response.testResults} />
+        ) : null}
+        <Separator />
         <DialogFooter>
           <DialogClose>
             <Button variant={"outline"}>Close</Button>
@@ -73,4 +85,22 @@ export function CheckpointResponse({
       </DialogContent>
     </Dialog>
   );
+}
+
+function ErrorUI({ error }: { error: string }) {
+  return (
+    <pre className="p-4 bg-gray-100 text-red-500 rounded-sm whitespace-pre-wrap text-sm">
+      {error.split("\n").map((line, index) => (
+        <div key={`line-${index}`}>
+          {index + 1} {line}
+        </div>
+      ))}
+    </pre>
+  );
+}
+function LintUI({ lintResults }: { lintResults: LintResult[] }) {
+  return <div>{JSON.stringify(lintResults)}</div>;
+}
+function TestUI({ testResults }: { testResults: TestResults }) {
+  return <div>{JSON.stringify(testResults)}</div>;
 }
