@@ -23,23 +23,43 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return json({ user, plans, subs, success, canceled });
 }
 
+type StatusState = "success" | "canceled" | null;
+export type StatusAction =
+  | { type: "SET_SUCCESS" }
+  | { type: "SET_CANCELED" }
+  | { type: "RESET" };
+
 export default function SubscriptionRoute() {
-  const [status, setStatus] = React.useState<"success" | "canceled" | null>(
-    null
-  );
   const { user, plans, subs, success, canceled } =
     useLoaderData<typeof loader>();
 
+  function statusReducer(
+    state: StatusState,
+    action: StatusAction
+  ): StatusState {
+    switch (action.type) {
+      case "SET_SUCCESS":
+        return "success";
+      case "SET_CANCELED":
+        return "canceled";
+      case "RESET":
+        return null;
+      default:
+        return state;
+    }
+  }
+
+  const [status, dispatch] = React.useReducer(statusReducer, null);
   const isSuccess = status === "success";
   const isCanceled = status === "canceled";
 
   React.useEffect(() => {
     if (success) {
-      setStatus("success");
+      dispatch({ type: "SET_SUCCESS" });
     } else if (canceled) {
-      setStatus("canceled");
+      dispatch({ type: "SET_CANCELED" });
     } else {
-      setStatus(null);
+      dispatch({ type: "RESET" });
     }
   }, [success, canceled]);
 
@@ -47,9 +67,9 @@ export default function SubscriptionRoute() {
     <Container className="max-w-6xl">
       <PageTitle title="subscription" />
       {isSuccess ? (
-        <CheckoutSuccessUI setStatus={setStatus} />
+        <CheckoutSuccessUI dispatch={dispatch} />
       ) : isCanceled ? (
-        <CheckoutCancelUI setStatus={setStatus} />
+        <CheckoutCancelUI dispatch={dispatch} />
       ) : (
         <Subscription plans={plans} user={user} subs={subs} />
       )}

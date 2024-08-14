@@ -17,20 +17,14 @@ export async function getModule(request: Request, params: Params<string>) {
     const userId = await getUserId(request);
 
     const [module] = await Promise.all([
-      prisma.module.findFirst({
+      prisma.module.findUniqueOrThrow({
         where: {
           id: moduleId,
           users: { some: { id: userId } },
         },
-        orderBy: {
-          order: "asc",
-        },
       }),
-      updateModuleStatues(request, moduleId),
+      updateModuleStatus(request, moduleId),
     ]);
-    if (!module) {
-      throw new Error("Module not found.");
-    }
     return module;
   } catch (error) {
     throw error;
@@ -42,26 +36,19 @@ export async function getModule(request: Request, params: Params<string>) {
  * @param {Request} request
  * @param {string} moduleId
  */
-async function updateModuleStatues(
+async function updateModuleStatus(
   request: Request,
   moduleId: string
 ): Promise<void> {
   const userId = await getUserId(request);
-  const module = await prisma.module.findFirst({
+  const module = await prisma.module.findUniqueOrThrow({
     where: {
       id: moduleId,
       users: { some: { id: userId } },
     },
   });
 
-  if (!module) {
-    return;
-  }
-
-  if (
-    module.status === STATUS.IN_PROGRESS ||
-    module.status === STATUS.COMPLETED
-  ) {
+  if (module.status !== STATUS.LOCKED) {
     return;
   }
   await prisma.module.update({
@@ -90,17 +77,18 @@ export async function getSubModules(
     const moduleId = params.moduleId;
     const userId = await getUserId(request);
 
-    const subModules = await prisma.subModule.findMany({
-      where: {
-        moduleId: moduleId,
-        users: { some: { id: userId } },
-      },
-      orderBy: {
-        order: "asc",
-      },
-    });
-
-    await updateFirstSubModuleStatus(request, moduleId);
+    const [subModules] = await Promise.all([
+      prisma.subModule.findMany({
+        where: {
+          moduleId: moduleId,
+          users: { some: { id: userId } },
+        },
+        orderBy: {
+          order: "asc",
+        },
+      }),
+      updateFirstSubModuleStatus(request, moduleId),
+    ]);
     return subModules;
   } catch (error) {
     throw error;
@@ -117,24 +105,16 @@ async function updateFirstSubModuleStatus(
   moduleId: string
 ): Promise<void> {
   const userId = await getUserId(request);
-  const firstSubModule = await prisma.subModule.findFirst({
+  const firstSubModule = await prisma.subModule.findFirstOrThrow({
     where: {
       moduleId: moduleId,
       users: { some: { id: userId } },
     },
   });
 
-  if (!firstSubModule) {
+  if (firstSubModule.status !== STATUS.LOCKED) {
     return;
   }
-
-  if (
-    firstSubModule.status === STATUS.IN_PROGRESS ||
-    firstSubModule.status === STATUS.COMPLETED
-  ) {
-    return;
-  }
-
   await prisma.subModule.update({
     where: { id: firstSubModule.id },
     data: { status: STATUS.IN_PROGRESS },

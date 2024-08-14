@@ -20,15 +20,10 @@ async function getDefaultModule(
   courseId: string
 ): Promise<Module> {
   try {
-    const module = await prisma.module.findFirst({
+    return await prisma.module.findFirstOrThrow({
       where: { users: { some: { id: userId } }, courseId: courseId },
       orderBy: { order: "asc" },
     });
-
-    if (!module) {
-      throw new Error("First module not found");
-    }
-    return module;
   } catch (error) {
     throw error;
   }
@@ -61,12 +56,16 @@ async function getModuleIdToUse(
   const courseId = params.courseId;
   const userId = await getUserId(request);
 
-  let module: Module;
-  const moduleId = getModuleIdFromRequest(request);
-  if (!moduleId) {
-    module = await getDefaultModule(userId, courseId);
+  try {
+    let module: Module;
+    const moduleId = getModuleIdFromRequest(request);
+    if (!moduleId) {
+      module = await getDefaultModule(userId, courseId);
+    }
+    return moduleId ?? module!.id;
+  } catch (error) {
+    throw error;
   }
-  return moduleId ?? module!.id;
 }
 
 export async function getModule(
@@ -75,15 +74,11 @@ export async function getModule(
 ): Promise<Module> {
   invariant(params.courseId, "Course ID is required to get module.");
   const moduleIdToUse = await getModuleIdToUse(request, params);
-  const module = await prisma.module.findUnique({
+  return await prisma.module.findUniqueOrThrow({
     where: {
       id: moduleIdToUse,
     },
   });
-  if (!module) {
-    throw new Error("Module not found");
-  }
-  return module;
 }
 
 export async function getTest(request: Request, params: Params<string>) {
@@ -127,18 +122,12 @@ export async function getProject(request: Request, params: Params<string>) {
   try {
     const courseId = params.courseId;
     const userId = await getUserId(request);
-    const project = await prisma.project.findFirst({
+    return await prisma.project.findFirstOrThrow({
       where: {
         courseId: courseId,
         contributors: { some: { id: userId } },
       },
     });
-
-    if (!project) {
-      throw new Error("Project not found");
-    }
-
-    return project;
   } catch (error) {
     throw error;
   }
@@ -159,21 +148,7 @@ export async function getModules(
     const courseId = params.courseId;
     const userId = await getUserId(request);
 
-    // const firstModule = await getDefaultModule(userId, courseId);
     const moduleIdToUse = await getModuleIdToUse(request, params);
-    const firstSubModule = await prisma.subModule.findFirst({
-      where: {
-        moduleId: moduleIdToUse,
-        users: { some: { id: userId } },
-      },
-      orderBy: {
-        order: "asc",
-      },
-    });
-
-    if (!firstSubModule) {
-      throw new Error("First Sub Module not found.");
-    }
 
     const [modules] = await Promise.all([
       prisma.module.findMany({
@@ -190,7 +165,6 @@ export async function getModules(
        */
       updateFirstModule(userId, courseId),
       updateFirstSubModule(userId, moduleIdToUse),
-      // updateFirstSubModule(userId, firstModule.id),
     ]);
 
     return modules;
@@ -208,7 +182,7 @@ async function updateFirstModule(
   userId: string,
   courseId: string
 ): Promise<void> {
-  const firstModule = await prisma.module.findFirst({
+  const firstModule = await prisma.module.findFirstOrThrow({
     where: {
       users: { some: { id: userId } },
       courseId: courseId,
@@ -221,10 +195,6 @@ async function updateFirstModule(
       status: true,
     },
   });
-
-  if (!firstModule) {
-    throw new Error("First Module not found.");
-  }
 
   if (firstModule.status !== STATUS.LOCKED) {
     return;
@@ -244,7 +214,7 @@ async function updateFirstSubModule(
   userId: string,
   moduleId: string
 ): Promise<void> {
-  const firstSubModule = await prisma.subModule.findFirst({
+  const firstSubModule = await prisma.subModule.findFirstOrThrow({
     where: {
       moduleId: moduleId,
       users: { some: { id: userId } },
@@ -257,10 +227,6 @@ async function updateFirstSubModule(
       status: true,
     },
   });
-
-  if (!firstSubModule) {
-    throw new Error("First Sub Module not found.");
-  }
 
   if (firstSubModule.status !== STATUS.LOCKED) {
     return;
@@ -386,7 +352,7 @@ export async function getSubModules(
     const userId = await getUserId(request);
     const moduleIdToUse = await getModuleIdToUse(request, params);
 
-    const subModules = await prisma.subModule.findMany({
+    return await prisma.subModule.findMany({
       where: {
         moduleId: moduleIdToUse,
         users: { some: { id: userId } },
@@ -395,8 +361,6 @@ export async function getSubModules(
         order: "asc",
       },
     });
-
-    return subModules;
   } catch (error) {
     throw error;
   }

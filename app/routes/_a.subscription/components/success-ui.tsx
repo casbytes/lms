@@ -9,11 +9,12 @@ import {
   CardFooter,
   CardHeader,
 } from "~/components/ui/card";
+import { StatusAction } from "../route";
 
 export function CheckoutSuccessUI({
-  setStatus,
+  dispatch,
 }: {
-  setStatus: (status: "success" | "canceled" | null) => void;
+  dispatch: (action: StatusAction) => void;
 }) {
   const n = useNavigation();
   const isSubmiting = n.formData?.get("intent") === "manage";
@@ -44,7 +45,7 @@ export function CheckoutSuccessUI({
           </Button>
         </Form>
         <div className="flex gap-4">
-          <Button onClick={() => setStatus(null)} asChild>
+          <Button onClick={() => dispatch({ type: "RESET" })} asChild>
             <Link to="/subscription">
               <FaAngleLeft className="mr-4" />
               Subscription

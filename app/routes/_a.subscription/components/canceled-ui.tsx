@@ -8,11 +8,12 @@ import {
   CardFooter,
   CardHeader,
 } from "~/components/ui/card";
+import { StatusAction } from "../route";
 
 export function CheckoutCancelUI({
-  setStatus,
+  dispatch,
 }: {
-  setStatus: (status: "success" | "canceled" | null) => void;
+  dispatch: (action: StatusAction) => void;
 }) {
   return (
     <Card className="max-w-lg mx-auto mt-8 md:mt-12 bg-red-50">
@@ -29,7 +30,7 @@ export function CheckoutCancelUI({
         </CardDescription>
       </CardHeader>
       <CardFooter className="flex justify-around mt-8">
-        <Button onClick={() => setStatus(null)} asChild>
+        <Button onClick={() => dispatch({ type: "RESET" })} asChild>
           <Link to="/subscription">
             <FaAngleLeft className="mr-4" />
             Subscription

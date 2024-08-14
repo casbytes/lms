@@ -4,9 +4,6 @@ import matter from "gray-matter";
 import { STATUS, TEST_STATUS } from "./helpers";
 import { prisma } from "./db.server";
 
-const { NODE_ENV } = process.env;
-const MODE = NODE_ENV;
-
 interface Message {
   ruleId: string;
   severity: number;
@@ -156,10 +153,7 @@ export async function gradeFetch({
   request: Request;
 }): Promise<ApiResponse> {
   try {
-    const host =
-      request.headers.get("X-Forwarded-Host") ??
-      request.headers.get("host") ??
-      "localhost";
+    const host = request.headers.get("X-Forwarded-For") as string;
     const response = await fetch(url, {
       method: "POST",
       headers: {
@@ -243,8 +237,7 @@ export function getRequestUrl({
   path: string;
   repo: string;
 }) {
-  const baseUrl =
-    MODE === "production" ? process.env.CHECKER_URL : "http://localhost:8080";
+  const baseUrl = process.env.CHECKER_URL as string;
   return `${baseUrl}/${username}?path=${path}&repo=${repo}`;
 }
 
@@ -275,41 +268,46 @@ export async function updateModuleStatusAndFindNextModule({
   moduleId: string;
   userId: string;
 }) {
-  //Get the module
-  const module = await prisma.module.findUniqueOrThrow({
-    where: { id: moduleId, users: { some: { id: userId } } },
-    select: { id: true, order: true },
-  });
-
-  const user = await prisma.user.findUniqueOrThrow({
-    where: { id: userId },
-    select: { subscribed: true },
-  });
-
-  //Update the module status to COMPLETED
-  await prisma.module.update({
-    where: { id: module.id, users: { some: { id: userId } } },
-    data: { status: STATUS.COMPLETED },
-  });
-
-  //Find the next module
-  const nextModule = await prisma.module.findFirst({
-    where: {
-      order: { equals: module.order + 1 },
-      users: { some: { id: userId } },
-    },
-    select: { id: true },
-  });
-
-  if (user.subscribed) {
-    if (nextModule) {
-      await prisma.module.update({
-        where: { id: nextModule.id, users: { some: { id: userId } } },
-        data: { status: STATUS.IN_PROGRESS },
+  try {
+    await prisma.$transaction(async (prisma) => {
+      //Get the module
+      const module = await prisma.module.findUniqueOrThrow({
+        where: { id: moduleId, users: { some: { id: userId } } },
+        select: { id: true, order: true },
       });
-    } else {
-      await updateCourseProject(moduleId, userId);
-    }
+
+      const user = await prisma.user.findUniqueOrThrow({
+        where: { id: userId },
+        select: { subscribed: true },
+      });
+
+      //Update the module status to COMPLETED
+      await prisma.module.update({
+        where: { id: module.id, users: { some: { id: userId } } },
+        data: { status: STATUS.COMPLETED },
+      });
+
+      //Find the next module
+      if (user.subscribed) {
+        const nextModule = await prisma.module.findFirst({
+          where: {
+            order: { equals: module.order + 1 },
+            users: { some: { id: userId } },
+          },
+          select: { id: true },
+        });
+        if (nextModule) {
+          await prisma.module.update({
+            where: { id: nextModule.id, users: { some: { id: userId } } },
+            data: { status: STATUS.IN_PROGRESS },
+          });
+        } else {
+          await updateCourseProject(moduleId, userId);
+        }
+      }
+    });
+  } catch (error) {
+    throw error;
   }
 }
 
@@ -322,54 +320,57 @@ export async function updateSubmoduleStatusAndFindNextSubmodule({
 }) {
   try {
     // Fetch the submodule along with its parent module
-    const subModule = await prisma.subModule.findUniqueOrThrow({
-      where: { id: subModuleId, users: { some: { id: userId } } },
-      include: { module: true },
-    });
+    await prisma.$transaction(async (prisma) => {
+      const [subModule, user] = await Promise.all([
+        prisma.subModule.findUniqueOrThrow({
+          where: { id: subModuleId, users: { some: { id: userId } } },
+          include: { module: true },
+        }),
+        prisma.user.findUniqueOrThrow({
+          where: { id: userId },
+          select: { subscribed: true },
+        }),
+      ]);
 
-    const user = await prisma.user.findUniqueOrThrow({
-      where: { id: userId },
-      select: { subscribed: true },
-    });
+      // Mark the current submodule as completed
+      await prisma.subModule.update({
+        where: { id: subModule.id, users: { some: { id: userId } } },
+        data: { status: STATUS.COMPLETED },
+      });
 
-    // Mark the current submodule as completed
-    await prisma.subModule.update({
-      where: { id: subModule.id, users: { some: { id: userId } } },
-      data: { status: STATUS.COMPLETED },
-    });
+      // Find the next submodule in the sequence
 
-    // Find the next submodule in the sequence
-    const nextSubmodule = await prisma.subModule.findFirst({
-      where: {
-        moduleId: subModule.module.id,
-        order: { equals: subModule.order + 1 },
-        users: { some: { id: userId } },
-      },
-      select: { id: true },
-    });
-
-    if (user.subscribed) {
-      if (nextSubmodule) {
-        // If there's a next submodule, mark it as in progress
-        await prisma.subModule.update({
-          where: { id: nextSubmodule.id, users: { some: { id: userId } } },
-          data: { status: STATUS.IN_PROGRESS },
-        });
-      } else {
-        // If no more submodules, find the corresponding module test and mark it as available
-        const moduleTest = await prisma.test.findFirstOrThrow({
+      if (user.subscribed) {
+        const nextSubmodule = await prisma.subModule.findFirst({
           where: {
             moduleId: subModule.module.id,
+            order: { equals: subModule.order + 1 },
             users: { some: { id: userId } },
           },
           select: { id: true },
         });
-        await prisma.test.update({
-          where: { id: moduleTest.id, users: { some: { id: userId } } },
-          data: { status: TEST_STATUS.AVAILABLE },
-        });
+        if (nextSubmodule) {
+          // If there's a next submodule, mark it as in progress
+          await prisma.subModule.update({
+            where: { id: nextSubmodule.id, users: { some: { id: userId } } },
+            data: { status: STATUS.IN_PROGRESS },
+          });
+        } else {
+          // If no more submodules, find the corresponding module test and mark it as available
+          const moduleTest = await prisma.test.findFirstOrThrow({
+            where: {
+              moduleId: subModule.module.id,
+              users: { some: { id: userId } },
+            },
+            select: { id: true },
+          });
+          await prisma.test.update({
+            where: { id: moduleTest.id, users: { some: { id: userId } } },
+            data: { status: TEST_STATUS.AVAILABLE },
+          });
+        }
       }
-    }
+    });
   } catch (error) {
     throw error;
   }
@@ -382,7 +383,7 @@ export async function updateSubmoduleStatusAndFindNextSubmodule({
  */
 async function updateCourseProject(moduleId: string, userId: string) {
   try {
-    const course = await prisma.course.findFirst({
+    const course = await prisma.course.findFirstOrThrow({
       where: {
         modules: { some: { id: moduleId } },
         users: { some: { id: userId } },
@@ -395,6 +396,82 @@ async function updateCourseProject(moduleId: string, userId: string) {
       where: { id: course.project.id, contributors: { some: { id: userId } } },
       data: { status: STATUS.IN_PROGRESS },
     });
+  } catch (error) {
+    throw error;
+  }
+}
+
+/**
+ * Update user subscription status
+ * @param stripeCustomerId - Stripe customer ID
+ * @param subscribed - Subscription status
+ */
+export async function updateUserSubscription(
+  stripeCustomerId: string,
+  subscribed: boolean
+) {
+  try {
+    return await prisma.user.update({
+      where: { stripeCustomerId },
+      data: {
+        subscribed,
+      },
+    });
+  } catch (error) {
+    throw error;
+  }
+}
+
+/**
+ * Update user progress based on the subscription status
+ * @param stripeCustomerId - Stripe customer ID
+ */
+export async function updateUserProgress(stripeCustomerId: string) {
+  try {
+    const { id: userId } = await prisma.user.findUniqueOrThrow({
+      where: { stripeCustomerId },
+      select: { id: true },
+    });
+
+    const lockedSubmodule = await prisma.subModule.findFirst({
+      where: { status: STATUS.LOCKED, users: { some: { id: userId } } },
+      select: { id: true },
+      orderBy: { order: "asc" },
+    });
+
+    if (lockedSubmodule) {
+      await prisma.subModule.update({
+        where: { id: lockedSubmodule.id },
+        data: { status: STATUS.IN_PROGRESS },
+      });
+      return;
+    }
+
+    const lockedModule = await prisma.module.findFirst({
+      where: { status: STATUS.LOCKED, users: { some: { id: userId } } },
+      select: { id: true },
+      orderBy: { order: "asc" },
+    });
+
+    if (lockedModule) {
+      await prisma.module.update({
+        where: { id: lockedModule.id },
+        data: { status: STATUS.IN_PROGRESS },
+      });
+      return;
+    }
+
+    const lockedProject = await prisma.project.findFirst({
+      where: { status: STATUS.LOCKED, contributors: { some: { id: userId } } },
+      select: { id: true },
+    });
+
+    if (lockedProject) {
+      await prisma.project.update({
+        where: { id: lockedProject.id },
+        data: { status: STATUS.IN_PROGRESS },
+      });
+    }
   } catch (error) {
     throw error;
   }

@@ -1,6 +1,6 @@
+import invariant from "tiny-invariant";
 import { ActionFunctionArgs, redirect } from "@remix-run/node";
 import { startOfToday } from "date-fns";
-import invariant from "tiny-invariant";
 import { prisma } from "~/utils/db.server";
 import { getUserId } from "~/utils/session.server";
 
@@ -19,6 +19,7 @@ export async function action({ request }: ActionFunctionArgs) {
   try {
     const existingLog = await prisma.learningTime.findFirst({
       where: { userId, date: today },
+      select: { id: true },
     });
 
     if (existingLog) {
@@ -31,8 +32,7 @@ export async function action({ request }: ActionFunctionArgs) {
         data: { userId, date: today, hours: parseFloat(hours) },
       });
     }
-    let count = 0;
-    console.log(`${count++} Learning time logged: ${hours} hours`);
+    console.log(`Learning time logged: ${hours} hours`);
     return null;
   } catch (error) {
     throw error;

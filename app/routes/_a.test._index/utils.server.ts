@@ -5,37 +5,22 @@ import { getUserId } from "~/utils/session.server";
 export async function getTest(request: Request) {
   const url = new URL(request.url);
   const searchParams = url.searchParams;
-  const id = searchParams.get("moduleId") ?? searchParams.get("submoduleId");
+  const moduleOrSubmoduleId =
+    searchParams.get("moduleId") ?? searchParams.get("submoduleId");
+  invariant(moduleOrSubmoduleId, "ID is required to get Test");
 
   try {
-    invariant(id, "ID is required to get Test");
     const userId = await getUserId(request);
-
-    const test = await prisma.test.findFirst({
+    return await prisma.test.findFirstOrThrow({
       where: {
         OR: [
-          {
-            moduleId: {
-              equals: id,
-            },
-          },
-          {
-            subModuleId: {
-              equals: id,
-            },
-          },
+          { moduleId: { equals: moduleOrSubmoduleId } },
+          { subModuleId: { equals: moduleOrSubmoduleId } },
         ],
         users: { some: { id: userId } },
       },
-      include: {
-        module: true,
-        subModule: true,
-      },
+      include: { module: true, subModule: true },
     });
-    if (!test) {
-      throw new Error("Test not found.");
-    }
-    return test;
   } catch (error) {
     throw error;
   }

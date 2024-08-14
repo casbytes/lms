@@ -1,5 +1,5 @@
-import { ActionFunctionArgs, redirect } from "@remix-run/node";
 import invariant from "tiny-invariant";
+import { ActionFunctionArgs, redirect } from "@remix-run/node";
 import { getUserId, signOut } from "~/utils/session.server";
 import { prisma } from "~/utils/db.server";
 
@@ -12,6 +12,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
   const intent = formData.get("intent") as string;
   const currentUrl = formData.get("currentUrl") as string;
+  invariant(intent === "signout", "Invalid form data.");
   try {
     /**
      * We will first of all check if a user exist inorder
@@ -20,9 +21,9 @@ export async function action({ request }: ActionFunctionArgs) {
      * instead we will just destroy the session and redirect them to the
      * homepage.
      */
-    invariant(intent === "signout", "Invalid form data.");
     const user = await prisma.user.findFirst({
       where: { id: userId },
+      select: { id: true },
     });
 
     if (user) {

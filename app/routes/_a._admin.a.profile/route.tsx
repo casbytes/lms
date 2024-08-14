@@ -17,11 +17,14 @@ import { toast } from "~/components/ui/use-toast";
 import { CgSpinnerTwo } from "react-icons/cg";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  return await getUser(request);
+  try {
+    return await getUser(request);
+  } catch (error) {
+    throw error;
+  }
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  // eslint-disable-next-line no-useless-catch
   try {
     const userId = await getUserId(request);
     const formData = await request.formData();
@@ -31,7 +34,7 @@ export async function action({ request }: ActionFunctionArgs) {
       data: { name },
     });
     if (!user) {
-      throw new Error("user not found");
+      return { success: false };
     }
     return { success: true };
   } catch (error) {

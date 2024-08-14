@@ -197,10 +197,9 @@ export async function getLearningTime(request: Request): Promise<TimeData[]> {
 export async function getUserCourses(request: Request): Promise<Course[]> {
   try {
     const userId = await getUserId(request);
-    const userCourses = await prisma.course.findMany({
+    return await prisma.course.findMany({
       where: { users: { some: { id: userId } } },
     });
-    return userCourses;
   } catch (error) {
     throw error;
   }
@@ -216,19 +215,14 @@ export async function getUserModules(request: Request): Promise<Module[]> {
   const search = url.searchParams.get("userModule") ?? "";
   try {
     const userId = await getUserId(request);
-    const userModules = await prisma.module.findMany({
+    return await prisma.module.findMany({
       where: {
         OR: [{ title: { contains: search } }],
         users: { some: { id: userId } },
       },
-      include: {
-        course: true,
-      },
-      orderBy: {
-        order: "asc",
-      },
+      include: { course: true },
+      orderBy: { order: "asc" },
     });
-    return userModules;
   } catch (error) {
     throw error;
   }
@@ -408,9 +402,9 @@ async function deleteCourse(formData: FormData, userId: string) {
     await prisma.course.delete({
       where: { id: courseId, users: { some: { id: userId } } },
     });
-    return { success: true, message: "Course deleted from catalog." };
+    return formatResponse({ success: true, itemName: "Course" });
   } catch (error) {
-    return { success: false, message: "Failed to delete course from catalog." };
+    return formatResponse({ success: false, itemName: "Course" });
   }
 }
 
@@ -420,9 +414,9 @@ async function deleteModule(formData: FormData, userId: string) {
     await prisma.module.delete({
       where: { id: moduleId, users: { some: { id: userId } } },
     });
-    return { success: true, message: "Module deleted from catalog." };
+    return formatResponse({ success: true, itemName: "Module" });
   } catch (error) {
-    return { success: false, message: "Failed to delete module from catalog." };
+    return formatResponse({ success: false, itemName: "Module" });
   }
 }
 
@@ -444,7 +438,7 @@ async function addModuleToCatalog(formData: FormData, userId: string) {
       });
 
       if (existingModule) {
-        return { success: false, message: "Module already in catalog" };
+        return formatResponse({ success: false, itemName: "Module" });
       }
 
       const module = await txn.module.create({
@@ -475,10 +469,10 @@ async function addModuleToCatalog(formData: FormData, userId: string) {
         createSubModules(txn, githubModule.subModules, module, userId),
         createBadges(txn, module, userId),
       ]);
-      return { success: true, message: "Module added to catalog" };
+      return formatResponse({ success: true, itemName: "Module" });
     });
   } catch (error) {
-    return { success: false, message: "Failed to add module to catalog" };
+    return formatResponse({ success: false, itemName: "Module" });
   }
 }
 
@@ -501,7 +495,7 @@ export async function addCourseToCatalog(formData: FormData, userId: string) {
         where: { title: githubCourse.title, users: { some: { id: userId } } },
       });
       if (existingCourse) {
-        return { success: false, message: "Course already in catalog" };
+        return formatResponse({ success: false, itemName: "Course" });
       }
       const course = await txn.course.create({
         data: {
@@ -520,10 +514,10 @@ export async function addCourseToCatalog(formData: FormData, userId: string) {
       });
 
       await createModule(txn, githubCourse.modules, course, userId);
-      return { success: true, message: "Course added to catalog" };
+      return formatResponse({ success: true, itemName: "Course" });
     });
   } catch (error) {
-    return { success: false, message: "Failed to add course to catalog" };
+    return formatResponse({ success: false, itemName: "Course" });
   }
 }
 
@@ -795,4 +789,21 @@ async function createBadges(
       userId,
     })),
   });
+}
+
+/**
+ * Format response
+ */
+function formatResponse({
+  success,
+  itemName,
+}: {
+  success: boolean;
+  itemName: string;
+}) {
+  if (success) {
+    return { success: true, message: `${itemName} added to catalog` };
+  } else {
+    return { success: false, message: `Failed to add ${itemName} to catalog` };
+  }
 }

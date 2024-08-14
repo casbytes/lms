@@ -23,7 +23,7 @@ export async function getSubModule(request: Request, params: Params<string>) {
     invariant(params.subModuleId, "Submodule ID is required.");
     const subModuleId = params.subModuleId;
     const userId = await getUserId(request);
-    const subModule = await prisma.subModule.findFirst({
+    return await prisma.subModule.findFirstOrThrow({
       where: {
         id: subModuleId,
         users: { some: { id: userId } },
@@ -32,10 +32,6 @@ export async function getSubModule(request: Request, params: Params<string>) {
         module: true,
       },
     });
-    if (!subModule) {
-      throw new Error("Sub module not found.");
-    }
-    return subModule;
   } catch (error) {
     throw error;
   }
@@ -111,7 +107,7 @@ export async function getLessons(
 
   try {
     const userId = await getUserId(request);
-    const firstLesson = await prisma.lesson.findFirst({
+    const firstLesson = await prisma.lesson.findFirstOrThrow({
       where: {
         subModuleId: subModuleId,
         users: { some: { id: userId } },
@@ -120,24 +116,18 @@ export async function getLessons(
       orderBy: { order: "asc" },
     });
 
-    if (!firstLesson) {
-      throw new Error("First lesson not found.");
-    }
-
-    const [lessons] = await Promise.all([
-      prisma.lesson.findMany({
-        where: {
-          subModuleId: subModuleId,
-          users: { some: { id: userId } },
-        },
-        orderBy: {
-          order: "asc",
-        },
-      }),
+    const [, lessons] = await Promise.all([
       /**
        * Update the status of the first lesson to in progress if it is locked
        */
       updateFirstLessonStatus(userId, firstLesson),
+      prisma.lesson.findMany({
+        where: {
+          subModuleId,
+          users: { some: { id: userId } },
+        },
+        orderBy: { order: "asc" },
+      }),
     ]);
     return lessons;
   } catch (error) {
@@ -162,16 +152,20 @@ async function updateFirstLessonStatus(
   if (lesson.status !== STATUS.LOCKED) {
     return;
   }
-  return prisma.lesson.update({
-    where: {
-      id: lesson.id,
-      users: { some: { id: userId } },
-      order: { equals: 1 },
-    },
-    data: {
-      status: STATUS.IN_PROGRESS,
-    },
-  });
+  try {
+    return await prisma.lesson.update({
+      where: {
+        id: lesson.id,
+        users: { some: { id: userId } },
+        order: { equals: 1 },
+      },
+      data: {
+        status: STATUS.IN_PROGRESS,
+      },
+    });
+  } catch (error) {
+    throw error;
+  }
 }
 
 export type LessonWithModule = Lesson & {
@@ -186,7 +180,7 @@ export type LessonWithModule = Lesson & {
  * @param {Params<string>} params
  * @returns {Promise<{mdx: MDX, previousLesson: ILesson | null, currentLesson: ILesson, nextLesson: ILesson | null}>}
  */
-export async function getLessonContent(
+export async function getLesson(
   request: Request,
   params: Params<string>
 ): Promise<{
@@ -201,7 +195,7 @@ export async function getLessonContent(
     const lessonId = getLessonId(request);
     const userId = await getUserId(request);
 
-    const currentLesson = await prisma.lesson.findFirst({
+    const currentLesson = await prisma.lesson.findFirstOrThrow({
       where: {
         subModuleId: subModuleId,
         users: { some: { id: userId } },
@@ -218,10 +212,6 @@ export async function getLessonContent(
         order: "asc",
       },
     });
-
-    if (!currentLesson) {
-      throw new Error("Current lesson not found.");
-    }
 
     const [previousLesson, nextLesson] = await getPreviousAndNextLessons(
       userId,
@@ -256,10 +246,6 @@ export async function getLessonContent(
       repo,
       path,
     });
-
-    if (!mdxContent) {
-      throw new Error("Empty lesson content.");
-    }
     const { data, content } = matter(mdxContent);
     cache.set<MDX>(cacheKey, { data, content });
     return {
@@ -364,11 +350,10 @@ export async function updateLesson(request: Request, params: Params<string>) {
   invariant(lessonId, "Lesson ID is required to update lesson");
 
   try {
-    const currentLesson = await prisma.lesson.findUnique({
+    const currentLesson = await prisma.lesson.findUniqueOrThrow({
       where: { id: lessonId },
+      select: { id: true, order: true, status: true },
     });
-    if (!currentLesson) throw new Error("Current lesson not found");
-
     const nextLesson = await prisma.lesson.findFirst({
       where: {
         subModuleId: subModuleId,
@@ -393,13 +378,13 @@ export async function updateLesson(request: Request, params: Params<string>) {
           });
         }
       } else {
-        const subModuleTest = await prisma.test.findFirst({
+        const subModuleTest = await prisma.test.findFirstOrThrow({
           where: {
-            subModuleId: subModuleId,
+            subModuleId,
             users: { some: { id: userId } },
           },
+          select: { id: true },
         });
-        if (!subModuleTest) throw new Error("Sub module test not found.");
         await prisma.test.update({
           where: { id: subModuleTest.id },
           data: { status: TEST_STATUS.AVAILABLE },

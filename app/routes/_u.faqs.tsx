@@ -8,27 +8,20 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "~/components/ui/accordion";
+import { MDX } from "~/utils/db.server";
 import { readContent } from "~/utils/helpers.server";
 import { metaFn } from "~/utils/meta";
 import { cache } from "~/utils/node-cache.server";
 
 export const meta = metaFn;
 
-type FAQ = {
-  data: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [key: string]: any;
-  };
-  content: string;
-};
-
 export async function loader() {
   const cacheKey = "faqs";
   if (cache.has(cacheKey)) {
-    return json(cache.get<FAQ[]>(cacheKey));
+    return json(cache.get(cacheKey) as MDX[]);
   }
   const faqs = readContent("faqs");
-  cache.set<FAQ[]>(cacheKey, faqs);
+  cache.set<MDX[]>(cacheKey, faqs);
   return json(faqs);
 }
 

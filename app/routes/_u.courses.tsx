@@ -12,24 +12,17 @@ import {
 } from "~/components/ui/accordion";
 import { Markdown } from "~/components/markdown";
 import { readContent } from "~/utils/helpers.server";
+import { MDX } from "~/utils/db.server";
 
 export const meta = metaFn;
-
-type Course = {
-  data: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [key: string]: any;
-  };
-  content: string;
-};
 
 export async function loader() {
   const cacheKey = "courses-meta";
   if (cache.has(cacheKey)) {
-    return json(cache.get<Course[]>(cacheKey));
+    return json(cache.get(cacheKey) as MDX[]);
   }
   const courses = readContent("courses");
-  cache.set<Course[]>(cacheKey, courses);
+  cache.set<MDX[]>(cacheKey, courses);
   return json(courses);
 }
 

@@ -11,7 +11,7 @@ type OptionsProps = {
   currentQuestionIndex: number;
 };
 
-function Ops({
+function _Options({
   userAnswers,
   currentAnswer,
   currentQuestion,
@@ -58,4 +58,4 @@ function Ops({
   );
 }
 
-export const Options = React.memo(Ops);
+export const Options = React.memo(_Options);

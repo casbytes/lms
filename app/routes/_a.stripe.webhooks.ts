@@ -1,23 +1,15 @@
 import { ActionFunctionArgs, redirect } from "@remix-run/node";
 import { Stripe, constructWebhookEvent } from "~/services/stripe.server";
-import { prisma } from "~/utils/db.server";
+import {
+  updateUserProgress,
+  updateUserSubscription,
+} from "~/utils/helpers.server";
 
 export function loader() {
   return redirect("/");
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  async function updateUserSubscription(
-    stripeCustomerId: string,
-    subscribed: boolean
-  ) {
-    return await prisma.user.update({
-      where: { stripeCustomerId },
-      data: {
-        subscribed,
-      },
-    });
-  }
   try {
     const event = await constructWebhookEvent(request);
     if (!event) {
@@ -31,7 +23,10 @@ export async function action({ request }: ActionFunctionArgs) {
           const customer = (
             event.data.object as Stripe.Subscription | Stripe.Invoice
           ).customer;
-          await updateUserSubscription(customer as string, true);
+          await Promise.all([
+            updateUserSubscription(customer as string, true),
+            updateUserProgress(customer as string),
+          ]);
         }
         break;
 

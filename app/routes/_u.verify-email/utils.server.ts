@@ -14,7 +14,7 @@ export async function getEmail(request: Request) {
     const email = new URL(request.url).searchParams.get("email");
     if (!email) {
       const session = await getUserSession(request);
-      session.flash("error", "Email is required.");
+      session.flash("error", "Email is required to update user.");
       throw redirect("/", await commitAuthSession(session));
     }
     return email;
@@ -51,6 +51,7 @@ export async function updateUser(request: Request) {
         authState: null,
         stripeCustomerId: stripeCustomer.id,
       },
+      select: { id: true, name: true, verified: true, role: true },
     });
 
     if (!user.name || !user.verified) {

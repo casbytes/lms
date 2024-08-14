@@ -88,6 +88,8 @@ model SubModule {
   lessons    Lesson[]
   test       Test?
   checkpoint Checkpoint?
+
+  @@index([moduleId], name: "moduleId")
 }
 
 model Lesson {

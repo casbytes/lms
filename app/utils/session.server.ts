@@ -20,7 +20,7 @@ interface SessionError {
   error: string;
 }
 
-const { SECRET, NODE_ENV, BASE_URL, DEV_BASE_URL } = process.env;
+const { SECRET, NODE_ENV, BASE_URL, COOKIE_DOMAIN } = process.env;
 const MODE = NODE_ENV;
 
 export const sessionKey = "userId";
@@ -30,7 +30,7 @@ const { getSession, commitSession, destroySession } =
     cookie: {
       name: "__casbytes_session",
       secrets: [SECRET],
-      // domain: COOKIE_DOMAIN,
+      domain: COOKIE_DOMAIN,
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24 * 7,
@@ -188,9 +188,7 @@ export async function handleMagiclinkRedirect(request: Request) {
       });
     }
 
-    const MAGIC_LINK = `${
-      MODE === "production" ? BASE_URL : DEV_BASE_URL
-    }/magic-link/callback?token=${token}`;
+    const MAGIC_LINK = `${BASE_URL}/magic-link/callback?token=${token}`;
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { data, error } = await Emails.sendMagicLink({

@@ -164,13 +164,22 @@ async function updateProjectStatus({
   const completed = passedLint && passedTest && passedCheckpoint;
 
   try {
-    return prisma.project.update({
-      where: { id: projectId, contributors: { some: { id: userId } } },
-      data: {
-        status: completed ? STATUS.COMPLETED : STATUS.IN_PROGRESS,
-        score: projectScore,
-      },
-    });
+    const [project] = await Promise.all([
+      prisma.project.update({
+        where: { id: projectId, contributors: { some: { id: userId } } },
+        data: {
+          status: completed ? STATUS.COMPLETED : STATUS.IN_PROGRESS,
+          score: projectScore,
+        },
+      }),
+      // prisma.course.update({
+      //   where: { id: projectId },
+      //   data: {
+      //     status: completed ? STATUS.COMPLETED : STATUS.IN_PROGRESS,
+      //   },
+      // })
+    ]);
+    return project;
   } catch (error) {
     throw error;
   }

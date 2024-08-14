@@ -3,7 +3,7 @@ import { ActionFunctionArgs, LoaderFunctionArgs, defer } from "@remix-run/node";
 import { Await, useLoaderData } from "@remix-run/react";
 import {
   getCheckpoint,
-  getLessonContent,
+  getLesson,
   getLessons,
   getSubModule,
   getTest,
@@ -29,7 +29,7 @@ export const meta = metaFn;
 export async function loader({ request, params }: LoaderFunctionArgs) {
   try {
     const lessons = getLessons(request, params);
-    const currentLesson = getLessonContent(request, params);
+    const currentLesson = getLesson(request, params);
     const videoSource = getVideoSource();
     const test = await getTest(request, params);
     const checkpoint = await getCheckpoint(request, params);
@@ -73,17 +73,13 @@ export default function ModulesRoute() {
       ? `/modules/${subModule?.moduleId}`
       : `/courses/${subModule?.module?.courseId}?moduleId=${subModule?.moduleId}`;
 
-  const defaultTitle = "Matters choke!";
-  const title = subModule?.title ?? defaultTitle;
-  const buttonText = subModule?.module?.title;
-
+  const title = subModule.title;
+  const buttonText = subModule.module.title;
   const item = { test, checkpoint };
 
   return (
     <Container className="max-w-3xl lg:max-w-7xl">
-      {subModule?.module ? (
-        <BackButton to={redirectUrl} buttonText={buttonText} />
-      ) : null}
+      <BackButton to={redirectUrl} buttonText={buttonText} />
       <PageTitle title={title} className="mb-8" />
       <div className="lg:grid lg:grid-cols md:grid-cols-6 gap-6">
         <div className="col-span-4 flex flex-col gap-6 overflow-y-auto h-auto max-h-screen">
