@@ -2,9 +2,10 @@ import * as React from "react";
 import invariant from "tiny-invariant";
 export interface SideBarProps {
   menuItems: {
-    icon: React.ReactNode;
+    icon?: React.ReactNode;
     label: string;
     href: string;
+    target?: string;
   }[];
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;

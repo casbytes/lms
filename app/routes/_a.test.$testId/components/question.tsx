@@ -9,7 +9,7 @@ type QuestionsProps = {
 
 export function Question({ currentQuestion }: QuestionsProps) {
   return (
-    <div className="my-6">
+    <div className="my-4">
       <Separator className="bg-slate-700" />
       <Markdown source={currentQuestion.question} />
       {currentQuestion?.isMultiple ? (

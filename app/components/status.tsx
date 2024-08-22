@@ -3,11 +3,10 @@ import { SlLock } from "react-icons/sl";
 import { FiCheckCircle } from "react-icons/fi";
 import { LuCircleDotDashed, LuSigmaSquare } from "react-icons/lu";
 import { Badge } from "./ui/badge";
-
-type StatusType = "COMPLETED" | "IN_PROGRESS" | "LOCKED";
+import { STATUS } from "~/utils/helpers";
 
 type ItemProps = {
-  status: StatusType;
+  status: STATUS;
 };
 
 type ACCProps = {
@@ -17,19 +16,20 @@ type ACCProps = {
   total: number;
 };
 
-export function Status({ status }: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function Status({ status }: { status: any }) {
   const memoizedModuleStatus = React.useMemo(() => {
     if (!status) return { completed: 0, inProgress: 0, locked: 0, total: 0 };
     return status.reduce(
       (acc: ACCProps, item: ItemProps) => {
-        switch (item.status) {
-          case "COMPLETED":
+        switch (item.status as STATUS) {
+          case STATUS.COMPLETED:
             acc.completed++;
             break;
-          case "IN_PROGRESS":
+          case STATUS.IN_PROGRESS:
             acc.inProgress++;
             break;
-          case "LOCKED":
+          case STATUS.LOCKED:
             acc.locked++;
             break;
         }
@@ -77,7 +77,7 @@ export function Status({ status }: any) {
 export function PendingStatus() {
   return (
     <div className="grid grid-cols-2 gap-4 bg-gray-200 w-full p-2 my-4">
-      {Array(4).map((_, i) => (
+      {Array.from({ length: 6 }, (_, i) => (
         <div key={i} className="h-8 bg-gray-300 rounded-md animate-pulse" />
       ))}
     </div>

@@ -38,7 +38,9 @@ export function SideBar({
                     asChild
                   >
                     <Link
-                      to={item.label}
+                      prefetch="intent"
+                      to={item.href}
+                      target={item.target ?? "_self"}
                       className="flex gap-4 capitalize text-xl items-center"
                     >
                       {item.icon}

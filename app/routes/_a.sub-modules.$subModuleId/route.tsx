@@ -1,9 +1,15 @@
 import React from "react";
 import { ActionFunctionArgs, LoaderFunctionArgs, defer } from "@remix-run/node";
-import { Await, useLoaderData, useRevalidator } from "@remix-run/react";
-import { cacheOptions } from "~/utils/sessions.server";
-import { getLessonContent, getLessons, getSubModule } from "./utils.server";
-import { PiSpinnerGap } from "react-icons/pi";
+import { Await, useLoaderData } from "@remix-run/react";
+import {
+  getCheckpoint,
+  getLesson,
+  getLessons,
+  getSubModule,
+  getTest,
+  getTypeformUrl,
+  updateLesson,
+} from "./utils.server";
 import { BackButton } from "~/components/back-button";
 import { Container } from "~/components/container";
 import { PageTitle } from "~/components/page-title";
@@ -15,46 +21,70 @@ import { Pagination } from "./components/pagination";
 import { Separator } from "~/components/ui/separator";
 import { Assessment } from "~/components/assessment";
 import { ContentPendingUI } from "~/components/content-pending-ui";
+import { getVideoSource } from "~/utils/helpers.server";
+import { metaFn } from "~/utils/meta";
+
+export const meta = metaFn;
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { BUNNY_IFRAME_URL: iframeUrl, BUNNY_VIDEO_LIBRARY_ID: libraryId } =
-    process.env as Record<string, string>;
-  const videoSource = `${iframeUrl}/embed/${Number(libraryId)}`;
-
-  const lessons = getLessons(request, params);
-  const currentLesson = getLessonContent(request, params);
-  const subModule = await getSubModule(request, params);
-
-  return defer(
-    { lessons, currentLesson, subModule, videoSource },
-    cacheOptions
-  );
+  try {
+    const lessons = getLessons(request, params);
+    const currentLesson = getLesson(request, params);
+    const videoSource = getVideoSource();
+    const test = await getTest(request, params);
+    const checkpoint = await getCheckpoint(request, params);
+    const subModule = await getSubModule(request, params);
+    const type = await getTypeformUrl(request);
+    return defer({
+      lessons,
+      currentLesson,
+      subModule,
+      test,
+      checkpoint,
+      type,
+      videoSource,
+    });
+  } catch (error) {
+    throw error;
+  }
 }
 
-export async function action({ request }: ActionFunctionArgs) {
-  return request.url;
+export async function action({ request, params }: ActionFunctionArgs) {
+  try {
+    return updateLesson(request, params);
+  } catch (error) {
+    throw error;
+  }
 }
 
 export default function ModulesRoute() {
-  const { lessons, currentLesson, subModule, videoSource } =
-    useLoaderData<typeof loader>();
+  const {
+    lessons,
+    currentLesson,
+    subModule,
+    test,
+    checkpoint,
+    type,
+    videoSource,
+  } = useLoaderData<typeof loader>();
 
-  const redirectUrl = `/courses/${subModule?.moduleProgress?.courseProgressId}?moduleId=${subModule?.moduleProgressId}`;
-  const buttonText = subModule?.moduleProgress?.title;
+  const redirectUrl =
+    type && type === "module"
+      ? `/modules/${subModule?.moduleId}`
+      : `/courses/${subModule?.module?.courseId}?moduleId=${subModule?.moduleId}`;
+
+  const title = subModule.title;
+  const buttonText = subModule.module.title;
+  const item = { test, checkpoint };
 
   return (
     <Container className="max-w-3xl lg:max-w-7xl">
-      {subModule?.moduleProgress ? (
-        <BackButton to={redirectUrl} buttonText={buttonText} />
-      ) : null}
-      <PageTitle
-        title={subModule?.title ?? "Matters choke!"}
-        className="mb-8"
-      />
+      <BackButton to={redirectUrl} buttonText={buttonText} />
+      <PageTitle title={title} className="mb-8" />
       <div className="lg:grid lg:grid-cols md:grid-cols-6 gap-6">
         <div className="col-span-4 flex flex-col gap-6 overflow-y-auto h-auto max-h-screen">
           <div className="col-span-3 min-h-full">
-            <Assessment item={subModule} />
+            <Assessment item={item} />
             <Separator className="bg-sky-700 h-2 my-4 rounded-tl-md rounded-br-md" />
             <React.Suspense fallback={<ContentPendingUI />}>
               <Await resolve={currentLesson}>

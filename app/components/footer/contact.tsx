@@ -5,7 +5,6 @@ import {
   FaFacebook,
   FaLinkedin,
   FaSquareXTwitter,
-  FaXTwitter,
   FaYoutube,
 } from "react-icons/fa6";
 
@@ -15,7 +14,7 @@ export function Contact() {
       <Title title="Contact" />
       <div className="text-sm">
         <p>Questions, enquiries, or feedback?</p>
-        <p>We'd love to hear from you!</p>
+        <p>We&apos;d love to hear from you!</p>
         <p className="text-blue-600">
           <Link to="mailto:support@casbytes.com">support@casbytes.com</Link>
         </p>
@@ -26,7 +25,11 @@ export function Contact() {
             asChild
             aria-label="LinkedIn"
           >
-            <Link target="_blank" to="https://www.linkedin.com/company/casdev">
+            <Link
+              target="_blank"
+              to="https://www.linkedin.com/company/casdev"
+              rel="noreferrer"
+            >
               <FaLinkedin size={25} />
             </Link>
           </Button>
@@ -36,7 +39,11 @@ export function Contact() {
             asChild
             aria-label="Youtube"
           >
-            <Link target="_blank" to="https://youtube.com/@casbytes">
+            <Link
+              target="_blank"
+              to="https://youtube.com/@casbytes"
+              rel="noreferrer"
+            >
               <FaYoutube size={25} />
             </Link>
           </Button>
@@ -46,7 +53,11 @@ export function Contact() {
             asChild
             aria-label="Facebook"
           >
-            <Link target="_blank" to="https://www.facebook.com/casbytes">
+            <Link
+              target="_blank"
+              to="https://www.facebook.com/casbytes"
+              rel="noreferrer"
+            >
               <FaFacebook size={25} />
             </Link>
           </Button>
@@ -57,7 +68,11 @@ export function Contact() {
             asChild
             aria-label="X (formerly Twitter)"
           >
-            <Link target="_blank" to="https://twitter.com/casbytes">
+            <Link
+              target="_blank"
+              to="https://twitter.com/casbytes"
+              rel="noreferrer"
+            >
               <FaSquareXTwitter size={25} />
             </Link>
           </Button>

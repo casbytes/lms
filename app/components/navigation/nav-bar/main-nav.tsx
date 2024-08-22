@@ -16,10 +16,11 @@ type MainNavProps = {
 type ItemProps = {
   label: string;
   href: string;
+  target?: string;
 };
 
 export function MainNav({
-  isOpen,
+  // isOpen,
   menuItems,
   authApp,
   handleNavToggle,
@@ -80,9 +81,11 @@ export function MainNav({
                       <NavLink
                         key={`${item.href}-${index}`}
                         to={item.href}
+                        target={item.target ?? "_self"}
                         aria-label={item.label}
+                        prefetch="intent"
                         className={({ isActive }) =>
-                          isActive ? "text-blue-600 rounded-md" : ""
+                          isActive ? "text-blue-600" : ""
                         }
                       >
                         <Button variant="link" className="text-lg capitalize">

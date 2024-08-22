@@ -1,17 +1,17 @@
-import { FaSpinner } from "react-icons/fa6";
+import type { User } from "~/utils/db.server";
 import { format } from "date-fns";
 import { Button } from "~/components/ui/button";
 import { DialogTrigger } from "~/components/ui/dialog";
 import { Table, TableBody, TableCell, TableRow } from "~/components/ui/table";
-import { ICurrentUser } from "~/constants/types";
+import { safeParseDate } from "~/utils/helpers";
 
 type AccountDetailsProps = {
-  user: ICurrentUser;
+  user: User;
 };
 
 export function AccountDetails({ user }: AccountDetailsProps) {
   return (
-    <div className="rounded-md bg-gray-300/50 p-6 flex flex-col justify-center items-center">
+    <div className="rounded-md bg-gray-300/50 p-6 flex flex-col justify-center items-center border border-gray-500 shadow-lg">
       <h2 className="text-2xl font-bold mb-4">Account details</h2>
       <Table>
         <TableBody className="text-lg text-slate-600">
@@ -20,18 +20,18 @@ export function AccountDetails({ user }: AccountDetailsProps) {
             <TableCell>{user.email}</TableCell>
           </TableRow>
           <TableRow>
-            <TableCell>Sign In</TableCell>
-            <TableCell className="capitalize">{user.authType}</TableCell>
+            <TableCell>Github username</TableCell>
+            <TableCell>{user?.githubUsername ?? "🤷‍♂️"}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Joined On</TableCell>
             <TableCell className="capitalize">
-              {format(new Date(user.createdAt), "do MMMM, yyyy")}
+              {format(safeParseDate(user.createdAt), "do MMMM, yyyy")}
             </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Membership</TableCell>
-            <TableCell>Premium</TableCell>
+            <TableCell>{user.subscribed ? "Premium" : "Free"}</TableCell>
           </TableRow>
         </TableBody>
       </Table>
