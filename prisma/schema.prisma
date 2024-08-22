@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,170 +11,150 @@ datasource db {
 //                   USER                   //
 //||||||||||||||||##########||||||||||||||||//
 model User {
-  id                  String              @id @default(uuid())
-  googleId            String?             @unique
-  githubId            Int?                @unique
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
-  completedOnboarding Boolean             @default(false)
+  id                  String         @id @default(uuid())
+  name                String?
+  email               String         @unique
+  role                String         @default("USER") //USER, ADMIN, 
+  stripeCustomerId    String?        @unique
+  githubUsername      String?
+  subscribed          Boolean        @default(false)
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  verified            Boolean        @default(false)
+  completedOnboarding Boolean        @default(false)
+  authState           String?
+  verificationToken   String?
   currentUrl          String?
-  courseProgress      CourseProgress[]
-  moduleProgress      ModuleProgress[]
-  subModuleProgress   SubModuleProgress[]
-  lessonProgress      LessonProgress[]
+  course              Course[]
+  module              Module[]
+  subModule           SubModule[]
+  lesson              Lesson[]
   tests               Test[]
   checkpoints         Checkpoint[]
   projects            Project[]
   badges              Badge[]
+  learningHours       LearningTime[]
+}
+
+model LearningTime {
+  id     String   @id @default(uuid())
+  date   DateTime @default(now())
+  hours  Float
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId String
 }
 
 //||||||||||||||||##########||||||||||||||||//
-//                  COURSE                  //
+//                 PROGRESS                 //
 //||||||||||||||||##########||||||||||||||||//
 model Course {
-  id        String   @id @default(uuid())
-  title     String
-  slug      String
-  published Boolean
-  jsonId    String   @unique
-  modules   Module[]
+  id      String   @id @default(uuid())
+  title   String
+  slug    String
+  score   Int      @default(0)
+  status  String   @default("IN_PROGRESS") //IN_PROGRESS, COMPLETED
+  users   User[]
+  modules Module[]
+  project Project?
 }
 
 model Module {
   id         String      @id @default(uuid())
   title      String
   slug       String
-  jsonId     String      @unique
-  courseId   String
-  course     Course      @relation(fields: [courseId], references: [id])
+  premium    Boolean     @default(true)
+  score      Int         @default(0)
+  status     String      @default("LOCKED") //LOCKED, IN_PROGRESS, COMPLETED
+  order      Int
+  courseId   String?
+  users      User[]
+  course     Course?     @relation(fields: [courseId], references: [id], onDelete: Cascade)
   subModules SubModule[]
+  badges     Badge[]
+  test       Test?
+  checkpoint Checkpoint?
+
+  @@index([courseId], name: "courseId")
 }
 
 model SubModule {
-  id       String   @id @default(uuid())
-  title    String
-  slug     String
-  jsonId   String   @unique
-  moduleId String
-  lessons  Lesson[]
-  module   Module   @relation(fields: [moduleId], references: [id])
+  id         String      @id @default(uuid())
+  title      String
+  slug       String
+  status     String      @default("LOCKED") //LOCKED, IN_PROGRESS, COMPLETED
+  order      Int
+  moduleId   String
+  users      User[]
+  module     Module      @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  lessons    Lesson[]
+  test       Test?
+  checkpoint Checkpoint?
+
+  @@index([moduleId], name: "moduleId")
 }
 
 model Lesson {
   id          String    @id @default(uuid())
   title       String
   slug        String
-  jsonId      String    @unique
+  status      String    @default("LOCKED") //LOCKED, IN_PROGRESS, COMPLETED
   subModuleId String
-  subModule   SubModule @relation(fields: [subModuleId], references: [id])
-}
+  order       Int
+  users       User[]
+  subModule   SubModule @relation(fields: [subModuleId], references: [id], onDelete: Cascade)
 
-//||||||||||||||||##########||||||||||||||||//
-//                 PROGRESS                 //
-//||||||||||||||||##########||||||||||||||||//
-model CourseProgress {
-  id             String           @id @default(uuid())
-  title          String
-  slug           String
-  score          Int              @default(0)
-  status         String           @default("IN_PROGRESS") //IN_PROGRESS, COMPLETED
-  users          User[]
-  moduleProgress ModuleProgress[]
-  project        Project?
-}
-
-model ModuleProgress {
-  id                String              @id @default(uuid())
-  title             String
-  slug              String
-  score             Int                 @default(0)
-  status            String              @default("LOCKED") //LOCKED, IN_PROGRESS, COMPLETED
-  order             Int
-  courseProgressId  String
-  users             User[]
-  courseProgress    CourseProgress      @relation(fields: [courseProgressId], references: [id])
-  subModuleProgress SubModuleProgress[]
-  badges            Badge[]
-  test              Test?
-  checkpoint        Checkpoint?
-}
-
-model SubModuleProgress {
-  id               String           @id @default(uuid())
-  title            String
-  slug             String
-  score            Int              @default(0)
-  status           String           @default("LOCKED") //LOCKED, IN_PROGRESS, COMPLETED
-  order            Int
-  moduleProgressId String
-  users            User[]
-  moduleProgress   ModuleProgress   @relation(fields: [moduleProgressId], references: [id])
-  lessonProgress   LessonProgress[]
-  test             Test?
-  checkpoint       Checkpoint?
-}
-
-model LessonProgress {
-  id                  String            @id @default(uuid())
-  title               String
-  slug                String
-  status              String            @default("LOCKED") //LOCKED, IN_PROGRESS, COMPLETED
-  subModuleProgressId String
-  order               Int
-  users               User[]
-  subModuleProgress   SubModuleProgress @relation(fields: [subModuleProgressId], references: [id])
+  @@index([subModuleId], name: "subModuleId")
 }
 
 model Badge {
-  id                   String         @id @default(uuid())
+  id                   String @id @default(uuid())
   title                String
   locked_description   String
   unlocked_description String
   level                String // NOVICE, ADEPT, PROFICIENT, VIRTUOSO
-  status               String         @default("LOCKED") //LOCKED, UNLOCKED
-  moduleProgressId     String
+  status               String @default("LOCKED") //LOCKED, UNLOCKED
+  moduleId             String
   userId               String
-  user                 User           @relation(fields: [userId], references: [id])
-  moduleProgress       ModuleProgress @relation(fields: [moduleProgressId], references: [id])
+  user                 User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  module               Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
 }
 
 model Checkpoint {
-  id                  String             @id @default(uuid())
-  title               String
-  score               Int                @default(0)
-  status              String             @default("LOCKED") //LOCKED, IN_PROGRESS, SUBMITTED, GRADED, COMPLETED
-  moduleProgressId    String?            @unique
-  subModuleProgressId String?            @unique
-  users               User[]
-  moduleProgress      ModuleProgress?    @relation(fields: [moduleProgressId], references: [id])
-  subModuleProgress   SubModuleProgress? @relation(fields: [subModuleProgressId], references: [id])
+  id              String     @id @default(uuid())
+  title           String
+  score           Int        @default(0)
+  status          String     @default("LOCKED") //LOCKED, IN_PROGRESS, SUBMITTED, GRADED, COMPLETED
+  testEnvironment String     @default("node") //node, browser
+  moduleId        String?    @unique
+  subModuleId     String?    @unique
+  users           User[]
+  module          Module?    @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  subModule       SubModule? @relation(fields: [subModuleId], references: [id], onDelete: Cascade)
 }
 
 model Test {
-  id                  String             @id @default(uuid())
-  title               String
-  status              String             @default("LOCKED") //LOCKED, AVAILABLE  COMPLETED
-  score               Int                @default(0)
-  attempts            Int                @default(0)
-  attempted           Boolean            @default(false)
-  nextAttemptAt       DateTime?
-  moduleProgressId    String?            @unique
-  subModuleProgressId String?            @unique
-  users               User[]
-  moduleProgress      ModuleProgress?    @relation(fields: [moduleProgressId], references: [id])
-  subModuleProgress   SubModuleProgress? @relation(fields: [subModuleProgressId], references: [id])
+  id            String     @id @default(uuid())
+  title         String
+  status        String     @default("LOCKED") //LOCKED, AVAILABLE  COMPLETED
+  score         Int        @default(0)
+  attempts      Int        @default(0)
+  attempted     Boolean    @default(false)
+  nextAttemptAt DateTime?
+  moduleId      String?    @unique
+  subModuleId   String?    @unique
+  users         User[]
+  module        Module?    @relation(fields: [moduleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  subModule     SubModule? @relation(fields: [subModuleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
-//||||||||||||||||##########||||||||||||||||//
-//                 PROJECT                  //
-//||||||||||||||||##########||||||||||||||||//
-
 model Project {
-  id               String         @id @default(uuid())
-  title            String
-  slug             String
-  status           String         @default("LOCKED") //LOCKED, IN_PROGRESS, COMPLETED
-  courseProgressId String         @unique
-  contributors     User[]
-  courseProgress   CourseProgress @relation(fields: [courseProgressId], references: [id])
+  id              String @id @default(uuid())
+  title           String
+  slug            String
+  score           Int    @default(0)
+  status          String @default("LOCKED") //LOCKED, IN_PROGRESS, COMPLETED
+  testEnvironment String @default("node") //node, browser
+  courseId        String @unique
+  contributors    User[]
+  course          Course @relation(fields: [courseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }

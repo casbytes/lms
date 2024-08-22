@@ -1,10 +1,15 @@
 import invariant from "tiny-invariant";
 import schedule from "node-schedule";
-import { Params } from "@remix-run/react";
-import { ITest, Status, TestStatus } from "~/constants/types";
-import { BadRequestError, InternalServerError, NotFoundError } from "~/errors";
-import { prisma } from "~/libs/prisma.server";
-import { getUser } from "~/utils/sessions.server";
+import { Params, redirect } from "@remix-run/react";
+import { getUserId } from "~/utils/session.server";
+import { prisma, Test } from "~/utils/db.server";
+import { STATUS, TEST_STATUS } from "~/utils/helpers";
+import { getContentFromGithub } from "~/utils/octokit.server";
+import { cache } from "~/utils/node-cache.server";
+import {
+  updateModuleStatusAndFindNextModule,
+  updateSubmoduleStatusAndFindNextSubmodule,
+} from "~/utils/helpers.server";
 
 export interface Option {
   id: number;
@@ -19,145 +24,100 @@ export interface Question {
   correctAnswer: number[]; // Contains IDs of correct options
 }
 
-export const questions: Question[] = [
-  {
-    id: 0,
-    isMultiple: true,
-    question:
-      "Which programming languages do you know? `console.log('Hello, World!')`",
-    options: [
-      { id: 0, text: "JavaScript" },
-      { id: 1, text: "TypeScript" },
-      { id: 2, text: "Python" },
-      { id: 3, text: "Java" },
-    ],
-    correctAnswer: [0, 1], // User can select JavaScript and TypeScript
-  },
-  {
-    id: 1,
-    isMultiple: true,
-    question: "Which front-end frameworks do you know?",
-    options: [
-      { id: 0, text: "React" },
-      {
-        id: 1,
-        text: "Angularfdsakjhgfvbjnkm,;lkjhgfcvhbjnkm\
-        jkhgfdhjkljhgfdsdfghjkjhgfdgh\
-        hjgfdszxghjjhgfdszfxgchvjkhgfdgch\
-        hbjfgdghjklhgfdxcgvhjkhghvjbnjhgv",
-      },
-      { id: 2, text: "Vue.js" },
-      { id: 3, text: "Svelte" },
-    ],
-    correctAnswer: [0, 2], // User can select React and Vue.js
-  },
-  {
-    id: 2,
-    isMultiple: true,
-    question: "Which back-end frameworks do you know?",
-    options: [
-      { id: 0, text: "Node.js" },
-      { id: 1, text: "Django" },
-      { id: 2, text: "Express.js" },
-      { id: 3, text: "Spring" },
-    ],
-    correctAnswer: [0, 1], // User can select Node.js and Django
-  },
-  {
-    id: 3,
-    isMultiple: true,
-    question: "Which databases do you know?",
-    options: [
-      { id: 0, text: "MySQL" },
-      { id: 1, text: "PostgreSQL" },
-      { id: 2, text: "MongoDB" },
-      { id: 3, text: "SQLite" },
-    ],
-    correctAnswer: [0, 1, 2], // User can select MySQL, PostgreSQL, and MongoDB
-  },
-  {
-    id: 4,
-    question: "Which cloud providers do you know?",
-    isMultiple: true,
-    options: [
-      { id: 0, text: "AWS" },
-      { id: 1, text: "Azure" },
-      { id: 2, text: "Google Cloud" },
-      { id: 3, text: "DigitalOcean" },
-    ],
-    correctAnswer: [0, 1, 2], // User can select AWS, Azure, and Google Cloud
-  },
-  {
-    id: 5,
-    question: "Which version control systems do you know?",
-    options: [
-      { id: 0, text: "Git" },
-      { id: 1, text: "SVN" },
-      { id: 2, text: "Mercurial" },
-      { id: 3, text: "Perforce" },
-    ],
-    correctAnswer: [0], // User can select Git
-  },
-  // Add more questions here
-];
-
 //################
-// Server uitls
+// Loader utils
 //################
+/**
+ * Get a test
+ * @param request - The incoming request
+ * @param params - The incoming params
+ * @returns {Promise<Test>}
+ */
 export async function getTest(request: Request, params: Params<string>) {
-  const url = new URL(request.url);
-  const searchParams = url.searchParams;
-  const id = searchParams.get("moduleId") ?? searchParams.get("submoduleId");
+  const url = new URL(request.url).searchParams;
+  const userId = await getUserId(request);
+  const moduleOrSubmoduleId = url.get("moduleId") ?? url.get("submoduleId");
+  invariant(
+    moduleOrSubmoduleId,
+    "module or submoduleId is required to get Test"
+  );
   const testId = params.testId;
+  invariant(testId, "Test ID is required to get Test");
 
   try {
-    invariant(id, "ID is required to get Test");
-    invariant(testId, "Test ID is required to get Test");
-    const user = await getUser(request);
-
-    const test = await prisma.test.findFirst({
-      where: {
-        id: testId,
-        OR: [
-          {
-            moduleProgressId: {
-              equals: id,
-            },
-          },
-          {
-            subModuleProgressId: {
-              equals: id,
-            },
-          },
-        ],
-        users: { some: { id: user.id } },
-      },
-      include: {
-        moduleProgress: true,
-        subModuleProgress: true,
-      },
-    });
-    if (!test) {
-      throw new NotFoundError("Test not found.");
-    }
-
+    const test = await getCurrentTest({ testId, moduleOrSubmoduleId, userId });
     if (test?.nextAttemptAt) {
       await scheduleStatusUpdate(testId, test.nextAttemptAt);
     }
 
-    return test;
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      throw error;
+    const repo =
+      test?.module?.slug ?? (test?.subModule?.module?.slug as string);
+
+    const path = test?.module
+      ? "test.json"
+      : `${test?.subModule?.slug}/test.json`;
+
+    const cacheKey = `test-${test.id}`;
+    if (cache.has(cacheKey)) {
+      const testQuestions = cache.get(cacheKey) as Question[];
+      return { test, testQuestions };
     }
-    throw new InternalServerError();
+    const { content } = await getContentFromGithub({
+      repo,
+      path,
+    });
+    const testQuestions = JSON.parse(content) as Question[];
+    cache.set<Question[]>(cacheKey, testQuestions);
+    return { test, testQuestions };
+  } catch (error) {
+    throw error;
+  }
+}
+
+/**
+ * Get a test by its ID
+ * @param {String} testId - The test ID
+ * @param {String} id - The module or sub module ID
+ * @param {String} userId - The user ID
+ * @returns {Promise<Test>}
+ */
+async function getCurrentTest({
+  testId,
+  moduleOrSubmoduleId,
+  userId,
+}: {
+  testId: string;
+  moduleOrSubmoduleId: string;
+  userId: string;
+}) {
+  try {
+    return prisma.test.findUniqueOrThrow({
+      where: {
+        id: testId,
+        users: { some: { id: userId } },
+        OR: [
+          { moduleId: { equals: moduleOrSubmoduleId } },
+          { subModuleId: { equals: moduleOrSubmoduleId } },
+        ],
+      },
+      include: {
+        module: true,
+        subModule: {
+          include: {
+            module: true,
+          },
+        },
+      },
+    });
+  } catch (error) {
+    throw error;
   }
 }
 
 /**
  *  Schedule a status update for a test
- * @param {String} testId
- * @param {Date} nextAttemptAt
+ * @param {String} testId - The test id
+ * @param {Date} nextAttemptAt - The date to update the test status
  * @returns {Promise<void>}
  */
 async function scheduleStatusUpdate(testId: string, nextAttemptAt: Date) {
@@ -166,12 +126,10 @@ async function scheduleStatusUpdate(testId: string, nextAttemptAt: Date) {
     try {
       await prisma.test.update({
         where: { id: testId },
-        data: { status: TestStatus.AVAILABLE },
+        data: { status: TEST_STATUS.AVAILABLE as TEST_STATUS },
       });
     } catch (error) {
-      throw new InternalServerError(
-        "An unexpected error occurred while trying to update test status in node schedule."
-      );
+      throw error;
     }
   });
 }
@@ -180,37 +138,21 @@ async function scheduleStatusUpdate(testId: string, nextAttemptAt: Date) {
 // Action uitls
 //################
 const CUT_OFF_SCORE = 80;
-
+/**
+ * Update a test
+ * @param request - The incoming request
+ * @returns {Promise<any>}
+ */
 export async function updateTest(request: Request) {
-  const formData = await request.formData();
-  const score = Number(formData.get("score"));
-  const intent = String(formData.get("intent"));
-  const userId = String(formData.get("userId"));
-  const testId = String(formData.get("testId"));
-  const moduleProgressId = formData.get("moduleProgressId") as string | null;
-  const subModuleProgressId = formData.get("subModuleProgressId") as
-    | string
-    | null;
-
-  if (!intent) {
-    throw new BadRequestError("Invalid intent.");
-  }
+  // itemId can be moduleId or subModuleId
+  const { userId, score, intent, testId, moduleOrSubmoduleId, redirectUrl } =
+    await getFormData(request);
+  invariant(intent === "submit", "Invalid intent");
+  invariant(moduleOrSubmoduleId, "Item ID is required to update test");
 
   try {
-    const existingTest = await prisma.test.findFirst({
-      where: {
-        id: testId,
-        users: { some: { id: userId } },
-        OR: [
-          { moduleProgressId: { equals: moduleProgressId } },
-          { subModuleProgressId: { equals: subModuleProgressId } },
-        ],
-      },
-    });
-
-    if (!existingTest) {
-      throw new NotFoundError("Existing test not found.");
-    }
+    const test = await getCurrentTest({ testId, moduleOrSubmoduleId, userId });
+    const nextAttemptAt = calculateNextAttempt({ test, score });
 
     const updateData: {
       score: number;
@@ -219,101 +161,100 @@ export async function updateTest(request: Request) {
       attempts: { increment: number };
       nextAttemptAt?: Date | null;
       users: { connect: { id: string } };
-      moduleProgressId?: string | null;
-      subModuleProgressId?: string | null;
+      moduleId: string | null;
+      subModuleId: string | null;
     } = {
       score,
-      status: score < CUT_OFF_SCORE ? TestStatus.LOCKED : TestStatus.COMPLETED,
+      status:
+        score < CUT_OFF_SCORE ? TEST_STATUS.LOCKED : TEST_STATUS.COMPLETED,
       attempted: true,
       attempts: { increment: 1 },
-      nextAttemptAt: null,
+      nextAttemptAt,
       users: { connect: { id: userId } },
-      moduleProgressId:
-        moduleProgressId === "null"
-          ? null
-          : moduleProgressId ?? existingTest.moduleProgressId,
-      subModuleProgressId:
-        subModuleProgressId === "null"
-          ? null
-          : subModuleProgressId ?? existingTest.subModuleProgressId,
+      moduleId: test.moduleId ?? null,
+      subModuleId: test.subModuleId ?? null,
     };
 
-    const now = new Date();
-    const attemptIncrement = 24 * 60 * 60 * 1000; // 1 day in milliseconds
-    const daysUntilNextAttempt =
-      (existingTest?.attempts === 0 ? 1 : existingTest.attempts + 1) *
-      attemptIncrement;
-    const nextAttemptTime = new Date(now.getTime() + daysUntilNextAttempt);
-
-    if (existingTest?.nextAttemptAt) {
-      if (score >= CUT_OFF_SCORE) {
-        updateData.nextAttemptAt = null;
-      } else {
-        updateData.nextAttemptAt = nextAttemptTime;
-      }
-    } else {
-      if (score < CUT_OFF_SCORE) {
-        updateData.nextAttemptAt = nextAttemptTime;
-      } else {
-        updateData.nextAttemptAt = null;
-      }
-    }
-
-    const testResponse = await prisma.test.update({
-      where: {
-        id: testId,
-      },
-      data: updateData,
-      include: {
-        moduleProgress: {
-          include: {
-            checkpoint: true,
-          },
-        },
-        subModuleProgress: {
-          include: {
-            checkpoint: true,
-          },
-        },
-      },
-    });
-
+    const testResponse = await updateTestStatus(testId, updateData);
     if (!testResponse) {
-      throw new NotFoundError("Failed to update task.");
+      throw new Error("Failed to update test.");
     }
 
-    /**
-     * Grab the checkpoint id from the module or sub module,
-     * use it to update the checkpoint status
-     */
     if (
       testResponse.score >= CUT_OFF_SCORE &&
-      testResponse.status === TestStatus.COMPLETED
+      testResponse.status === TEST_STATUS.COMPLETED
     ) {
-      let checkpointId: string | null = null;
-      if (testResponse.moduleProgress) {
-        checkpointId = testResponse.moduleProgress?.checkpoint?.id ?? null;
-      } else if (testResponse.subModuleProgress) {
-        checkpointId = testResponse.subModuleProgress.checkpoint?.id ?? null;
-      }
+      const checkpointId =
+        testResponse.module?.checkpoint?.id ??
+        testResponse.subModule?.checkpoint?.id ??
+        null;
+
+      const moduleId = testResponse.moduleId ?? null;
+      const subModuleId = testResponse.subModuleId ?? null;
 
       if (checkpointId) {
-        await prisma.checkpoint.update({
-          where: {
-            id: checkpointId,
-          },
-          data: {
-            status: Status.IN_PROGRESS,
-          },
+        await updateCheckpointStatus(checkpointId, userId);
+      } else if (moduleId !== null) {
+        await updateModuleStatusAndFindNextModule({ moduleId, userId });
+      } else {
+        await updateSubmoduleStatusAndFindNextSubmodule({
+          subModuleId: subModuleId as string,
+          userId,
         });
       }
     }
-
-    return testResponse;
+    return redirect(redirectUrl);
   } catch (error) {
-    if (error instanceof NotFoundError || error instanceof BadRequestError) {
-      throw error;
-    }
-    throw new InternalServerError("An unexpected error occurred.");
+    throw error;
   }
+}
+
+/**
+ *
+ * @param request - request
+ * @returns {Record<string, any>}
+ */
+async function getFormData(request: Request) {
+  const formData = await request.formData();
+  return {
+    userId: await getUserId(request),
+    score: Number(formData.get("score")),
+    intent: String(formData.get("intent")),
+    testId: String(formData.get("testId")),
+    moduleOrSubmoduleId: formData.get("itemId") as string,
+    redirectUrl: formData.get("redirectUrl") as string,
+  };
+}
+
+function calculateNextAttempt({ test, score }: { test: Test; score: number }) {
+  const now = new Date();
+  const attemptIncrement = 24 * 60 * 60 * 1000; // 1 day in milliseconds
+  const daysUntilNextAttempt =
+    (test?.attempts === 0 ? 1 : test.attempts + 1) * attemptIncrement;
+  const nextAttemptTime = new Date(now.getTime() + daysUntilNextAttempt);
+
+  if (test?.nextAttemptAt) {
+    return score >= CUT_OFF_SCORE ? null : nextAttemptTime;
+  } else {
+    return score < CUT_OFF_SCORE ? nextAttemptTime : null;
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function updateTestStatus(testId: string, updateData: any) {
+  return prisma.test.update({
+    where: { id: testId },
+    data: updateData,
+    include: {
+      module: { include: { checkpoint: true } },
+      subModule: { include: { checkpoint: true } },
+    },
+  });
+}
+
+async function updateCheckpointStatus(checkpointId: string, userId: string) {
+  return prisma.checkpoint.update({
+    where: { id: checkpointId, users: { some: { id: userId } } },
+    data: { status: STATUS.IN_PROGRESS },
+  });
 }

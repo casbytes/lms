@@ -31,6 +31,7 @@ export function Markdown({ source }: { source: string }) {
       <ReactMarkdown
         remarkPlugins={[
           remarkGfm,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           remarkFlexibleContainers as any,
           remarkEmoji,
         ]}

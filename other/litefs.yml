@@ -1,0 +1,31 @@
+fuse:
+  dir: "${LITEFS_DIR}"
+
+data:
+  dir: "/data/litefs"
+
+# proxy:
+#   addr: ":${INTERNAL_PORT}"
+#   target: "localhost:${PORT}"
+#   db: "${DATABASE_FILENAME}"
+
+lease:
+  type: "static"
+  candidate: true
+  # type: "consul"
+  # candidate: ${FLY_REGION == PRIMARY_REGION}
+  # promote: true
+  # advertise-url: "http://${HOSTNAME}.vm.${FLY_APP_NAME}.internal:20202"
+
+  # consul:
+  #   url: "${FLY_CONSUL_URL}"
+  #   key: "casbytes-litefs/${FLY_APP_NAME}"
+
+exec:
+  - cmd: npx prisma migrate deploy
+    if-candidate: true
+
+  - cmd: sqlite3 $DATABASE_PATH "PRAGMA journal_mode=WAL;"
+    if-candidate: true
+
+  - cmd: npm start

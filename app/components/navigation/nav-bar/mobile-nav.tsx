@@ -10,7 +10,7 @@ type MobileNavProps = {
   authApp: boolean;
   handleNavToggle: () => void;
   className?: string;
-  menuItems: { label: string; href: string }[];
+  menuItems: { label: string; href: string; target?: string }[];
 };
 
 export function MobileNav({
@@ -25,7 +25,8 @@ export function MobileNav({
     <nav
       className={cn(
         isOpen ? "flex lg:hidden" : "hidden",
-        "flex-col lg:hidden duration-300 ease-in-out absolute  divide-y-2 bg-sky-700 text-white z-10 w-full border-b-2 drop-shadow-lg"
+        "flex-col lg:hidden duration-300 absolute  divide-y-2 bg-sky-700 text-white z-10 w-full border-b-2 drop-shadow-lg",
+        className
       )}
       id="nav"
       {...props}
@@ -39,7 +40,13 @@ export function MobileNav({
               className="text-lg capitalize"
               asChild
             >
-              <Link to={item.href}>{item.label}</Link>
+              <Link
+                to={item.href}
+                prefetch="intent"
+                target={item?.target ?? "_self"}
+              >
+                {item.label}
+              </Link>
             </Button>
           </li>
         ))}

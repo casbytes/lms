@@ -1,195 +1,148 @@
 import React from "react";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import {
-  useActionData,
-  useSubmit,
-  useLoaderData,
-  useNavigation,
-  useNavigate,
-} from "@remix-run/react";
+import { useSubmit, useLoaderData } from "@remix-run/react";
 import { BackButton } from "~/components/back-button";
 import { Container } from "~/components/container";
 import { PageTitle } from "~/components/page-title";
-import { Dialog, DialogTrigger } from "~/components/ui/dialog";
+import { Dialog } from "~/components/ui/dialog";
 import { TestDialog } from "./components/test-dialog";
 import { useLocalStorageState } from "~/utils/hooks";
 import { FullPagePendingUI } from "~/components/full-page-pending-ui";
 import { Options } from "./components/options";
-import { getTest, questions, updateTest } from "./utils.server";
+import { getTest, updateTest } from "./utils.server";
 import { Pagination } from "./components/pagination";
 import { TestHeader } from "./components/header";
 import { Question } from "./components/question";
-import { getUser } from "~/utils/sessions.server";
-import { Button } from "~/components/ui/button";
+import { getUser } from "~/utils/session.server";
+import { metaFn } from "~/utils/meta";
+import { Blocker } from "./components/blocker";
+
+export const meta = metaFn;
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const user = await getUser(request);
-  const test = await getTest(request, params);
-  return json({ questions, test, user });
+  try {
+    const user = await getUser(request);
+    const { test, testQuestions } = await getTest(request, params);
+    return json({ test, testQuestions, user });
+  } catch (error) {
+    throw error;
+  }
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  await updateTest(request);
-  return null;
+  try {
+    return await updateTest(request);
+  } catch (error) {
+    throw error;
+  }
 }
 
 export default function TestRoute() {
-  const { questions, user, test } = useLoaderData<typeof loader>();
-
+  const { test, testQuestions } = useLoaderData<typeof loader>();
   const submit = useSubmit();
-  const navigation = useNavigation();
-  const dialogButtonRef = React.useRef<HTMLButtonElement>(null);
-
-  const isSubmitting = navigation.formData?.get("intent") === "submit";
-
   const [isServer, setIsServer] = React.useState(true);
-  const [isFormSubmitted, setIsFormSubmitted] = React.useState(false);
-  const [scores, setScores] = React.useState<number[]>(
-    Array(questions.length).fill(0)
-  );
+  const [isSubmitted, setIsSubmitted] = React.useState(false);
+  const [score, setScore] = useLocalStorageState("testScore", 0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useLocalStorageState(
     "currentQuestionIndex",
     0
   );
   const [userAnswers, setUserAnswers] = useLocalStorageState(
     "userAnswers",
-    Array(questions.length).fill([])
+    Array(testQuestions.length).fill([])
   );
 
-  let moduleProgressId = test?.moduleProgressId;
-  let subModuleProgressId = test?.subModuleProgressId;
+  const moduleId = test?.moduleId ?? null;
+  const subModuleId = test?.subModuleId ?? null;
+  const moduleTest = Boolean(moduleId);
 
-  /**
-   * Calculates the scores of the user based on the answers provided
-   */
-  function calculateScores() {
+  const testTitle = test.title;
+  const moduleOrSubModuleTitle = test?.module?.title ?? test?.subModule?.title;
+
+  const moduleOrSubModuleUrl = moduleTest
+    ? `/courses/${test?.module?.courseId}?moduleId=${test?.moduleId}`
+    : `/sub-modules/${test?.subModuleId}`;
+
+  const currentQuestion = testQuestions[currentQuestionIndex];
+  const currentAnswer = userAnswers[currentQuestionIndex];
+  const testQuestionsLength = testQuestions.length;
+  const progress = ((currentQuestionIndex + 1) / testQuestionsLength) * 100;
+
+  React.useEffect(() => {
     const newScores = userAnswers.map((answer, index) => {
-      const correctAnswerIds = questions[index].correctAnswer;
+      const correctAnswerIds = testQuestions[index]?.correctAnswer ?? [];
       return answer.length === correctAnswerIds.length &&
-        answer.every((id: number) => correctAnswerIds?.includes(id))
+        answer.every((id: number) => correctAnswerIds.includes(id))
         ? 1
         : 0;
     });
-    setScores(newScores);
-  }
 
-  /**
-   *  Calculates the total score of the user score and returns it
-   * @returns {Number} The total score of the user in percent
-   */
-  function getTotalScore(): number {
-    return (
-      (scores.reduce((acc, score) => acc + score, 0) / questions.length) * 100
+    const calculatedTotalScore =
+      (newScores.reduce<number>((acc, score) => acc + score, 0) /
+        testQuestions.length) *
+      100;
+    setScore(Number(Math.round(calculatedTotalScore)));
+  }, [userAnswers, testQuestions, setScore]);
+
+  const handleSubmit = React.useCallback(() => {
+    submit(
+      {
+        score,
+        testId: test.id,
+        intent: "submit",
+        itemId: moduleId ?? subModuleId,
+        redirectUrl: moduleOrSubModuleUrl,
+      },
+      { method: "POST" }
     );
-  }
+    setIsSubmitted(true);
+  }, [submit, score, moduleId, subModuleId, test.id, moduleOrSubModuleUrl]);
 
-  /**
-   * Calculates the total score of the user score and returns it
-   * @returns {Number} The total score of the user in percent
-   */
-  function getUserScore(): number {
-    calculateScores();
-    return getTotalScore();
-  }
-
-  /**
-   * Programmatically submits the test form
-   */
-  async function handleSubmit() {
-    return new Promise<void>((resolve) => {
-      submit(
-        {
-          testId: test.id,
-          userId: user.id,
-          intent: "submit",
-          moduleProgressId: moduleProgressId ?? null,
-          subModuleProgressId: subModuleProgressId ?? null,
-          score: getUserScore().toFixed(0),
-        },
-        { method: "POST" }
-      );
-      window.localStorage.removeItem("currentQuestionIndex");
-      window.localStorage.removeItem("userAnswers");
-      setIsFormSubmitted(true);
-      resolve();
-    });
-  }
-
-  const moduleTest = test?.moduleProgressId ? true : false;
-  const defaultTitle = "Matters choke!";
-  const testTitle = test.title ?? defaultTitle;
-
-  const moduleOrSubModuleTitle = moduleTest
-    ? test?.moduleProgress?.title
-    : test?.subModuleProgress?.title ?? defaultTitle;
-
-  const moduleOrSubModuleUrl = moduleTest
-    ? `/courses/${test?.moduleProgressId}`
-    : `/sub-modules/${test?.subModuleProgressId}`;
-
-  const currentQuestion = questions[currentQuestionIndex];
-  const currentAnswer = userAnswers[currentQuestionIndex];
-  const questionsLength = questions.length;
-  const checkPrev = currentQuestionIndex === 0;
-  const checkNext = currentQuestionIndex < questions.length - 1;
-  const progress = ((currentQuestionIndex + 1) / questionsLength) * 100;
-
-  /**
-   * useEffect to update the user score when the user answers a question
-   */
   React.useEffect(() => {
-    getUserScore();
-  }, [userAnswers]);
+    if (isSubmitted) {
+      window.localStorage.removeItem("testTime");
+      window.localStorage.removeItem("testScore");
+      window.localStorage.removeItem("testAlert");
+      window.localStorage.removeItem("userAnswers");
+      window.localStorage.removeItem("currentQuestionIndex");
+    }
+    setIsSubmitted(false);
+  }, [isSubmitted]);
 
-  /**
-   * useEffect to check for hydration
-   */
   React.useEffect(() => {
     setIsServer(false);
   }, []);
 
-  if (isServer || isSubmitting) return <FullPagePendingUI />;
+  if (isServer) return <FullPagePendingUI />;
+
   return (
-    <Dialog>
-      <Container className="max-w-4xl">
-        <BackButton to={moduleOrSubModuleUrl} buttonText={testTitle} />
-        <PageTitle title={`${moduleOrSubModuleTitle} 👀`} />
-        <TestHeader
-          progress={progress}
-          submitForm={handleSubmit}
-          questionsLength={questionsLength}
-          redirectUrl={moduleOrSubModuleUrl}
-          currentQuestionIndex={currentQuestionIndex}
-        />
-        <Question currentQuestion={currentQuestion} />
-        <Options
-          userAnswers={userAnswers}
-          currentAnswer={currentAnswer}
-          currentQuestion={currentQuestion}
-          setUserAnswers={setUserAnswers}
-          currentQuestionIndex={currentQuestionIndex}
-        />
+    <Container className="max-w-4xl">
+      <BackButton to={moduleOrSubModuleUrl} buttonText={testTitle} />
+      <PageTitle title={`${moduleOrSubModuleTitle} 👀`} />
+      <Blocker isSubmitted={isSubmitted} submitTest={handleSubmit} />
+      <TestHeader
+        progress={progress}
+        submitTest={handleSubmit}
+        questionsLength={testQuestionsLength}
+        currentQuestionIndex={currentQuestionIndex}
+      />
+      <Question currentQuestion={currentQuestion} />
+      <Options
+        userAnswers={userAnswers}
+        currentAnswer={currentAnswer}
+        currentQuestion={currentQuestion}
+        setUserAnswers={setUserAnswers}
+        currentQuestionIndex={currentQuestionIndex}
+      />
+      <Dialog>
         <Pagination
-          checkNext={checkNext}
-          checkPrev={checkPrev}
-          userAnswers={userAnswers}
-          setUserAnswers={setUserAnswers}
+          testQuestionsLength={testQuestionsLength}
           currentQuestionIndex={currentQuestionIndex}
           setCurrentQuestionIndex={setCurrentQuestionIndex}
         />
-        <TestDialog
-          submitForm={handleSubmit}
-          isFormSubmitted={isFormSubmitted}
-          dialogButtonRef={dialogButtonRef}
-        />
-
-        {/* Because the dialog trigger button is only rendered when a student is on the last question,
-        we can't access it before then so we have to come up with a way to trigger the dialog
-        when a student's test window or tab looses focus so we can automatically submit their test
-        and display their result to them on the dialog. That is why this button is here. */}
-        <DialogTrigger ref={dialogButtonRef} />
-      </Container>
-    </Dialog>
+        <TestDialog submitTest={handleSubmit} />
+      </Dialog>
+    </Container>
   );
 }

@@ -1,25 +1,44 @@
 import React from "react";
 import { Await } from "@remix-run/react";
-import { ImSpinner2 } from "react-icons/im";
-import { ICourse } from "~/constants/types";
-import { CoursesCard } from "./courses-card";
+import { Table, TableBody, TableCell, TableRow } from "~/components/ui/table";
+import { type GithubCourse } from "../utils.server";
+import { Course } from "./course";
+import { PendingCard } from "./pending-card";
 
 type CoursesProps = {
-  data: Promise<{ courses: ICourse[]; inCatalog: boolean }>;
+  courseData: Promise<{ courses: GithubCourse[]; inCatalog: boolean }>;
 };
 
-export function Courses({ data }: CoursesProps) {
+export function Courses({ courseData }: CoursesProps) {
   return (
     <React.Suspense fallback={<PendingCard />}>
-      <Await resolve={data}>{(data) => <CoursesCard data={data} />}</Await>
+      <Await resolve={courseData}>
+        {(courseData) => {
+          const { inCatalog, courses } = courseData;
+          return (
+            <div className="rounded-md bg-slate-300/30 p-2 flex flex-col items-center h-full shadow-lg">
+              <h2 className="text-lg font-bold">Courses</h2>
+              <Table>
+                <TableBody className="text-slate-600 font-black">
+                  {courses && courses?.length ? (
+                    courses.map((course, index) => (
+                      <Course
+                        course={course}
+                        inCatalog={inCatalog}
+                        key={`${course.id}-${index}`}
+                      />
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={2}>No courses available</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          );
+        }}
+      </Await>
     </React.Suspense>
-  );
-}
-
-function PendingCard() {
-  return (
-    <div className="w-full flex items-center justify-center p-20 bg-indigo-300/30 rounded-md">
-      <ImSpinner2 size={50} className="animate-spin text-slate-600 " />
-    </div>
   );
 }

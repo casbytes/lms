@@ -1,46 +1,27 @@
 import invariant from "tiny-invariant";
-import { InternalServerError, NotFoundError } from "~/errors";
-import { prisma } from "~/libs/prisma.server";
-import { getUser } from "~/utils/sessions.server";
+import { prisma } from "~/utils/db.server";
+import { getUserId } from "~/utils/session.server";
 
 export async function getTest(request: Request) {
   const url = new URL(request.url);
   const searchParams = url.searchParams;
-  const id = searchParams.get("moduleId") ?? searchParams.get("submoduleId");
+  const moduleOrSubmoduleId =
+    searchParams.get("moduleId") ?? searchParams.get("submoduleId");
+  invariant(moduleOrSubmoduleId, "ID is required to get Test");
 
   try {
-    invariant(id, "ID is required to get Test");
-    const user = await getUser(request);
-
-    const test = await prisma.test.findFirst({
+    const userId = await getUserId(request);
+    return await prisma.test.findFirstOrThrow({
       where: {
         OR: [
-          {
-            moduleProgressId: {
-              equals: id,
-            },
-          },
-          {
-            subModuleProgressId: {
-              equals: id,
-            },
-          },
+          { moduleId: { equals: moduleOrSubmoduleId } },
+          { subModuleId: { equals: moduleOrSubmoduleId } },
         ],
-        users: { some: { id: user.id } },
+        users: { some: { id: userId } },
       },
-      include: {
-        moduleProgress: true,
-        subModuleProgress: true,
-      },
+      include: { module: true, subModule: true },
     });
-    if (!test) {
-      throw new NotFoundError("Test not found.");
-    }
-    return test;
   } catch (error) {
-    if (error instanceof NotFoundError) {
-      throw error;
-    }
-    throw new InternalServerError();
+    throw error;
   }
 }
