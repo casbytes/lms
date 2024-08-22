@@ -1,16 +1,20 @@
 import { defineConfig, devices } from "@playwright/test";
-
-// require('dotenv').config();
+import "dotenv/config";
+const PORT = process.env.PORT || 5173;
 
 export default defineConfig({
   testDir: "./tests/e2e",
+  timeout: 15 * 1000,
+  expect: {
+    timeout: 5 * 1000,
+  },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: "html",
   use: {
-    baseURL: "http://localhost:5173",
+    baseURL: `http://localhost:${PORT}/`,
     trace: "on-first-retry",
   },
 
@@ -19,41 +23,17 @@ export default defineConfig({
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
     },
-
-    {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
-    },
-
-    {
-      name: "webkit",
-      use: { ...devices["Desktop Safari"] },
-    },
-
-    /* Test against mobile viewports. */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
-
-    /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
-    // {
-    //   name: 'Google Chrome',
-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-    // },
   ],
 
   webServer: {
     command: "npm run dev",
-    url: "http://localhost:5173",
+    port: Number(PORT),
     reuseExistingServer: !process.env.CI,
+    stderr: "pipe",
+    stdout: "pipe",
+    env: {
+      PORT: String(PORT),
+      NODE_ENV: "test",
+    },
   },
 });

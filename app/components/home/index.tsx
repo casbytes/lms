@@ -1,21 +1,26 @@
 import { Header } from "./header";
 import { CoursesOverview } from "./courses-overview";
 import { ContentOverview } from "./content-overview";
-import { CurriculumOverview } from "./curriculum-overview";
+import { FeatureOverview } from "./feature-overview";
 import { Testimonial } from "./testimonial";
 import { Partnerships } from "./partnerships";
 import { Subscription } from "./subscription";
+import { Stripe } from "~/services/stripe.server";
 
-export function Home() {
+export function Home({
+  plans,
+}: {
+  plans: Stripe.Response<Stripe.ApiList<Stripe.Price>>;
+}) {
   return (
     <div className="bg-white">
       <Header />
       <CoursesOverview />
       <ContentOverview />
-      <CurriculumOverview />
+      <FeatureOverview />
       <Testimonial />
       <Partnerships />
-      <Subscription />
+      <Subscription plans={plans} />
     </div>
   );
 }

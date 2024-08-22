@@ -7,14 +7,14 @@ type BackButtonProps = {
   className?: string;
   buttonText?: string;
   to: string;
-  children?: React.ReactNode;
+  onClick?: () => void;
 };
 
 export function BackButton({
   className,
   buttonText,
   to,
-  children,
+  onClick,
 }: BackButtonProps) {
   return (
     <Button
@@ -22,10 +22,9 @@ export function BackButton({
       className={cn("text-lg capitalize -ml-4 mb-6", className)}
       asChild
     >
-      <Link to={to}>
+      <Link prefetch="intent" to={to} onClick={onClick}>
         <FaArrowLeft size={30} className="mr-2" />
         {buttonText}
-        {children}
       </Link>
     </Button>
   );

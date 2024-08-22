@@ -1,18 +1,20 @@
+import matter from "gray-matter";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
-import matter from "gray-matter";
 import { Container } from "~/components/container";
 import { Markdown } from "~/components/markdown";
 import { PageTitle } from "~/components/page-title";
-import { readContent } from "~/utils/read-mdx-content.server";
+import { readPage } from "~/utils/helpers.server";
+import { metaFn } from "~/utils/meta";
+
+export const meta = metaFn;
 
 export async function loader() {
   try {
-    const mdx = await readContent("terms-of-use.mdx");
-    const { content } = matter(mdx);
+    const { content } = matter(await readPage("terms-of-use.mdx"));
     return json(content);
   } catch (error) {
-    throw new Error("Failed to load terms of use content, please try again.");
+    throw error;
   }
 }
 

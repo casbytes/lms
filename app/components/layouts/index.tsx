@@ -1,34 +1,30 @@
 import { LuLayoutDashboard } from "react-icons/lu";
-import { GoProjectRoadmap } from "react-icons/go";
-import {
-  FaRegCalendarCheck,
-  FaRegCircleUser,
-  FaRegCreditCard,
-} from "react-icons/fa6";
+import { FaRegCircleUser, FaRegCreditCard, FaUsers } from "react-icons/fa6";
+import { MdOutlineArticle, MdOutlineDirections } from "react-icons/md";
 export { RootLayout } from "./root-layout";
+
+const ARTICLE_URL = "https://articles.casbytes.com";
 
 export const unAuthMenuItems = [
   { label: "courses", href: "courses" },
   { label: "FAQs", href: "faqs" },
-  { label: "blog", href: "blog.casbytes.com" },
+  {
+    label: "articles",
+    href: ARTICLE_URL,
+    target: "_blank",
+  },
 ];
 
-export const authMenuItems = [
+export const userMenuItems = [
   {
     icon: <LuLayoutDashboard size={30} />,
     label: "dashboard",
     href: "dashboard",
   },
   {
-    icon: <GoProjectRoadmap size={30} />,
+    icon: <MdOutlineDirections size={30} />,
     label: "onboarding",
     href: "onboarding",
-  },
-
-  {
-    icon: <FaRegCalendarCheck size={30} />,
-    label: "events",
-    href: "events",
   },
   {
     icon: <FaRegCreditCard size={30} />,
@@ -36,8 +32,38 @@ export const authMenuItems = [
     href: "subscription",
   },
   {
+    icon: <MdOutlineArticle size={30} />,
+    label: "articles",
+    href: ARTICLE_URL,
+    target: "_blank",
+  },
+  {
     icon: <FaRegCircleUser size={30} />,
     label: "profile",
     href: "profile",
+  },
+];
+
+export const adminMenuItems = [
+  {
+    icon: <LuLayoutDashboard size={30} />,
+    label: "dashboard",
+    href: "a",
+  },
+  {
+    icon: <FaUsers size={30} />,
+    label: "users",
+    href: "a/users",
+  },
+  {
+    icon: <MdOutlineArticle size={30} />,
+    label: "articles",
+    href: ARTICLE_URL,
+    target: "_blank",
+  },
+  {
+    icon: <FaRegCircleUser size={30} />,
+    label: "profile",
+    href: "a/profile",
   },
 ];

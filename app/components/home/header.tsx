@@ -12,13 +12,18 @@ export function Header() {
         <div className="md:self-start">
           <Slide duration={300} damping={0.2} cascade triggerOnce>
             <h1 className="text-2xl md:text-3xl font-black max-w-md text-center md:text-left mb-4">
-              Unleash the Power of Success in
-              <span className="text-blue-700"> Software Engineering</span> with
+              Launch Your
+              <span className="text-blue-700"> Software Engineering</span>{" "}
+              Career with
               <span className="text-stone-600"> CASBytes</span>.
             </h1>
             <h2 className="text-xl my-12 font-black max-w-md text-center md:text-left">
-              Begin Your Transformational Odyssey: Explore CASBytes'
-              <span className="text-zinc-600"> Leading-Edge Curriculum.</span>
+              Unleash Your Developer Potential:{" "}
+              <span className="text-zinc-700">
+                Master Front-End, Back-End, Full-Stack and More
+              </span>{" "}
+              with CASBytes&apos;
+              <span className="text-zinc-700"> Cutting-Edge Curriculum.</span>
             </h2>
             <div className="flex flex-wrap justify-center md:justify-start gap-4 capitalize">
               <DialogTrigger asChild>

@@ -1,4 +1,4 @@
-import { LoaderFunctionArgs, json } from "@remix-run/node";
+import { LoaderFunctionArgs } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
 import { BackButton } from "~/components/back-button";
 import { Container } from "~/components/container";
@@ -6,27 +6,27 @@ import { PageTitle } from "~/components/page-title";
 import { Button } from "~/components/ui/button";
 import { Rules } from "./components/rules";
 import { getTest } from "./utils.server";
-import { TestStatus } from "~/constants/types";
+import { metaFn } from "~/utils/meta";
+import { TEST_STATUS } from "~/utils/helpers";
+
+export const meta = metaFn;
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const test = await getTest(request);
-  return json({ test });
+  return await getTest(request);
 }
 
 export default function TestIndexRoute() {
-  const { test } = useLoaderData<typeof loader>();
-  const moduleTest = test?.moduleProgressId ? true : false;
+  const test = useLoaderData<typeof loader>();
 
-  const defaultTitle = "Matters choke!";
-  const testTitle = test.title ?? defaultTitle;
-
+  const moduleTest = Boolean(test?.moduleId);
+  const testTitle = test.title;
   const moduleOrSubModuleTitle = moduleTest
-    ? test?.moduleProgress?.title
-    : test?.subModuleProgress?.title ?? defaultTitle;
+    ? test?.module?.title
+    : test?.subModule?.title;
 
   const moduleOrSubModuleUrl = moduleTest
-    ? `/courses/${test?.moduleProgress?.courseProgressId}?moduleId=${test?.moduleProgressId}`
-    : `/sub-modules/${test?.subModuleProgressId}`;
+    ? `/courses/${test?.module?.courseId}?moduleId=${test?.moduleId}`
+    : `/sub-modules/${test?.subModuleId}`;
 
   return (
     <Container className="max-w-6xl bg-header-2 bg-no-repeat min-h-screen relative">
@@ -34,12 +34,14 @@ export default function TestIndexRoute() {
         <BackButton
           to={moduleOrSubModuleUrl}
           buttonText={moduleOrSubModuleTitle}
+          className="-mt-2 -mb-1"
         />
         <PageTitle title={`Test Your Knowledge: ${moduleOrSubModuleTitle}`} />
         <div className="flex flex-col md:flex-row gap-2 mt-4 items-center">
-          <div className="flex flex-col gap-6 z-20">
-            <p className="text-xl text-zinc-700">
-              Welcome to the {testTitle}! <br />
+          <div className="flex flex-col gap-2 z-20">
+            <p className="text-lg text-zinc-700">
+              Welcome to the <span className="text-sky-700">{testTitle}!</span>{" "}
+              <br />
               This test is designed to assess your understanding of{" "}
               {moduleOrSubModuleTitle}.
             </p>
@@ -56,15 +58,15 @@ export default function TestIndexRoute() {
           </div>
         </div>
         <Button
-          // disabled={test.status === TestStatus.LOCKED}
+          // disabled={test.status === TEST_STATUS.LOCKED}
           className="mt-4 w-full text-lg"
           size="lg"
         >
           <Link
             to={`/test/${test.id}?${
-              test?.moduleProgressId
-                ? `moduleId=${test.moduleProgressId}`
-                : `submoduleId=${test.subModuleProgressId}`
+              test?.moduleId
+                ? `moduleId=${test.moduleId}`
+                : `submoduleId=${test.subModuleId}`
             }`}
             className="w-full"
           >

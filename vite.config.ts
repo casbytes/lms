@@ -1,23 +1,28 @@
 import { vitePlugin as remix } from "@remix-run/dev";
-import { sentryVitePlugin } from "@sentry/vite-plugin";
 import { installGlobals } from "@remix-run/node";
-import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
+import { defineConfig } from "vite";
 
 installGlobals();
 
+const MODE = process.env.NODE_ENV;
+
 export default defineConfig({
+  build: {
+    cssMinify: MODE === "production",
+    rollupOptions: {
+      external: [/node:.*/, "stream", "crypto", "fsevents"],
+    },
+  },
   server: {
-    port: Number(process.env.PORT),
+    watch: {
+      ignored: ["**/playwright-report/**"],
+    },
   },
   plugins: [
     remix({
       ignoredRouteFiles: ["**/*.css"],
     }),
     tsconfigPaths(),
-    sentryVitePlugin({
-      org: "christopher-a-sesugh",
-      project: "casbytes",
-    }),
   ],
 });

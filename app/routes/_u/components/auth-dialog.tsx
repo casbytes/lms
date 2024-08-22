@@ -5,13 +5,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
-import { GoogleSignIn } from "./google-signin";
-import { GitHubSignIn } from "./github-signin";
 import { Link } from "@remix-run/react";
+import { AuthForm } from "./auth-form";
 
-export function AuthDialog({ ...props }) {
+export function AuthDialog() {
   return (
-    <DialogContent className="max-w-sm bg-sky-600/40 gap-6">
+    <DialogContent className="max-w-md bg-sky-600/40 gap-4">
       <DialogHeader>
         <img
           src="https://cdn.casbytes.com/assets/logo.png"
@@ -20,29 +19,30 @@ export function AuthDialog({ ...props }) {
           className="w-40 h-8 mx-auto mb-6"
           alt="CASBytes"
         />
-        <DialogTitle className="mx-auto text-xl mb-4">Sign in with</DialogTitle>
+        <DialogTitle className="mx-auto text-xl mb-4">Sign in</DialogTitle>
       </DialogHeader>
 
-      {/**
-       * Google signin
-       */}
-      <GoogleSignIn />
-
-      {/**
-       * Github signin
-       */}
-      <GitHubSignIn />
+      <AuthForm provider="magic-link" label="Email a magic link" />
+      <p className="text-sm text-center max-w-xs mx-auto mt-4 text-slate-800">
+        To sign in to your account or to create a new one fill in your email
+        above and we&apos;ll send you an email with a magic link to get you
+        started.
+      </p>
       <DialogFooter>
-        <p className="text-sm text-center mx-auto">
+        <p className="text-sm text-center mx-auto mt-6">
           By signing in, you agree to our {""}
           <DialogClose asChild>
-            <Link to="terms-of-use" className="text-blue-700">
+            <Link prefetch="intent" to="terms-of-use" className="text-blue-700">
               Terms of use
             </Link>
           </DialogClose>{" "}
           and{" "}
           <DialogClose asChild>
-            <Link to="privacy-policy" className="text-blue-700">
+            <Link
+              prefetch="intent"
+              to="privacy-policy"
+              className="text-blue-700"
+            >
               Privacy policy
             </Link>
           </DialogClose>{" "}

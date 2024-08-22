@@ -1,5 +1,5 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
-import { prisma } from "~/libs/prisma.server";
+import { prisma } from "~/utils/db.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const host =
@@ -18,6 +18,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     ]);
     return new Response("OK");
   } catch (error: unknown) {
+    // eslint-disable-next-line no-console
     console.error(request.url, "healthcheck ❌", { error });
     return new Response("ERROR", { status: 500 });
   }
