@@ -1,2 +1,2 @@
 export { useLocalStorageState } from "./use-local-storage-state";
-export { useWindowSize } from "./use-window-size";
+export { useLearningTimer } from "./use-learning-timer";

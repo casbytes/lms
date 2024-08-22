@@ -4,15 +4,17 @@ import { useLoaderData } from "@remix-run/react";
 import { Container } from "~/components/container";
 import { Markdown } from "~/components/markdown";
 import { PageTitle } from "~/components/page-title";
-import { readContent } from "~/utils/read-mdx-content.server";
+import { readPage } from "~/utils/helpers.server";
+import { metaFn } from "~/utils/meta";
+
+export const meta = metaFn;
 
 export async function loader() {
   try {
-    const mdx = await readContent("privacy-policy.mdx");
-    const { content } = matter(mdx);
+    const { content } = matter(await readPage("privacy-policy.mdx"));
     return json(content);
   } catch (error) {
-    throw new Error("Failed to load privacy policy content, please try again.");
+    throw error;
   }
 }
 

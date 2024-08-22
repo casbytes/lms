@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { Link } from "@remix-run/react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
 import { FiLogOut } from "react-icons/fi";
@@ -12,7 +13,7 @@ export function SideBarContent({ ...props }) {
   return (
     <>
       <div className="flex-col flex h-32 justify-between items-center gap-4 p-4 bg-gray-300">
-        <Link to="/dashboard">
+        <Link prefetch="intent" to="/dashboard">
           <img
             src={`https://cdn.casbytes.com/assets/${
               isOpen ? "logo.png" : "icon.png"

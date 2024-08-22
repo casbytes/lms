@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { cn } from "~/libs/shadcn";
 import { useSideBar } from "./side-bar-context";
 

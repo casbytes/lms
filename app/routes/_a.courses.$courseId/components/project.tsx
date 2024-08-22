@@ -1,32 +1,31 @@
 import { Link } from "@remix-run/react";
+import type { Project, User } from "~/utils/db.server";
 import { BsLockFill, BsUnlockFill } from "react-icons/bs";
 import { FaProjectDiagram } from "react-icons/fa";
 import { LuCircleDotDashed } from "react-icons/lu";
-import { SlLock } from "react-icons/sl";
 import { Button } from "~/components/ui/button";
-import { IProject, Status } from "~/constants/types";
 import { cn } from "~/libs/shadcn";
-import { capitalizeFirstLetter } from "~/utils/cs";
+import { capitalizeFirstLetter, STATUS } from "~/utils/helpers";
 
 type ProjectProps = {
-  project: IProject | null | undefined;
+  user: User;
+  project: Project;
 };
 
-export function Project({ project }: ProjectProps) {
-  const index = 2;
-
-  const completed = project?.status === Status.COMPLETED;
-  const inProgress = project?.status === Status.IN_PROGRESS;
-  const locked = project?.status === Status.LOCKED;
+export function Project({ project, user }: ProjectProps) {
+  const IS_SUBSCRIBED = user.subscribed;
+  const COMPLETED = project?.status === STATUS.COMPLETED;
+  const IN_PROGRESS = project?.status === STATUS.IN_PROGRESS;
+  const LOCKED = project?.status === STATUS.LOCKED || !IS_SUBSCRIBED;
   return (
     <div className="w-full">
       <Button
-        // disabled={locked}
-        aria-label={project?.title}
+        // disabled={LOCKED}
+        aria-label={project.title}
         className={cn(
           "overflow-x-auto flex border-l-8 border-b-2 text-zinc-700 border-zinc-500 bg-zinc-200 hover:bg-zinc-300 justify-between w-full text-lg",
           {
-            "border-sky-600": completed,
+            "border-sky-600": COMPLETED,
           }
         )}
       >
@@ -35,24 +34,24 @@ export function Project({ project }: ProjectProps) {
           className="flex gap-4 items-center"
         >
           <div className="sr-only">project status</div>
-          {locked ? (
+          {LOCKED ? (
             <FaProjectDiagram size={20} />
-          ) : inProgress ? (
+          ) : IN_PROGRESS ? (
             <LuCircleDotDashed size={20} />
           ) : (
             <FaProjectDiagram
               className={cn("text-zinc-600", {
-                "text-sky-700": completed,
+                "text-sky-700": COMPLETED,
               })}
               size={20}
             />
           )}
           <div className="flex items-center gap-4">
-            {project?.title ? capitalizeFirstLetter(project.title) : null}{" "}
+            {capitalizeFirstLetter(project.title)}{" "}
           </div>{" "}
         </Link>
 
-        {index >= 2 ? (
+        {!IS_SUBSCRIBED ? (
           <BsLockFill className="text-zinc-500 absolute sm:static right-8" />
         ) : (
           <BsUnlockFill className="text-zinc-500 absolute sm:static right-8" />

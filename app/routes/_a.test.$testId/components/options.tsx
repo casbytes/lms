@@ -11,18 +11,13 @@ type OptionsProps = {
   currentQuestionIndex: number;
 };
 
-export function Options({
+function _Options({
   userAnswers,
   currentAnswer,
   currentQuestion,
   setUserAnswers,
   currentQuestionIndex,
 }: OptionsProps) {
-  /**
-   * Handles the change of an option in a question
-   * @param {Number} optionId
-   * @param {Boolean} checked
-   */
   function handleOptionChange(optionId: number, checked: boolean) {
     const newAnswers = [...userAnswers];
     newAnswers[currentQuestionIndex] = checked
@@ -43,10 +38,11 @@ export function Options({
           key={`option-${option.id}-${index}`}
           className="flex flex-col p-2 items-start justify-start"
         >
-          <label className="flex gap-4 items-start">
+          <label className="flex gap-4 items-start w-full">
             <span className="mt-4">{indexToLetter(index)}.</span>
             <input
               type="checkbox"
+              id={`option-${option.id}`}
               checked={currentAnswer.includes(option.id)}
               onChange={(e) => handleOptionChange(option.id, e.target.checked)}
               className="mt-[1.35rem]"
@@ -61,3 +57,5 @@ export function Options({
     </ul>
   );
 }
+
+export const Options = React.memo(_Options);

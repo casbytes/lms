@@ -11,11 +11,11 @@ import {
   DialogHeader,
 } from "~/components/ui/dialog";
 
-export function AccountDeleteDialog({ user }: any) {
+export function AccountDeleteDialog() {
   const navigation = useNavigation();
   const isLoading = navigation.formData?.get("intent") === "deleteAccount";
   return (
-    <DialogContent className="bg-red-100">
+    <DialogContent>
       <DialogHeader>
         <DialogTitle className="text-xl">
           Are you sure you want to delete your account?
@@ -37,8 +37,7 @@ export function AccountDeleteDialog({ user }: any) {
             <Button variant="secondary">Cancel</Button>
           </DialogClose>
           <Form method="post">
-            <input type="hidden" name="intent" value="deleteAccount" required />
-            <input type="hidden" name="userId" value={user.userId} required />
+            <input type="hidden" name="intent" value="deleteAccount" />
             <Button type="submit" variant="destructive">
               {isLoading ? (
                 <CgSpinnerTwo className="mr-4  animate-spin" />
