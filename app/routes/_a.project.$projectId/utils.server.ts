@@ -45,8 +45,8 @@ export async function getProject(request: Request, params: Params<string>) {
   const repo = "meta";
   const path = `course-projects/${project.course.slug}.mdx`;
   const { content: mdx } = await getContentFromGithub({ repo, path });
-  const { data, content } = matter(mdx);
 
+  const { data, content } = matter(mdx);
   cache.set<MDX>(cacheKey, { data, content });
   return { project, projectContent: { data, content } };
 }
@@ -164,21 +164,13 @@ async function updateProjectStatus({
   const completed = passedLint && passedTest && passedCheckpoint;
 
   try {
-    const [project] = await Promise.all([
-      prisma.project.update({
-        where: { id: projectId, contributors: { some: { id: userId } } },
-        data: {
-          status: completed ? STATUS.COMPLETED : STATUS.IN_PROGRESS,
-          score: projectScore,
-        },
-      }),
-      // prisma.course.update({
-      //   where: { id: projectId },
-      //   data: {
-      //     status: completed ? STATUS.COMPLETED : STATUS.IN_PROGRESS,
-      //   },
-      // })
-    ]);
+    const project = await prisma.project.update({
+      where: { id: projectId, contributors: { some: { id: userId } } },
+      data: {
+        score: Math.round(projectScore * 0.3),
+        ...(completed && { status: STATUS.COMPLETED }),
+      },
+    });
     return project;
   } catch (error) {
     throw error;
@@ -191,11 +183,17 @@ async function updateProjectStatus({
  * @returns {Promise<Course>}
  */
 async function updateCourseStatus(project: Project) {
+  const courseScore = await prisma.course.findFirstOrThrow({
+    where: { id: project.courseId },
+    select: { score: true },
+  });
+  const newScore = courseScore.score + project.score;
   try {
     return await prisma.course.update({
       where: { id: project.courseId },
       data: {
         status: STATUS.COMPLETED,
+        score: newScore,
       },
     });
   } catch (error) {

@@ -58,7 +58,7 @@ export default function TestIndexRoute() {
           </div>
         </div>
         <Button
-          disabled={test.status === TEST_STATUS.LOCKED}
+          // disabled={test.status === TEST_STATUS.LOCKED}
           className="mt-4 w-full text-lg"
           size="lg"
         >

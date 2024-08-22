@@ -1,7 +1,8 @@
 import { z } from "zod";
+import { getVideoSource } from "./helpers.server";
 
 export const schema = z.object({
-  NODE_ENV: z.enum(["development", "production", "test"]),
+  NODE_ENV: z.enum(["development", "production", "test"] as const),
   COOKIE_DOMAIN: z.string(),
   SECRET: z.string(),
   BASE_URL: z.string(),
@@ -41,6 +42,7 @@ export function getEnv() {
   return {
     MODE: process.env.NODE_ENV,
     CDN_URL: process.env.CDN_URL,
+    VIDEO_SOURCE_URL: getVideoSource(),
   };
 }
 

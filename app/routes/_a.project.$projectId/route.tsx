@@ -7,21 +7,20 @@ import { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { Markdown } from "~/components/markdown";
 import { IFrame } from "~/components/iframe";
 import { getUser } from "~/utils/session.server";
-import { getVideoSource } from "~/utils/helpers.server";
 import { metaFn } from "~/utils/meta";
 import { CheckpointResponse } from "~/components/checkpoint-response";
 
 export const meta = metaFn;
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const videoSource = getVideoSource();
   try {
     const [user, projectItems] = await Promise.all([
       getUser(request),
       getProject(request, params),
     ]);
     const { project, projectContent } = projectItems;
-    return json({ project, projectContent, videoSource, user });
+
+    return json({ project, projectContent, user });
   } catch (error) {
     throw error;
   }
@@ -36,8 +35,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function ProjectRoute() {
-  const { project, projectContent, videoSource } =
-    useLoaderData<typeof loader>();
+  const { project, projectContent } = useLoaderData<typeof loader>();
   const response = useActionData<typeof action>();
 
   const projectTitle = project.title;
@@ -52,7 +50,7 @@ export default function ProjectRoute() {
       <>
         <Markdown source={projectContent.content} />
         {projectContent?.data?.videoId ? (
-          <IFrame src={videoSource} videoId={projectContent.data.videoId} />
+          <IFrame videoId={projectContent.data.videoId} />
         ) : null}
       </>
       <CheckpointResponse item={project} response={response ?? null} />

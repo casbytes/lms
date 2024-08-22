@@ -67,7 +67,8 @@ function Modules({ userModules }: ModulesProps) {
                 className="flex justify-between items-center text-sm"
               >
                 {index + 1}. {capitalizeFirstLetter(module.title)}
-                <div>
+                <div className="flex items-center gap-2">
+                  <span className=" text-sky-600"> {module.score}%</span>{" "}
                   <Button
                     size="sm"
                     variant={"ghost"}

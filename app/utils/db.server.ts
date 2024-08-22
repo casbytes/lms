@@ -14,6 +14,7 @@ import {
   Checkpoint,
   Test as ITest,
   Project,
+  Article as IArticle,
 } from "@prisma/client";
 
 type User = Omit<PUser, "createdAt" | "updatedAt"> & {
@@ -23,6 +24,11 @@ type User = Omit<PUser, "createdAt" | "updatedAt"> & {
 
 type Test = Omit<ITest, "nextAttemptAt"> & {
   nextAttemptAt: Date | string | null;
+};
+
+type Article = Omit<IArticle, "createdAt" | "updatedAt"> & {
+  createdAt: Date | string;
+  updatedAt: Date | string;
 };
 
 type MDX = {
@@ -43,6 +49,7 @@ export type {
   Checkpoint,
   Test,
   Project,
+  Article,
   MDX,
 };
 

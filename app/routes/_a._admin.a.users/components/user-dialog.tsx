@@ -1,5 +1,4 @@
-import React from "react";
-import { Form } from "@remix-run/react";
+import { useFetcher } from "@remix-run/react";
 import { FaEllipsisVertical } from "react-icons/fa6";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -25,16 +24,41 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { User } from "~/utils/db.server";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "~/components/ui/alert-dialog";
+import { CgSpinnerTwo } from "react-icons/cg";
+
+export enum INTENT {
+  UPDATE_USER = "UPDATE_USER",
+  DELETE_USER = "DELETE_USER",
+}
 
 export function UserDialog({ user }: { user: User }) {
-  const formRef = React.useRef<HTMLFormElement>(null);
+  const f = useFetcher();
+  const isUpdating = f.formData?.get("intent") === INTENT.UPDATE_USER;
+  const isDeleting = f.formData?.get("intent") === INTENT.DELETE_USER;
+  const isUserSubscribed = user.subscribed ? "premium" : "free";
+
   return (
     <Dialog>
       <DialogTrigger>
-        <FaEllipsisVertical size={25} />
+        {isDeleting ? (
+          <CgSpinnerTwo size={25} />
+        ) : (
+          <FaEllipsisVertical size={25} />
+        )}
       </DialogTrigger>
       <DialogContent>
-        <Form method="post" ref={formRef} className="flex flex-col gap-4">
+        <f.Form method="post" className="flex flex-col gap-4">
+          <input type="hidden" name="userId" value={user.id} />
           <DialogHeader>
             <DialogTitle>{user.name}</DialogTitle>
             <DialogDescription>
@@ -47,6 +71,13 @@ export function UserDialog({ user }: { user: User }) {
             id="name"
             placeholder="Name"
             defaultValue={user.name!}
+          />
+          <Input
+            type="text"
+            name="githubUsername"
+            id="githubUsername"
+            placeholder="Github Username"
+            defaultValue={user?.githubUsername ?? ""}
           />
           <Input
             type="email"
@@ -64,7 +95,7 @@ export function UserDialog({ user }: { user: User }) {
               <SelectContent id="role">
                 <SelectGroup>
                   <SelectLabel>Select role</SelectLabel>
-                  {["USER", "ADMIN", "MODERATOR", "MENTOR"].map((role) => (
+                  {["USER", "ADMIN"].map((role) => (
                     <SelectItem key={role} value={role}>
                       {role}
                     </SelectItem>
@@ -73,29 +104,82 @@ export function UserDialog({ user }: { user: User }) {
               </SelectContent>
             </Select>
           </div>
+          <div>
+            <Label htmlFor="membership">Membership:</Label>
+            <Select defaultValue={isUserSubscribed} name="membership">
+              <SelectTrigger>
+                <SelectValue placeholder={isUserSubscribed} />
+              </SelectTrigger>
+              <SelectContent id="membership">
+                <SelectGroup>
+                  <SelectLabel>Select membership</SelectLabel>
+                  {["free", "premium"].map((membership) => (
+                    <SelectItem key={membership} value={membership}>
+                      {membership}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+          <DeleteUserDialog user={user} />
           <DialogFooter>
             <Button variant="outline" asChild>
               <DialogClose>Close</DialogClose>
             </Button>
-            <Dialog>
-              <DialogTrigger>
-                <Button type="button">Update</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogTitle>
-                  Are you sure you want to update this user?
-                </DialogTitle>
-                <DialogFooter>
-                  <Button variant="outline" asChild>
-                    <DialogClose>No</DialogClose>
-                  </Button>
-                  <Button onClick={() => formRef.current?.submit()}>Yes</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            <Button
+              name="intent"
+              value={INTENT.UPDATE_USER}
+              type="submit"
+              disabled={isUpdating}
+            >
+              {isUpdating ? <CgSpinnerTwo size={25} /> : null}
+              Update user
+            </Button>
           </DialogFooter>
-        </Form>
+        </f.Form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function DeleteUserDialog({ user }: { user: User }) {
+  const f = useFetcher();
+  const isDeleting = f.formData?.get("intent") === INTENT.DELETE_USER;
+  return (
+    <AlertDialog>
+      <Button variant="destructive" asChild>
+        <AlertDialogTrigger className="uppercase">
+          delete user
+        </AlertDialogTrigger>
+      </Button>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            Are you sure you want to delete this user?
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            This action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <Button variant="outline" asChild>
+            <AlertDialogCancel>No</AlertDialogCancel>
+          </Button>
+          <Button
+            onClick={() =>
+              f.submit(
+                { userId: user.id, intent: INTENT.DELETE_USER },
+                { method: "post" }
+              )
+            }
+            disabled={isDeleting}
+            asChild
+          >
+            <AlertDialogCancel>Yes</AlertDialogCancel>
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

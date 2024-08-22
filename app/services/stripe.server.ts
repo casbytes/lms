@@ -29,6 +29,16 @@ export async function createStripeCustomer({
   });
 }
 
+export async function updateStripeCustomer({
+  stripeCustomerId,
+  data,
+}: {
+  stripeCustomerId: string;
+  data: Record<string, string>;
+}) {
+  return stripe.customers.update(stripeCustomerId, data);
+}
+
 /**
  * Delete a Stripe customer
  * @param {string} stripeCustomerId - Stripe customer ID
@@ -39,7 +49,7 @@ export async function deleteStripeCustomer({
 }: {
   stripeCustomerId: string;
 }) {
-  return await stripe.customers.del(stripeCustomerId);
+  return stripe.customers.del(stripeCustomerId);
 }
 
 /**
@@ -104,15 +114,15 @@ export async function createBillingPortalSession({
  * @param {string} customerId - Stripe customer ID
  * @returns {Promise<Stripe.Subscription>} - Stripe subscription
  */
-export async function retrieveSubscriptions({
+export async function listSubscriptions({
   customerId,
 }: {
-  customerId: string;
+  customerId?: string;
 }) {
   return await stripe.subscriptions.list({
-    customer: customerId,
     limit: 1,
     status: "active",
+    ...(customerId && { customer: customerId }),
   });
 }
 

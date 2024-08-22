@@ -1,7 +1,5 @@
-import React from "react";
 import { useInterval } from "use-interval";
 import { format, addSeconds } from "date-fns";
-import { TestAlert } from "./test-alert";
 import { Progress } from "~/components/ui/progress";
 import { Badge } from "~/components/ui/badge";
 import { cn } from "~/libs/shadcn";
@@ -22,8 +20,7 @@ export function TestHeader({
   currentQuestionIndex,
 }: TestHeaderProps) {
   const TIME_KEY = "testTime";
-  const timePerQuestion = 90; // 1.5 * 60 = 1/2 min.
-  const ALERT_TIMEOUT = 30000; // 30 secs.
+  const timePerQuestion = 60; // 6 secs0 = 1 min.
   const INTERVAL = 1000; // 1sec.
   const SUBMIT_TIME = 0;
   const WARNING_TIME = 180; // 3 minutes (3 * 60 = 180 seconds)
@@ -31,7 +28,6 @@ export function TestHeader({
 
   const totalTime = timePerQuestion * questionsLength;
   const [timeLeft, setTimeLeft] = useLocalStorageState(TIME_KEY, totalTime);
-  const [alert, setAlert] = useLocalStorageState("testAlert", true);
 
   function formatTime(seconds: number) {
     const time = addSeconds(new Date(SUBMIT_TIME), seconds);
@@ -52,16 +48,8 @@ export function TestHeader({
     });
   }, INTERVAL);
 
-  React.useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setAlert(false);
-    }, ALERT_TIMEOUT);
-    return () => window.clearTimeout(timer);
-  }, [setAlert]);
-
   return (
     <>
-      {alert ? <TestAlert /> : null}
       <div className="flex gap-6 items-center mb-2 mt-6 bg-stone-200 rounded-md p-2">
         <div>
           Time left:{" "}

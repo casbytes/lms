@@ -116,19 +116,14 @@ export async function getLessons(
       orderBy: { order: "asc" },
     });
 
-    const [, lessons] = await Promise.all([
-      /**
-       * Update the status of the first lesson to in progress if it is locked
-       */
-      updateFirstLessonStatus(userId, firstLesson),
-      prisma.lesson.findMany({
-        where: {
-          subModuleId,
-          users: { some: { id: userId } },
-        },
-        orderBy: { order: "asc" },
-      }),
-    ]);
+    await updateFirstLessonStatus(userId, firstLesson);
+    const lessons = await prisma.lesson.findMany({
+      where: {
+        subModuleId,
+        users: { some: { id: userId } },
+      },
+      orderBy: { order: "asc" },
+    });
     return lessons;
   } catch (error) {
     throw error;
@@ -141,14 +136,13 @@ export async function getLessons(
  * @param {ILesson} lesson - Lesson
  * @returns {Promise<ILesson>} - Promise
  */
-//Updating in loader so we need to ensure it is the database primary instance
-if (MODE === "production") {
-  await ensurePrimary();
-}
 async function updateFirstLessonStatus(
   userId: string,
   lesson: { id: string; status: string }
 ): Promise<Lesson | void> {
+  if (MODE === "production") {
+    await ensurePrimary();
+  }
   if (lesson.status !== STATUS.LOCKED) {
     return;
   }

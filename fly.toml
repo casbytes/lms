@@ -1,16 +1,12 @@
-# fly.toml app configuration file generated for casbytes on 2024-08-14T15:00:46+01:00
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
 app = 'casbytes'
 primary_region = 'ams'
 kill_signal = 'SIGINT'
-kill_timeout = '10s'
+kill_timeout = '5s'
 swap_size_mb = 512
 
 [experimental]
-  auto_rollback = true
+  # auto_rollback = true
+  # enable_consul = true
 
 [build]
 
@@ -21,7 +17,7 @@ swap_size_mb = 512
 [http_service]
   internal_port = 3000
   force_https = true
-  auto_stop_machines = true
+  auto_stop_machines = 'stop'
   auto_start_machines = true
   min_machines_running = 0
   processes = ['app']
@@ -31,42 +27,40 @@ swap_size_mb = 512
   internal_port = 3000
   processes = ['app']
 
-[[services.ports]]
+  [[services.ports]]
     port = 80
     handlers = ['http']
     force_https = true
 
-[[services.ports]]
+  [[services.ports]]
     port = 443
     handlers = ['tls', 'http']
 
   [services.concurrency]
-    type = 'connections'
+    type = 'requests'
     hard_limit = 25
     soft_limit = 20
 
-[[services.tcp_checks]]
+  [[services.tcp_checks]]
     interval = '15s'
     timeout = '2s'
     grace_period = '1s'
 
-[[services.http_checks]]
-    interval = '10s'
-    timeout = '2s'
-    grace_period = '5s'
-    method = 'GET'
-    path = '/'
-    protocol = 'http'
-    tls_skip_verify = false
-
-[[services.http_checks]]
+  [[services.http_checks]]
     interval = '10s'
     timeout = '2s'
     grace_period = '5s'
     method = 'get'
-    path = '/healthcheck'
+    path = '/'
     protocol = 'http'
     tls_skip_verify = false
+
+  [[services.http_checks]]
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '10s'
+    method = 'GET'
+    path = '/healthcheck'
 
 [[vm]]
   memory = '1gb'

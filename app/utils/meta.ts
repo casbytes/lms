@@ -4,27 +4,6 @@ import { capitalizeFirstLetter } from "./helpers";
 export const metaFn: MetaFunction = ({ matches }) => {
   let pageTitle = "CASBytes";
 
-  // if (matches) {
-  //   matches.forEach((match) => {
-  //     if (match.id !== "root" && match.pathname !== "/") {
-  //       if (match.id.includes("Id") || match.id.includes("id")) {
-  //         pageTitle =
-  //           match.pathname.split("/")[1].replace(/-/g, " ") || "CASBytes";
-  //       } else if (match.id.includes("-")) {
-  //         pageTitle = `${match.pathname
-  //           .replace(/\//g, "")
-  //           .replace(/-/g, " ")} | CASBytes`;
-  //       } else if (match.id.includes("_admin")) {
-  //         pageTitle = `${(pageTitle =
-  //           match.pathname.split("/")[3])} | CASBytes`;
-  //       } else {
-  //         pageTitle = `${(pageTitle =
-  //           match.pathname.split("/")[1])} | CASBytes`;
-  //       }
-  //     }
-  //   });
-  // }
-
   if (matches) {
     matches.forEach((match) => {
       const pathParts = match.pathname.split("/");

@@ -223,11 +223,11 @@ export async function handleMagiclinkAuth({
   request,
   params,
 }: LoaderFunctionArgs) {
-  const session = await getUserSession(request);
   invariant(params.provider, "Invalid provider.");
+  const session = await getUserSession(request);
   const url = new URL(request.url);
   const token = url.searchParams.get("token");
-  invariant(token, "Invalid token.");
+  invariant(token, "Token is required.");
 
   try {
     const { email, authState } = JWT.verify(token, SECRET!) as {
@@ -248,7 +248,7 @@ export async function handleMagiclinkAuth({
     }
 
     if (!user.verified || !user.name) {
-      return redirect(`/verify-email?email=${encodeURIComponent(email)}`);
+      return redirect(`/update-profile?email=${encodeURIComponent(email)}`);
     } else {
       await prisma.user.update({
         where: { email },

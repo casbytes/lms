@@ -8,3 +8,11 @@ export const cache = remember(
   "cache",
   () => new NodeCache({ stdTTL, checkperiod })
 );
+
+export function getCacheKeys() {
+  return cache.keys();
+}
+
+export function getCacheStats() {
+  return cache.getStats();
+}

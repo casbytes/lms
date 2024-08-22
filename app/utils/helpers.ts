@@ -16,6 +16,18 @@ export function safeParseDate(dateString: Date | string): Date {
   return new Date(dateString);
 }
 
+/**
+ * Return the initials of a user's name
+ * @param username - current user's name
+ * @returns {String}
+ */
+export function getInitials(username: string) {
+  return username
+    .split(" ")
+    .map((n) => n[0])
+    .join("");
+}
+
 export enum ROLE {
   USER = "USER",
   ADMIN = "ADMIN",

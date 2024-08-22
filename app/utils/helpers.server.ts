@@ -130,6 +130,7 @@ export function readContent(folder: string) {
  * Get video source
  * @returns {string} - video source
  */
+
 export function getVideoSource() {
   const { IFRAME_URL: iframeUrl, VIDEO_LIBRARY_ID: libraryId } =
     process.env as Record<string, string>;
@@ -269,26 +270,27 @@ export async function updateModuleStatusAndFindNextModule({
   userId: string;
 }) {
   try {
-    await prisma.$transaction(async (prisma) => {
-      //Get the module
-      const module = await prisma.module.findUniqueOrThrow({
-        where: { id: moduleId, users: { some: { id: userId } } },
-        select: { id: true, order: true },
-      });
+    //Get the module
+    const module = await prisma.module.findUniqueOrThrow({
+      where: { id: moduleId, users: { some: { id: userId } } },
+      select: { id: true, order: true, courseId: true },
+    });
 
-      const user = await prisma.user.findUniqueOrThrow({
-        where: { id: userId },
-        select: { subscribed: true },
-      });
+    const user = await prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: { subscribed: true },
+    });
 
-      //Update the module status to COMPLETED
-      await prisma.module.update({
-        where: { id: module.id, users: { some: { id: userId } } },
-        data: { status: STATUS.COMPLETED },
-      });
+    //Update the module status to COMPLETED
+    await prisma.module.update({
+      where: { id: module.id, users: { some: { id: userId } } },
+      data: { status: STATUS.COMPLETED },
+    });
+    await updateCourse(module.courseId!, userId);
 
-      //Find the next module
-      if (user.subscribed) {
+    //Find the next module
+    if (user.subscribed) {
+      await prisma.$transaction(async (prisma) => {
         const nextModule = await prisma.module.findFirst({
           where: {
             order: { equals: module.order + 1 },
@@ -304,8 +306,8 @@ export async function updateModuleStatusAndFindNextModule({
         } else {
           await updateCourseProject(moduleId, userId);
         }
-      }
-    });
+      });
+    }
   } catch (error) {
     throw error;
   }
@@ -320,27 +322,26 @@ export async function updateSubmoduleStatusAndFindNextSubmodule({
 }) {
   try {
     // Fetch the submodule along with its parent module
-    await prisma.$transaction(async (prisma) => {
-      const [subModule, user] = await Promise.all([
-        prisma.subModule.findUniqueOrThrow({
-          where: { id: subModuleId, users: { some: { id: userId } } },
-          include: { module: true },
-        }),
-        prisma.user.findUniqueOrThrow({
-          where: { id: userId },
-          select: { subscribed: true },
-        }),
-      ]);
+    const [subModule, user] = await Promise.all([
+      prisma.subModule.findUniqueOrThrow({
+        where: { id: subModuleId, users: { some: { id: userId } } },
+        include: { module: true },
+      }),
+      prisma.user.findUniqueOrThrow({
+        where: { id: userId },
+        select: { subscribed: true },
+      }),
+    ]);
 
-      // Mark the current submodule as completed
-      await prisma.subModule.update({
-        where: { id: subModule.id, users: { some: { id: userId } } },
-        data: { status: STATUS.COMPLETED },
-      });
+    await prisma.subModule.update({
+      where: { id: subModule.id, users: { some: { id: userId } } },
+      data: { status: STATUS.COMPLETED },
+    });
+    await updateModule(subModule.moduleId, userId);
 
-      // Find the next submodule in the sequence
-
-      if (user.subscribed) {
+    // Find the next submodule in the sequence
+    if (user.subscribed) {
+      await prisma.$transaction(async (prisma) => {
         const nextSubmodule = await prisma.subModule.findFirst({
           where: {
             moduleId: subModule.module.id,
@@ -369,7 +370,81 @@ export async function updateSubmoduleStatusAndFindNextSubmodule({
             data: { status: TEST_STATUS.AVAILABLE },
           });
         }
-      }
+      });
+    }
+  } catch (error) {
+    throw error;
+  }
+}
+
+async function updateCourse(courseId: string, userId: string) {
+  try {
+    const [moduleScores, totalModules] = await Promise.all([
+      prisma.module.aggregate({
+        _sum: { score: true },
+        where: { courseId },
+      }),
+      prisma.module.count({ where: { courseId } }),
+    ]);
+
+    const totalScore =
+      totalModules > 0
+        ? Math.round((moduleScores._sum.score || 0) / totalModules)
+        : 0;
+
+    await prisma.course.update({
+      where: { id: courseId, users: { some: { id: userId } } },
+      data: { score: totalScore },
+    });
+  } catch (error) {
+    throw error;
+  }
+}
+
+/**
+ * Update the submodule score
+ * @param subModuleId - Submodule ID
+ * @param userId - User ID
+ */
+async function updateModule(moduleId: string, userId: string) {
+  try {
+    const [testAggregate, testCount, checkpointAggregate, checkpointCount] =
+      await Promise.all([
+        prisma.test.aggregate({
+          _sum: { score: true },
+          where: { moduleId },
+        }),
+        prisma.test.count({ where: { moduleId } }),
+
+        prisma.checkpoint.aggregate({
+          _sum: { score: true },
+          where: { moduleId },
+        }),
+        prisma.checkpoint.count({ where: { moduleId } }),
+      ]);
+
+    const totalTestsScore = testAggregate._sum.score || 0;
+    const totalCheckpointsScore = checkpointAggregate._sum.score || 0;
+    const totalItems = testCount + checkpointCount;
+
+    // Ensure scores are normalized (assuming scores are out of 100)
+    const normalizedTestScore = totalTestsScore / testCount || 0;
+    const normalizedCheckpointScore =
+      totalCheckpointsScore / checkpointCount || 0;
+
+    const denominator = testCount > 0 && checkpointCount > 0 ? 2 : 1;
+
+    // Calculate the average score and convert it to a percentage
+    const totalScore =
+      totalItems > 0
+        ? Math.round(
+            (normalizedTestScore + normalizedCheckpointScore) / denominator
+          )
+        : 0;
+
+    await prisma.module.update({
+      where: { id: moduleId, users: { some: { id: userId } } },
+      data: { score: totalScore },
     });
   } catch (error) {
     throw error;

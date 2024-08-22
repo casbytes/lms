@@ -1,9 +1,13 @@
+import invariant from "tiny-invariant";
 import { Prisma, prisma } from "~/utils/db.server";
-import { getUserId } from "~/utils/session.server";
+import { INTENT } from "./components/user-dialog";
+import {
+  deleteStripeCustomer,
+  updateStripeCustomer,
+} from "~/services/stripe.server";
 //#################
 //LOADER UTILS
 //################
-
 type SortType = Prisma.SortOrder | undefined;
 
 export async function getPageData(request: Request) {
@@ -33,6 +37,7 @@ export async function getPageData(request: Request) {
           { name: { contains: search.toLowerCase() } },
         ],
       },
+      // eslint-disable-next-line no-undefined
       orderBy: orderBy.length > 0 ? orderBy : undefined,
       skip: (page - 1) * pageSize,
       take: pageSize,
@@ -68,19 +73,65 @@ export async function countUsers() {
 //#################
 //ACTION UTILS
 //################
-export async function updateUser(request: Request) {
-  const userId = await getUserId(request);
-  const formData = await request.formData();
-  const name = formData.get("name") as string;
-  const email = formData.get("email") as string;
-  const role = formData.get("role") as string;
-  const userDetails = [name, role, email];
-  const user = await prisma.user.update({
-    where: { id: userId },
-    data: {
-      ...userDetails,
-    },
-  });
 
-  return null;
+export async function updateUser(request: Request) {
+  const { intent, userId, name, githubUsername, email, role, membership } =
+    await getFormData(request);
+  invariant(intent, "Intent is required.");
+  const user = await getUser(userId);
+  const subscribed = membership === "free" ? false : true;
+
+  switch (intent) {
+    case INTENT.DELETE_USER: {
+      try {
+        await Promise.all([
+          deleteStripeCustomer({
+            stripeCustomerId: user!.stripeCustomerId as string,
+          }),
+          prisma.user.delete({ where: { id: userId } }),
+        ]);
+        return null;
+      } catch (error) {
+        throw error;
+      }
+    }
+    case INTENT.UPDATE_USER: {
+      try {
+        const userData = { name, githubUsername, email, role, subscribed };
+        await Promise.all([
+          updateStripeCustomer({
+            stripeCustomerId: user!.stripeCustomerId as string,
+            data: { name, email },
+          }),
+          prisma.user.update({ where: { id: userId }, data: { ...userData } }),
+        ]);
+        return null;
+      } catch (error) {
+        throw error;
+      }
+    }
+
+    default:
+      throw new Error("Invalid intent.");
+  }
+}
+
+async function getUser(userId: string) {
+  return prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, stripeCustomerId: true },
+  });
+}
+
+async function getFormData(request: Request) {
+  const formData = await request.formData();
+  return {
+    intent: formData.get("intent") as string,
+    userId: formData.get("userId") as string,
+    name: formData.get("name") as string,
+    githubUsername: formData.get("githubUsername") as string,
+    email: formData.get("email") as string,
+    role: formData.get("role") as string,
+    membership: formData.get("membership") as string,
+  };
 }

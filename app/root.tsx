@@ -4,12 +4,14 @@ import {
   Meta,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
   useRouteError,
 } from "@remix-run/react";
 import { RootLayout } from "./components/layouts";
 import dark from "highlight.js/styles/night-owl.css?url";
 import stylesheet from "./tailwind.css?url";
 import { RootErrorUI } from "./components/root-error-ui";
+import { getEnv } from "./utils/env.server";
 
 export const links = () => {
   return [
@@ -30,10 +32,15 @@ export const links = () => {
     },
     { rel: "stylesheet", href: stylesheet },
     { rel: "stylesheet", href: dark },
-  ];
+  ].filter(Boolean);
 };
 
+export function loader() {
+  return { ENV: getEnv() };
+}
+
 export function Layout({ children }: { children: React.ReactNode }) {
+  const data = useLoaderData<typeof loader>();
   return (
     <html lang="en">
       <head>
@@ -44,6 +51,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.ENV = ${JSON.stringify(data.ENV)}`,
+          }}
+        />
         <ScrollRestoration />
         <Scripts />
       </body>

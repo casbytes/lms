@@ -1,13 +1,18 @@
 import { LuLayoutDashboard } from "react-icons/lu";
-import { GoProjectRoadmap } from "react-icons/go";
 import { FaRegCircleUser, FaRegCreditCard, FaUsers } from "react-icons/fa6";
-import { FaTasks } from "react-icons/fa";
+import { MdOutlineArticle, MdOutlineDirections } from "react-icons/md";
 export { RootLayout } from "./root-layout";
+
+const ARTICLE_URL = "https://articles.casbytes.com";
 
 export const unAuthMenuItems = [
   { label: "courses", href: "courses" },
   { label: "FAQs", href: "faqs" },
-  { label: "blog", href: "https://blog.casbytes.com", target: "_blank" },
+  {
+    label: "articles",
+    href: ARTICLE_URL,
+    target: "_blank",
+  },
 ];
 
 export const userMenuItems = [
@@ -17,7 +22,7 @@ export const userMenuItems = [
     href: "dashboard",
   },
   {
-    icon: <GoProjectRoadmap size={30} />,
+    icon: <MdOutlineDirections size={30} />,
     label: "onboarding",
     href: "onboarding",
   },
@@ -25,6 +30,12 @@ export const userMenuItems = [
     icon: <FaRegCreditCard size={30} />,
     label: "subscription",
     href: "subscription",
+  },
+  {
+    icon: <MdOutlineArticle size={30} />,
+    label: "articles",
+    href: ARTICLE_URL,
+    target: "_blank",
   },
   {
     icon: <FaRegCircleUser size={30} />,
@@ -40,14 +51,15 @@ export const adminMenuItems = [
     href: "a",
   },
   {
-    icon: <FaTasks size={30} />,
-    label: "tasks",
-    href: "a/tasks",
-  },
-  {
     icon: <FaUsers size={30} />,
     label: "users",
     href: "a/users",
+  },
+  {
+    icon: <MdOutlineArticle size={30} />,
+    label: "articles",
+    href: ARTICLE_URL,
+    target: "_blank",
   },
   {
     icon: <FaRegCircleUser size={30} />,

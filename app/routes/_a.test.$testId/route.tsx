@@ -82,7 +82,7 @@ export default function TestRoute() {
       (newScores.reduce<number>((acc, score) => acc + score, 0) /
         testQuestions.length) *
       100;
-    setScore(Number(calculatedTotalScore.toFixed(0)));
+    setScore(Number(Math.round(calculatedTotalScore)));
   }, [userAnswers, testQuestions, setScore]);
 
   const handleSubmit = React.useCallback(() => {

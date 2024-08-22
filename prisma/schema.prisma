@@ -16,7 +16,7 @@ model User {
   email               String         @unique
   role                String         @default("USER") //USER, ADMIN, 
   stripeCustomerId    String?        @unique
-  githubUsername      String?        @unique
+  githubUsername      String?
   subscribed          Boolean        @default(false)
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
@@ -73,13 +73,14 @@ model Module {
   badges     Badge[]
   test       Test?
   checkpoint Checkpoint?
+
+  @@index([courseId], name: "courseId")
 }
 
 model SubModule {
   id         String      @id @default(uuid())
   title      String
   slug       String
-  score      Int         @default(0)
   status     String      @default("LOCKED") //LOCKED, IN_PROGRESS, COMPLETED
   order      Int
   moduleId   String
@@ -101,6 +102,8 @@ model Lesson {
   order       Int
   users       User[]
   subModule   SubModule @relation(fields: [subModuleId], references: [id], onDelete: Cascade)
+
+  @@index([subModuleId], name: "subModuleId")
 }
 
 model Badge {

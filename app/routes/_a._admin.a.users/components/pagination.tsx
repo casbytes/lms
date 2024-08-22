@@ -41,7 +41,7 @@ export function Pagination({ pageData }: UserTableProps) {
       </div>
       <ToggleGroup type="multiple" className="border-2 rounded-md">
         <ToggleGroupItem
-          value="back"
+          value="previous"
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
         >
@@ -66,7 +66,7 @@ export function Pagination({ pageData }: UserTableProps) {
           </SelectContent>
         </Select>
         <ToggleGroupItem
-          value="forward"
+          value="next"
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
         >

@@ -40,7 +40,6 @@ export function ConfirmationDialog({
   const isSubscribed = user?.subscribed;
   const notSubscribed = !inCatalog && !isSubscribed && item.type === "module";
   const isSubmitting = n.formData?.get("intent") === "addGithubCourseToCatalog";
-  console.log(isSubscribed, notSubscribed, isSubmitting);
 
   return (
     <Dialog>

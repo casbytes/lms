@@ -9,7 +9,7 @@ export function ContentPendingUI({ className }: CPUProps) {
   return (
     <div
       className={cn(
-        "w-full h-auto md:h-[calc(100vh-20rem)] flex items-center justify-center rounded-md bg-black/30 bg-opacity-80 animate-pulse",
+        "w-full h-auto md:h-[calc(100vh-20rem)] flex items-center justify-center rounded-md bg-gray-900 bg-opacity-75 animate-pulse",
         className
       )}
     >
