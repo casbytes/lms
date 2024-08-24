@@ -9,8 +9,8 @@ import { MdOutlineCreditCardOff } from "react-icons/md";
 
 type SubscriptionProps = {
   user: User;
-  plans: Stripe.Response<Stripe.ApiList<Stripe.Price>>;
-  subs: Stripe.Response<Stripe.ApiList<Stripe.Subscription>>;
+  plans: Stripe.Price[];
+  subs: Stripe.Subscription[];
 };
 
 export function Subscription({ plans, user, subs }: SubscriptionProps) {
@@ -60,7 +60,7 @@ export function Subscription({ plans, user, subs }: SubscriptionProps) {
       ) : null}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
-        {plans.data.map((plan) => (
+        {plans.map((plan) => (
           <SubscriptionCard plan={plan} user={user} subs={subs} key={plan.id} />
         ))}
       </div>

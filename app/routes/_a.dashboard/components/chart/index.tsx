@@ -11,6 +11,7 @@ import {
 } from "~/components/ui/chart";
 import { ChartFilter } from "./chart-filter";
 import { PendingCard } from "../pending-card";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 
 type ChartProps = {
   timeData: Promise<{ date: string; hours: number }[]>;
@@ -26,52 +27,58 @@ const chartConfig = {
 export function Chart({ timeData }: ChartProps) {
   const MemoizedChart = React.useMemo(
     () => (
-      <div className="flex flex-col border border-sky-500 rounded-md p-2 shadow-lg">
-        <div className="flex justify-between items-centerp mx-4 mb-2">
-          <ChartFilter />
-          <span className="text-sky-600">Learning time</span>
-        </div>
+      <Card className="border-sky-500 shadow-lg">
+        <CardHeader className="py-4">
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-sky-600 font-mono">
+              Learning time
+            </CardTitle>
+            <ChartFilter />
+          </div>
+        </CardHeader>
         <React.Suspense fallback={<PendingCard />}>
           <Await resolve={timeData}>
             {(timeData) => (
-              <ChartContainer
-                config={chartConfig}
-                className="-ml-8 min-h-48 max-h-48 h-48 w-full"
-              >
-                <AreaChart
-                  accessibilityLayer
-                  data={timeData}
-                  margin={{
-                    left: 12,
-                    right: 12,
-                  }}
+              <CardContent>
+                <ChartContainer
+                  config={chartConfig}
+                  className="-ml-8 min-h-44 max-h-44 h-44 w-full"
                 >
-                  <CartesianGrid vertical={false} />
-                  <XAxis
-                    dataKey="date"
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                  />
-                  <ChartTooltip
-                    cursor={false}
-                    content={<ChartTooltipContent indicator="line" />}
-                  />
-                  <YAxis />
-                  <ChartLegend content={<ChartLegendContent />} />
-                  <Area
-                    dataKey="hours"
-                    type="natural"
-                    fill="#0ea5e9"
-                    fillOpacity={0.4}
-                    stroke="#0284c7"
-                  />
-                </AreaChart>
-              </ChartContainer>
+                  <AreaChart
+                    accessibilityLayer
+                    data={timeData}
+                    margin={{
+                      left: 12,
+                      right: 12,
+                    }}
+                  >
+                    <CartesianGrid vertical={false} />
+                    <XAxis
+                      dataKey="date"
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={8}
+                    />
+                    <ChartTooltip
+                      cursor={false}
+                      content={<ChartTooltipContent indicator="line" />}
+                    />
+                    <YAxis />
+                    <ChartLegend content={<ChartLegendContent />} />
+                    <Area
+                      dataKey="hours"
+                      type="natural"
+                      fill="#0ea5e9"
+                      fillOpacity={0.4}
+                      stroke="#0284c7"
+                    />
+                  </AreaChart>
+                </ChartContainer>
+              </CardContent>
             )}
           </Await>
         </React.Suspense>
-      </div>
+      </Card>
     ),
     [timeData]
   );
