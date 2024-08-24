@@ -1,12 +1,14 @@
 import React from "react";
 import { Await } from "@remix-run/react";
 import { Table, TableBody, TableCell, TableRow } from "~/components/ui/table";
-import { type GithubCourse } from "../utils.server";
 import { Course } from "./course";
 import { PendingCard } from "./pending-card";
+import type { MetaCourse } from "~/services/sanity/types";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Separator } from "~/components/ui/separator";
 
 type CoursesProps = {
-  courseData: Promise<{ courses: GithubCourse[]; inCatalog: boolean }>;
+  courseData: Promise<{ courses: MetaCourse[]; inCatalog: boolean }>;
 };
 
 export function Courses({ courseData }: CoursesProps) {
@@ -16,26 +18,31 @@ export function Courses({ courseData }: CoursesProps) {
         {(courseData) => {
           const { inCatalog, courses } = courseData;
           return (
-            <div className="rounded-md bg-slate-300/30 p-2 flex flex-col items-center h-full shadow-lg">
-              <h2 className="text-lg font-bold">Courses</h2>
-              <Table>
-                <TableBody className="text-slate-600 font-black">
-                  {courses && courses?.length ? (
-                    courses.map((course, index) => (
-                      <Course
-                        course={course}
-                        inCatalog={inCatalog}
-                        key={`${course.id}-${index}`}
-                      />
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={2}>No courses available</TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+            <Card className="shadow-lg">
+              <CardHeader className="py-4">
+                <CardTitle className="font-mono">Courses</CardTitle>
+              </CardHeader>
+              <Separator />
+              <CardContent>
+                <Table>
+                  <TableBody className="text-slate-600 font-black text-sm">
+                    {courses && courses?.length ? (
+                      courses.map((course, index) => (
+                        <Course
+                          course={course}
+                          inCatalog={inCatalog}
+                          key={`${course.id}-${index}`}
+                        />
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={2}>No courses available</TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
           );
         }}
       </Await>

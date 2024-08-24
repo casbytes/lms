@@ -17,7 +17,7 @@ import type { User } from "~/utils/db.server";
 type SubscriptionCardProps = {
   plan: Stripe.Price;
   user: User;
-  subs: Stripe.Response<Stripe.ApiList<Stripe.Subscription>>;
+  subs: Stripe.Subscription[];
 };
 
 export function SubscriptionCard({ plan, user, subs }: SubscriptionCardProps) {
@@ -28,7 +28,7 @@ export function SubscriptionCard({ plan, user, subs }: SubscriptionCardProps) {
   const isSubmiting = n.formData?.get("intent") === "subscribe";
 
   const disabled = user.subscribed || isSubmiting;
-  const activePlanId = subs?.data[0]?.items?.data[0]?.plan?.id;
+  const activePlanId = subs[0]?.items?.data[0]?.plan?.id;
   const activePlan = user.subscribed && activePlanId === plan.id;
 
   return (

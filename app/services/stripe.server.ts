@@ -1,11 +1,12 @@
 import Stripe from "stripe";
 import { remember } from "@epic-web/remember";
+import { cache } from "~/utils/node-cache.server";
 
 export const stripe = remember(
   "stripe",
   () =>
     new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: "2024-04-10",
+      apiVersion: "2024-06-20",
     })
 );
 
@@ -57,10 +58,16 @@ export async function deleteStripeCustomer({
  * @returns {Promise<Stripe.Price[]>} - Stripe prices
  */
 export async function listPlans() {
-  return await stripe.prices.list({
+  const cacheKey = "stripe-prices";
+  if (cache.has(cacheKey)) {
+    return cache.get(cacheKey) as Stripe.Price[];
+  }
+  const prices = await stripe.prices.list({
     active: true,
     limit: 4,
   });
+  cache.set<Stripe.Price[]>(cacheKey, prices.data);
+  return prices.data;
 }
 
 /**
@@ -119,11 +126,17 @@ export async function listSubscriptions({
 }: {
   customerId?: string;
 }) {
-  return await stripe.subscriptions.list({
+  const cacheKey = `stripe-subscriptions-${customerId}`;
+  if (cache.has(cacheKey)) {
+    return cache.get(cacheKey) as Stripe.Subscription[];
+  }
+  const subs = await stripe.subscriptions.list({
+    customer: customerId,
     limit: 1,
     status: "active",
-    ...(customerId && { customer: customerId }),
   });
+  cache.set<Stripe.Subscription[]>(cacheKey, subs.data);
+  return subs.data;
 }
 
 /**

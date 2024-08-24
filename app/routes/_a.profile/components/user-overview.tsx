@@ -13,8 +13,8 @@ export function UserOverview({ user }: { user: User }) {
   }, [user.name]);
 
   return (
-    <div className="flex flex-col gap-6 sm:flex-row justify-between mt-8 md:mt-20 bg-sky-200 rounded-md p-2 shadow-xl border border-sky-500">
-      <div className="flex justify-start sm:justify-between gap-6 flex-wrap items-center">
+    <div className="flex flex-col gap-6 sm:flex-row justify-between mt-8 md:mt-2 rounded-md p-2 shadow-xl border border-sky-500 bg-gradient-to-r from-sky-200 to-slate-200">
+      <div className="flex justify-start sm:justify-between gap-6 flex-wrap xs:flex-nowrap items-center">
         <Avatar>
           <AvatarImage alt={user.name!} src={avatarSrc} />
           <AvatarFallback>{initials}</AvatarFallback>
