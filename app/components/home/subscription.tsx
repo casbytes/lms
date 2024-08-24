@@ -2,11 +2,7 @@ import { Container } from "~/components/container";
 import { DialogTrigger } from "../ui/dialog";
 import { Stripe } from "~/services/stripe.server";
 
-export function Subscription({
-  plans,
-}: {
-  plans: Stripe.Response<Stripe.ApiList<Stripe.Price>>;
-}) {
+export function Subscription({ plans }: { plans: Stripe.Price[] }) {
   return (
     <Container id="subscription">
       <div className="bg-[url('https://cdn.casbytes.com/assets/icon.png')] bg-no-repeat bg-cover bg-opacity-30">
@@ -19,7 +15,7 @@ export function Subscription({
             </h1>
             <div className="flex flex-col gap-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-12 items-center justify-evenly rounded-md mb-14">
-                {plans.data
+                {plans
                   .sort((a, b) => a.unit_amount! - b.unit_amount!)
                   .map((plan, index) => (
                     <div key={`item-${index}`}>

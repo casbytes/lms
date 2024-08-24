@@ -7,11 +7,7 @@ import { Partnerships } from "./partnerships";
 import { Subscription } from "./subscription";
 import { Stripe } from "~/services/stripe.server";
 
-export function Home({
-  plans,
-}: {
-  plans: Stripe.Response<Stripe.ApiList<Stripe.Price>>;
-}) {
+export function Home({ plans }: { plans: Stripe.Price[] }) {
   return (
     <div className="bg-white">
       <Header />

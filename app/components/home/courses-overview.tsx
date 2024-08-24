@@ -76,33 +76,13 @@ const items = [
     href: "#fullstack",
   },
   {
-    image: "system-design.png",
-    title: "System design",
-    href: "#system-design",
-  },
-  {
-    image: "devops.png",
-    title: "DevOps",
-    href: "#devops",
-  },
-  {
-    image: "ux.png",
-    title: "UI/UX design",
-    href: "#ui-ux",
-  },
-  {
     image: "dsa.png",
     title: "Data structures and algorithms",
     href: "#dsa",
   },
   {
     image: "se-architecture.png",
-    title: "software design and architecture",
-    href: "#sda",
-  },
-  {
-    image: "mobile.png",
-    title: "mobile development",
-    href: "#mobile-development",
+    title: "software engineering",
+    href: "#se",
   },
 ];

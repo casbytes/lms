@@ -59,7 +59,7 @@ export function Subscription({ plans, user, subs }: SubscriptionProps) {
         </Form>
       ) : null}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-12">
         {plans.map((plan) => (
           <SubscriptionCard plan={plan} user={user} subs={subs} key={plan.id} />
         ))}
