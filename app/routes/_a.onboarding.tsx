@@ -45,7 +45,7 @@ export async function action({ request }: ActionFunctionArgs) {
       where: { id: userId },
       data: { completedOnboarding: true },
     });
-    return redirect("/dashboard");
+    return redirect("/catalog/modules");
   } catch (error) {
     throw error;
   }

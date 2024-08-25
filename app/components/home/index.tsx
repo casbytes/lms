@@ -12,6 +12,7 @@ export function Home({ plans }: { plans: Stripe.Price[] }) {
     <div className="bg-white">
       <Header />
       <CoursesOverview />
+      <CoursesOverview />
       <ContentOverview />
       <FeatureOverview />
       <Testimonial />
