@@ -4,6 +4,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { CgSpinnerTwo } from "react-icons/cg";
 import { User } from "~/utils/db.server";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 
 export function UpdateUserForm({ user }: { user: User }) {
   const [values, setValues] = React.useState({ name: "", githubUsername: "" });
@@ -41,36 +42,40 @@ export function UpdateUserForm({ user }: { user: User }) {
   }
 
   return (
-    <Form
-      method="post"
-      className="flex flex-col gap-8 bg-sky-300/50 rounded-md p-8 border border-sky-500 shadow-lg"
-    >
-      <h2 className="text-2xl text-sky-800 font-bold text-center">
-        Update profile
-      </h2>
-
-      <Input
-        name="name"
-        value={values.name}
-        onChange={handleValuesChange}
-        placeholder="name"
-      />
-      <Input
-        name="githubUsername"
-        value={values.githubUsername}
-        onChange={handleValuesChange}
-        placeholder="Github Username"
-      />
-      <Button
-        type="submit"
-        name="intent"
-        value="updateProfile"
-        className="self-end disabled:cursor-not-allowed"
-        disabled={isDisabled || isUpdating}
-      >
-        {isUpdating ? <CgSpinnerTwo className="mr-2" /> : null}
-        Update
-      </Button>
-    </Form>
+    <Card className="bg-sky-300/50 border-sky-500 shadow-lg">
+      <CardHeader className="mb-4">
+        <CardTitle className="text-sky-800 font-mono mx-auto">
+          Update profile
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Form method="post" className="flex flex-col gap-10">
+          <Input
+            name="name"
+            value={values.name}
+            onChange={handleValuesChange}
+            placeholder="name"
+            className="text-lg"
+          />
+          <Input
+            name="githubUsername"
+            value={values.githubUsername}
+            onChange={handleValuesChange}
+            placeholder="Github Username"
+            className="text-lg"
+          />
+          <Button
+            type="submit"
+            name="intent"
+            value="updateProfile"
+            className="self-end disabled:cursor-not-allowed"
+            disabled={isDisabled || isUpdating}
+          >
+            {isUpdating ? <CgSpinnerTwo className="mr-2" /> : null}
+            Update
+          </Button>
+        </Form>
+      </CardContent>
+    </Card>
   );
 }

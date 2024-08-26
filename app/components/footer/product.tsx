@@ -10,7 +10,9 @@ export function Product() {
         {items.map((item) => (
           <li key={item.title}>
             <Button variant="link" className="-my-1 capitalize p-0" asChild>
-              <Link to={item.href}>{item.title}</Link>
+              <Link to={item.href} target={item.target ? item.target : "_self"}>
+                {item.title}
+              </Link>
             </Button>
           </li>
         ))}
@@ -22,5 +24,9 @@ export function Product() {
 const items = [
   { title: "courses", href: "/courses" },
   { title: "subscription", href: "/#subscription" },
-  { title: "blog", href: "blog.casbytes.com" },
+  {
+    title: "articles",
+    href: "https://articles.casbytes.com",
+    target: "_blank",
+  },
 ];

@@ -15,7 +15,7 @@ export function PageTitle({ className, title }: TitleProps) {
     <h1
       aria-label={title}
       className={cn(
-        "bg-slate-200/70 px-4 py-2 border-b border-l-8 border-blue-500 text-lg  w-full capitalize flex justify-between",
+        "px-4 py-2 border-b border-l-8 border-blue-500 text-lg font-mono  w-full capitalize flex justify-between bg-gradient-to-r from-sky-200 to-slate-200/70",
         className
       )}
     >

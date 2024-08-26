@@ -1,46 +1,48 @@
 import { PassThrough } from "node:stream";
-import type { AppLoadContext, EntryContext } from "@remix-run/node";
+import type {
+  AppLoadContext,
+  EntryContext,
+  HandleDocumentRequestFunction,
+} from "@remix-run/node";
 import { createReadableStreamFromReadable } from "@remix-run/node";
 import { RemixServer } from "@remix-run/react";
 import { isbot } from "isbot";
 import { renderToPipeableStream } from "react-dom/server";
+import { getInstanceInfo } from "~/utils/litefs.server";
 import { getEnv, init } from "./utils/env.server";
+
 const ABORT_DELAY = 5_000;
 
 init();
 global.ENV = getEnv();
 
-export default function handleRequest(
-  request: Request,
-  responseStatusCode: number,
-  responseHeaders: Headers,
-  remixContext: EntryContext,
-  // This is ignored so we can keep it in the template for visibility.  Feel
-  // free to delete this parameter in your app if you're not using it!
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  loadContext: AppLoadContext
-) {
-  return isbot(request.headers.get("user-agent") || "")
-    ? handleBotRequest(
-        request,
-        responseStatusCode,
-        responseHeaders,
-        remixContext
-      )
-    : handleBrowserRequest(
-        request,
-        responseStatusCode,
-        responseHeaders,
-        remixContext
-      );
+type DocRequestArgs = Parameters<HandleDocumentRequestFunction>;
+async function setHeaders(responseHeaders: Headers) {
+  if (process.env.NODE_ENV !== "production") return;
+  const { currentInstance, primaryInstance } = await getInstanceInfo();
+  responseHeaders.set("fly-region", process.env.FLY_REGION ?? "unknown");
+  responseHeaders.set("fly-app", process.env.FLY_APP_NAME ?? "unknown");
+  responseHeaders.set("fly-primary-instance", primaryInstance);
+  responseHeaders.set("fly-instance", currentInstance);
 }
 
-function handleBotRequest(
-  request: Request,
-  responseStatusCode: number,
-  responseHeaders: Headers,
-  remixContext: EntryContext
-) {
+export default async function handleRequest(...args: DocRequestArgs) {
+  const [request, , responseHeaders, , ,] = args;
+  await setHeaders(responseHeaders);
+  return isbot(request.headers.get("user-agent") || "")
+    ? handleBotRequest(...args)
+    : handleBrowserRequest(...args);
+}
+
+export async function handleDataRequest(response: Response) {
+  await setHeaders(response.headers);
+  return response;
+}
+
+function handleBotRequest(...args: DocRequestArgs) {
+  const [request, initialStatusCode, responseHeaders, remixContext] = args;
+  let responseStatusCode = initialStatusCode;
+
   return new Promise((resolve, reject) => {
     let shellRendered = false;
     const { pipe, abort } = renderToPipeableStream(
@@ -54,9 +56,7 @@ function handleBotRequest(
           shellRendered = true;
           const body = new PassThrough();
           const stream = createReadableStreamFromReadable(body);
-
           responseHeaders.set("Content-Type", "text/html");
-
           resolve(
             new Response(stream, {
               headers: responseHeaders,
@@ -85,12 +85,9 @@ function handleBotRequest(
   });
 }
 
-function handleBrowserRequest(
-  request: Request,
-  responseStatusCode: number,
-  responseHeaders: Headers,
-  remixContext: EntryContext
-) {
+function handleBrowserRequest(...args: DocRequestArgs) {
+  const [request, initialStatusCode, responseHeaders, remixContext] = args;
+  let responseStatusCode = initialStatusCode;
   return new Promise((resolve, reject) => {
     let shellRendered = false;
     const { pipe, abort } = renderToPipeableStream(
