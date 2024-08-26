@@ -1,9 +1,3 @@
-/**
- * This is intended to be a basic starting point for linting in your app.
- * It relies on recommended configs out of the box for simplicity, but you can
- * and should modify this configuration to best suit your team's needs.
- */
-
 /** @type {import('eslint').Linter.Config} */
 module.exports = {
   root: true,
@@ -19,9 +13,15 @@ module.exports = {
     commonjs: true,
     es6: true,
   },
+  ignorePatterns: ["!**/.server", "!**/.client"],
 
   // Base config
   extends: ["eslint:recommended"],
+  rules: {
+    "no-console": "warn",
+    "no-unused-vars": "error",
+    "no-useless-catch": "off",
+  },
 
   overrides: [
     // React
@@ -74,18 +74,10 @@ module.exports = {
 
     // Node
     {
-      files: [".eslintrc.js"],
+      files: [".eslintrc.cjs"],
       env: {
         node: true,
       },
     },
   ],
-  rules: {
-    "no-useless-catch": "off",
-    "no-console": "warn",
-    "no-unused-vars": "error",
-    "no-undef": "warn",
-    "no-undef-init": "warn",
-    "no-undefined": "warn",
-  },
 };

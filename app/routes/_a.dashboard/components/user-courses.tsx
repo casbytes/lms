@@ -4,6 +4,8 @@ import { Table, TableBody, TableCell, TableRow } from "~/components/ui/table";
 import { UserCourse } from "./user-course";
 import { Await } from "@remix-run/react";
 import { PendingCard } from "./pending-card";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Separator } from "~/components/ui/separator";
 
 type CCCProps = {
   userCourses: Promise<ICourse[]>;
@@ -11,12 +13,15 @@ type CCCProps = {
 
 export function UserCourses({ userCourses }: CCCProps) {
   return (
-    <div className="rounded-md bg-zinc-300/30 p-2 flex flex-col items-center shadow-lg">
+    <Card className="shadow-lg">
+      <CardHeader className="py-4">
+        <CardTitle className="font-mono">My courses</CardTitle>
+      </CardHeader>
+      <Separator />
       <React.Suspense fallback={<PendingCard />}>
         <Await resolve={userCourses}>
           {(userCourses) => (
-            <>
-              <h2 className="text-lg font-bold">My courses</h2>
+            <CardContent>
               <Table>
                 <TableBody className="text-slate-600">
                   {userCourses && userCourses?.length ? (
@@ -42,10 +47,10 @@ export function UserCourses({ userCourses }: CCCProps) {
                   )}
                 </TableBody>
               </Table>
-            </>
+            </CardContent>
           )}
         </Await>
       </React.Suspense>
-    </div>
+    </Card>
   );
 }

@@ -52,9 +52,8 @@ export default function Profile() {
   return (
     <Container className="bg-2 bg-no-repeat">
       <div className="mx-auto max-w-5xl">
-        <PageTitle title="profile" className="-mb-10" />
+        <PageTitle title="profile" className="mb-8" />
         <UserOverview user={user} />
-        <Separator className="mt-2" />
         <div className="grid grid-cols-1 md:grid-cols-2 mx-auto gap-6 mt-8">
           <Dialog>
             <AccountDeleteDialog />

@@ -1,6 +1,4 @@
-/* eslint-disable no-undefined */
 import invariant from "tiny-invariant";
-import slugify from "slugify";
 import {
   prisma,
   type Course,
@@ -9,7 +7,6 @@ import {
   type SubModule,
 } from "~/utils/db.server";
 import { getUserId } from "~/utils/session.server";
-import { octokit } from "~/utils/octokit.server";
 import { cache } from "~/utils/node-cache.server";
 import {
   endOfMonth,
@@ -23,53 +20,47 @@ import {
   subWeeks,
 } from "date-fns";
 import { STATUS } from "~/utils/helpers";
+import {
+  getMetaCourseById,
+  getMetaCourses,
+  getMetaModuleById,
+  getMetaModules,
+} from "~/services/sanity/index.server";
+import {
+  MetaCourse,
+  MetaLesson,
+  MetaModule,
+  MetaSubModule,
+} from "~/services/sanity/types";
 
-export interface GithubCourse {
-  title: string;
-  id: string;
-  published: boolean;
-  testEnvironment?: "node" | "browser";
-  modules: GithubModule[];
-}
-export interface GithubModule {
-  title: string;
-  id: string;
-  checkpoint?: boolean;
-  testEnvironment?: "node" | "browser";
-  subModules: GithubSubModule[];
-}
-export interface GithubSubModule {
-  title: string;
-  id: string;
-  checkpoint?: boolean;
-  testEnvironment?: "node" | "browser";
-  lessons: GithubLesson[];
-}
-export interface GithubLesson {
-  title: string;
-  id: string;
-}
+const today = startOfDay(new Date());
 
-const date = new Date();
-const today = startOfDay(date);
-
+type TimeUnit = "days" | "weeks" | "months";
 interface TimeRange {
   start: Date;
   end: Date;
 }
+export interface TimeData {
+  date: string;
+  hours: number;
+}
 
-function generateDateRanges(
-  unit: "days" | "weeks" | "months",
-  length: number
-): TimeRange[] {
+/**
+ * Generate date ranges for a given time unit and length
+ * @param {TimeUnit} unit - The time unit
+ * @param {number} length - The length
+ * @returns {TimeRange[]} - The date ranges
+ */
+function generateDateRanges(unit: TimeUnit, length: number): TimeRange[] {
   const ranges: TimeRange[] = [];
+
   for (let i = 0; i < length; i++) {
     let start: Date;
     let end: Date;
 
     switch (unit) {
       case "days":
-        start = subDays(today, i);
+        start = subDays(startOfDay(today), i);
         end = startOfDay(start);
         break;
       case "weeks":
@@ -81,112 +72,72 @@ function generateDateRanges(
         end = endOfMonth(start);
         break;
     }
-
     ranges.push({ start, end });
   }
   return ranges.reverse();
 }
 
+/**
+ * Get learning data for a user
+ * @param {Request} request - The incoming request
+ * @param {TimeUnit} unit - The time unit
+ * @param {number} length - The length
+ * @returns {Promise<TimeData[]>} - The learning data
+ */
 async function getLearningData(
   request: Request,
-  unit: "days" | "weeks" | "months",
+  unit: TimeUnit,
   length: number
-): Promise<{ date: string; hours: number }[]> {
-  try {
-    const userId = await getUserId(request);
-    const ranges = generateDateRanges(unit, length);
+): Promise<TimeData[]> {
+  const userId = await getUserId(request);
+  const ranges = generateDateRanges(unit, length);
+  const dateCondition = {
+    days: subDays(today, 7),
+    weeks: subWeeks(startOfWeek(today), 7),
+    months: subMonths(startOfMonth(today), 6),
+  }[unit];
 
-    let dateCondition: Date;
-    switch (unit) {
-      case "days":
-        dateCondition = subDays(today, 7);
-        break;
-      case "weeks":
-        dateCondition = subWeeks(startOfWeek(today), 7);
-        break;
-      case "months":
-        dateCondition = subMonths(startOfMonth(today), 6);
-        break;
-    }
+  const learningTimes = await prisma.learningTime.findMany({
+    where: { userId, date: { gte: dateCondition } },
+    orderBy: { date: "asc" },
+  });
 
-    const learningTimes = await prisma.learningTime.findMany({
-      where: {
-        userId,
-        date: {
-          gte: dateCondition,
-        },
-      },
-      orderBy: {
-        date: "asc",
-      },
-    });
+  return ranges.map(({ start, end }) => {
+    const totalHours = learningTimes
+      .filter((lh) => lh.date >= start && lh.date <= end)
+      .reduce((sum, { hours }) => sum + hours, 0);
 
-    return ranges.map(({ start, end }) => {
-      const entries = learningTimes.filter(
-        (lh) => lh.date >= start && lh.date <= end
-      );
-      const totalHours = entries.reduce((sum, entry) => sum + entry.hours, 0);
-      let formattedDate: string;
+    const formattedDate = {
+      days: format(start, "MMM d"),
+      weeks: `${format(start, "MMM d")}-${format(end, "MMM d")}`,
+      months: format(start, "MMM yyyy"),
+    }[unit];
 
-      switch (unit) {
-        case "days":
-          formattedDate = format(start, "MMM d");
-          break;
-        case "weeks":
-          formattedDate = `${format(start, "MMM d")}-${format(end, "MMM d")}`;
-          break;
-        case "months":
-          formattedDate = format(start, "MMM yyyy");
-          break;
-      }
-
-      return {
-        date: formattedDate,
-        hours: Number(totalHours.toFixed(2)),
-      };
-    });
-  } catch (error) {
-    throw error;
-  }
+    return { date: formattedDate, hours: totalHours };
+  });
 }
 
-export type TimeData = {
-  date: string;
-  hours: number;
-};
-
+/**
+ * Get user learning time from the cache or database
+ * @param {Request} request - The incoming request
+ * @returns {Promise<TimeData[]>} - The learning time
+ */
 export async function getLearningTime(request: Request): Promise<TimeData[]> {
   const url = new URL(request.url);
-  const filter =
-    (url.searchParams.get("filter") as "days" | "weeks" | "months") ?? "days";
-
+  const filter = (url.searchParams.get("filter") as TimeUnit) ?? "days";
   const cacheKey = `learningTime-${filter}`;
-  const cachedTimeData = cache.get<TimeData[]>(cacheKey);
-  if (cachedTimeData) {
-    return cachedTimeData;
+
+  if (cache.has(cacheKey)) {
+    return cache.get(cacheKey) as TimeData[];
   }
 
-  try {
-    let result: TimeData[];
-    switch (filter) {
-      case "days":
-        result = await getLearningData(request, "days", 7);
-        break;
-      case "weeks":
-        result = await getLearningData(request, "weeks", 8);
-        break;
-      case "months":
-        result = await getLearningData(request, "months", 6);
-        break;
-      default:
-        result = await getLearningData(request, "days", 7);
-        break;
-    }
-    cache.set<TimeData[]>(cacheKey, result, 5000);
-    return result;
-  } catch (error) {
-    throw error;
-  }
+  const result = await getLearningData(
+    request,
+    filter,
+    { days: 7, weeks: 8, months: 6 }[filter]
+  );
+  cache.set<TimeData[]>(cacheKey, result, 5000);
+  return result;
 }
 
 /**
@@ -195,14 +146,10 @@ export async function getLearningTime(request: Request): Promise<TimeData[]> {
  * @returns {Promise<ICourse[]>}
  */
 export async function getUserCourses(request: Request): Promise<Course[]> {
-  try {
-    const userId = await getUserId(request);
-    return await prisma.course.findMany({
-      where: { users: { some: { id: userId } } },
-    });
-  } catch (error) {
-    throw error;
-  }
+  const userId = await getUserId(request);
+  return prisma.course.findMany({
+    where: { users: { some: { id: userId } } },
+  });
 }
 
 /**
@@ -213,19 +160,15 @@ export async function getUserCourses(request: Request): Promise<Course[]> {
 export async function getUserModules(request: Request): Promise<Module[]> {
   const url = new URL(request.url);
   const search = url.searchParams.get("userModule") ?? "";
-  try {
-    const userId = await getUserId(request);
-    return await prisma.module.findMany({
-      where: {
-        OR: [{ title: { contains: search } }],
-        users: { some: { id: userId } },
-      },
-      include: { course: true },
-      orderBy: { order: "asc" },
-    });
-  } catch (error) {
-    throw error;
-  }
+  const userId = await getUserId(request);
+  return prisma.module.findMany({
+    where: {
+      OR: [{ title: { contains: search }, slug: { contains: search } }],
+      users: { some: { id: userId } },
+    },
+    include: { course: true },
+    orderBy: { order: "asc" },
+  });
 }
 
 /**
@@ -234,95 +177,22 @@ export async function getUserModules(request: Request): Promise<Module[]> {
  * @returns {Promise<Boolean>}
  */
 export async function checkCatalog(userId: string): Promise<boolean> {
-  const [courses, modules] = await Promise.all([
-    prisma.course.findMany({
+  const [coursesCount, modulesCount] = await Promise.all([
+    prisma.course.count({
       where: {
         users: { some: { id: userId } },
         NOT: { status: STATUS.COMPLETED },
       },
     }),
-    prisma.module.findMany({
+    prisma.module.count({
       where: {
         users: { some: { id: userId } },
         NOT: { status: STATUS.COMPLETED },
       },
     }),
   ]);
-  return courses.length > 0 || modules.length > 0;
-}
 
-/**
- * Octokit credentials
- */
-const octokitCredentials = {
-  owner: process.env.GITHUB_OWNER,
-  repo: "meta",
-  path: "build",
-};
-
-/**
- * Get courses meta data from the GitHub
- * @returns {Promise<ICourse[]>}
- */
-async function getMeta() {
-  try {
-    const { data } = await octokit.repos.getContent(octokitCredentials);
-    if (!Array.isArray(data)) {
-      throw new Error("Invalid meta data.");
-    }
-    return data;
-  } catch (error) {
-    throw error;
-  }
-}
-
-/**
- * Get file content from GitHub
- * @param {String} path - The file path
- * @returns {Promise<String>} - The file content
- */
-async function getFileContent(path: string) {
-  try {
-    const { data } = await octokit.repos.getContent({
-      ...octokitCredentials,
-      path,
-    });
-    if (typeof data !== "object" || !("content" in data)) {
-      throw new Error("Invalid file content.");
-    }
-    return Buffer.from(data.content, "base64").toString("utf8");
-  } catch (error) {
-    throw error;
-  }
-}
-
-async function getGithubCourses(): Promise<GithubCourse[]> {
-  const cacheKey = "github-courses";
-  const cachedCourses = cache.get<GithubCourse[]>(cacheKey);
-  if (cachedCourses) {
-    return cachedCourses;
-  }
-
-  try {
-    const meta = await getMeta();
-    const githubCourses: GithubCourse[] = await Promise.all(
-      meta.map(async (folder) => {
-        const jsonContent = await getFileContent(folder.path);
-        return JSON.parse(jsonContent);
-      })
-    );
-
-    const uniqueCourses = Array.from(
-      new Map(
-        githubCourses.filter(Boolean).map((course) => [course.id, course])
-      ).values()
-    );
-
-    cache.set<GithubCourse[]>(cacheKey, uniqueCourses);
-    return uniqueCourses;
-  } catch (error) {
-    throw error;
-  }
+  return coursesCount > 0 || modulesCount > 0;
 }
 
 /**
@@ -332,11 +202,11 @@ async function getGithubCourses(): Promise<GithubCourse[]> {
  */
 export async function getCourses(
   request: Request
-): Promise<{ courses: GithubCourse[]; inCatalog: boolean }> {
+): Promise<{ courses: MetaCourse[]; inCatalog: boolean }> {
   try {
     const userId = await getUserId(request);
     const inCatalog = await checkCatalog(userId);
-    const courses = await getGithubCourses();
+    const courses = await getMetaCourses();
     return { courses, inCatalog };
   } catch (error) {
     throw error;
@@ -345,22 +215,15 @@ export async function getCourses(
 
 export async function getModules(
   request: Request
-): Promise<{ modules: GithubModule[]; inCatalog: boolean }> {
+): Promise<{ modules: MetaModule[]; inCatalog: boolean }> {
+  const userId = await getUserId(request);
   const url = new URL(request.url);
-  const search = url.searchParams.get("module");
+  const searchTerm = url.searchParams.get("module") ?? "";
   try {
-    const { courses, inCatalog } = await getCourses(request);
-    const modules = courses.reduce((acc, course) => {
-      if (course.modules) {
-        acc.push(...course.modules);
-      }
-      return acc;
-    }, [] as GithubModule[]);
+    const modules = await getMetaModules(searchTerm);
 
-    const filteredModules = modules.filter((module) =>
-      module.title.toLowerCase().includes(search?.toLowerCase() ?? "")
-    );
-    return { modules: filteredModules, inCatalog };
+    const inCatalog = await checkCatalog(userId);
+    return { modules, inCatalog };
   } catch (error) {
     throw error;
   }
@@ -370,35 +233,41 @@ export async function getModules(
 //ACTIONS
 //##########
 export async function handleActions(request: Request) {
-  const formData = await request.formData();
-  const userId = await getUserId(request);
-  const intent = formData.get("intent") as
-    | "addCourseToCatalog"
-    | "addModuleToCatalog"
-    | "deleteCourse"
-    | "deleteModule";
+  const { userId, itemId, intent } = await getFormData(request);
   invariant(intent, "Invalid form data.");
 
   switch (intent) {
     case "deleteCourse":
-      return await deleteCourse(formData, userId);
+      return await deleteCourse(itemId, userId);
 
     case "deleteModule":
-      return await deleteModule(formData, userId);
+      return await deleteModule(itemId, userId);
 
     case "addModuleToCatalog":
-      return await addModuleToCatalog(formData, userId);
+      return await addModuleToCatalog(itemId, userId);
 
     case "addCourseToCatalog":
-      return await addCourseToCatalog(formData, userId);
+      return await addCourseToCatalog(itemId, userId);
     default:
       throw new Error("Invalid intent.");
   }
 }
 
-async function deleteCourse(formData: FormData, userId: string) {
+async function getFormData(request: Request) {
+  const formData = await request.formData();
+  return {
+    userId: await getUserId(request),
+    itemId: formData.get("itemId") as string,
+    intent: formData.get("intent") as
+      | "addCourseToCatalog"
+      | "addModuleToCatalog"
+      | "deleteCourse"
+      | "deleteModule",
+  };
+}
+
+async function deleteCourse(courseId: string, userId: string) {
   try {
-    const courseId = String(formData.get("itemId"));
     await prisma.course.delete({
       where: { id: courseId, users: { some: { id: userId } } },
     });
@@ -408,9 +277,8 @@ async function deleteCourse(formData: FormData, userId: string) {
   }
 }
 
-async function deleteModule(formData: FormData, userId: string) {
+async function deleteModule(moduleId: string, userId: string) {
   try {
-    const moduleId = String(formData.get("itemId"));
     await prisma.module.delete({
       where: { id: moduleId, users: { some: { id: userId } } },
     });
@@ -420,21 +288,12 @@ async function deleteModule(formData: FormData, userId: string) {
   }
 }
 
-async function addModuleToCatalog(formData: FormData, userId: string) {
-  const moduleId = formData.get("itemId") as string;
-  invariant(moduleId, "Module ID is required.");
-  const githubCourses = await getGithubCourses();
-  let githubModule: GithubModule | undefined;
-  for (const githubCourse of githubCourses) {
-    githubModule = githubCourse.modules.find((m) => m.id === String(moduleId));
-    if (githubModule) break;
-  }
-  invariant(githubModule, "Github Module not found.");
-
+async function addModuleToCatalog(moduleId: string, userId: string) {
+  const metaModule = await getMetaModuleById(moduleId);
   try {
     return await prisma.$transaction(async (txn) => {
       const existingModule = await txn.module.findFirst({
-        where: { title: githubModule.title, users: { some: { id: userId } } },
+        where: { title: metaModule.title, users: { some: { id: userId } } },
       });
 
       if (existingModule) {
@@ -443,21 +302,21 @@ async function addModuleToCatalog(formData: FormData, userId: string) {
 
       const module = await txn.module.create({
         data: {
-          title: githubModule.title,
-          slug: slugify(githubModule.title, { lower: true }),
+          title: metaModule.title,
+          slug: metaModule.slug,
           users: { connect: { id: userId } },
           status: STATUS.IN_PROGRESS,
           order: 1,
           test: {
             create: {
-              title: `${githubModule.title} test`,
+              title: `${metaModule.title} test`,
               users: { connect: { id: userId } },
             },
           },
-          checkpoint: githubModule?.checkpoint
+          checkpoint: metaModule?.checkpoint
             ? {
                 create: {
-                  title: `${githubModule.title} checkpoint`,
+                  title: `${metaModule.title} checkpoint`,
                   users: { connect: { id: userId } },
                 },
               }
@@ -466,7 +325,7 @@ async function addModuleToCatalog(formData: FormData, userId: string) {
       });
 
       await Promise.all([
-        createSubModules(txn, githubModule.subModules, module, userId),
+        createSubModules(txn, metaModule.subModules, module, userId),
         createBadges(txn, module, userId),
       ]);
       return formatResponse({ success: true, itemName: "Module" });
@@ -482,38 +341,33 @@ async function addModuleToCatalog(formData: FormData, userId: string) {
  * @param {String} courseId - The course ID
  * @returns {Promise<void>}
  */
-export async function addCourseToCatalog(formData: FormData, userId: string) {
+export async function addCourseToCatalog(courseId: string, userId: string) {
   try {
-    const courseId = formData.get("itemId") as string;
-    invariant(courseId, "Course ID is required.");
-    const githubCourses = await getGithubCourses();
-    const githubCourse = githubCourses.find((c) => c.id === String(courseId));
-    invariant(githubCourse, "Course not found.");
-
+    const metaCourse = await getMetaCourseById(courseId);
     return await prisma.$transaction(async (txn) => {
       const existingCourse = await txn.course.findFirst({
-        where: { title: githubCourse.title, users: { some: { id: userId } } },
+        where: { title: metaCourse.title, users: { some: { id: userId } } },
       });
       if (existingCourse) {
         return formatResponse({ success: false, itemName: "Course" });
       }
       const course = await txn.course.create({
         data: {
-          title: githubCourse.title,
-          slug: slugify(githubCourse.title, { lower: true }),
+          title: metaCourse.title,
+          slug: metaCourse.slug,
           users: { connect: { id: userId } },
           project: {
             create: {
-              title: `${githubCourse.title} project`,
-              testEnvironment: githubCourse?.testEnvironment,
-              slug: slugify(githubCourse.title, { lower: true }),
+              title: `${metaCourse.title} project`,
+              testEnvironment: metaCourse?.testEnvironment,
+              slug: metaCourse.slug,
               contributors: { connect: { id: userId } },
             },
           },
         },
       });
 
-      await createModule(txn, githubCourse.modules, course, userId);
+      await createModule(txn, metaCourse.modules, course, userId);
       return formatResponse({ success: true, itemName: "Course" });
     });
   } catch (error) {
@@ -524,27 +378,27 @@ export async function addCourseToCatalog(formData: FormData, userId: string) {
 /**
  * Create module progresses
  * @param {Prisma.TransactionClient} txn - The transaction client
- * @param {GithubModule[]} githubModules - The modules
+ * @param {MetaModule[]} metaModules - The modules
  * @param {Course} course - The course progress
  * @param {String} userId - The user ID
  * @returns {Promise<void>}
  */
 async function createModule(
   txn: Prisma.TransactionClient,
-  githubModules: GithubModule[],
+  metaModules: MetaModule[],
   course: Course,
   userId: string
 ): Promise<void> {
   try {
-    for (const [moduleIndex, githubModule] of githubModules.entries()) {
+    for (const [moduleIndex, metaModule] of metaModules.entries()) {
       const module = await upsertModule(
         txn,
-        githubModule,
+        metaModule,
         moduleIndex,
         course.id,
         userId
       );
-      await createSubModules(txn, githubModule.subModules, module, userId);
+      await createSubModules(txn, metaModule.subModules, module, userId);
       await createBadges(txn, module, userId);
     }
   } catch (error) {
@@ -555,7 +409,7 @@ async function createModule(
 /**
  * Upsert module progress
  * @param {Prisma.TransactionClient} txn - The transaction client
- * @param {GithubModule} githubModule - The module
+ * @param {MetaModule} metaModule - The module
  * @param {number} moduleIndex - The module index
  * @param {string} courseId - The course progress ID
  * @param {string} userId - The user ID
@@ -563,14 +417,14 @@ async function createModule(
  */
 async function upsertModule(
   txn: Prisma.TransactionClient,
-  githubModule: GithubModule,
+  metaModule: MetaModule,
   moduleIndex: number,
   courseId: string,
   userId: string
 ) {
   try {
     const existingModule = await txn.module.findFirst({
-      where: { title: githubModule.title, users: { some: { id: userId } } },
+      where: { title: metaModule.title, users: { some: { id: userId } } },
     });
 
     if (existingModule) {
@@ -586,22 +440,22 @@ async function upsertModule(
     } else {
       return txn.module.create({
         data: {
-          title: githubModule.title,
-          slug: slugify(githubModule.title, { lower: true }),
+          title: metaModule.title,
+          slug: metaModule.slug,
           premium: moduleIndex !== 0,
           order: moduleIndex + 1,
           users: { connect: { id: userId } },
           course: { connect: { id: courseId } },
           test: {
             create: {
-              title: `${githubModule.title} test`,
+              title: `${metaModule.title} test`,
               users: { connect: { id: userId } },
             },
           },
-          checkpoint: githubModule?.checkpoint
+          checkpoint: metaModule?.checkpoint
             ? {
                 create: {
-                  title: `${githubModule.title} checkpoint`,
+                  title: `${metaModule.title} checkpoint`,
                   users: { connect: { id: userId } },
                 },
               }
@@ -617,30 +471,27 @@ async function upsertModule(
 /**
  * Create sub module progresses
  * @param {Prisma.TransactionClient} txn - The transaction client
- * @param {GithubModule[]} githubSubModules - The sub modules
+ * @param {MetaModule[]} metaSubModules - The sub modules
  * @param {Module} module - The module progress
  * @param {String} userId - The user ID
  * @returns {Promise<void>}
  */
 async function createSubModules(
   txn: Prisma.TransactionClient,
-  githubSubModules: GithubSubModule[],
+  metaSubModules: MetaSubModule[],
   module: Module,
   userId: string
 ) {
   try {
-    for (const [
-      subModuleIndex,
-      githubSubModule,
-    ] of githubSubModules.entries()) {
+    for (const [subModuleIndex, metaSubModule] of metaSubModules.entries()) {
       const subModule = await upsertSubModule(
         txn,
-        githubSubModule,
+        metaSubModule,
         subModuleIndex,
         module.id,
         userId
       );
-      await createLessons(txn, githubSubModule.lessons, subModule, userId);
+      await createLessons(txn, metaSubModule.lessons, subModule, userId);
       return subModule;
     }
   } catch (error) {
@@ -651,7 +502,7 @@ async function createSubModules(
 /**
  * Upsert sub module progress
  * @param {Prisma.TransactionClient} txn - The transaction client
- * @param {GithubSubModule} githubSubModule - The sub module
+ * @param {MetaSubModule} metaSubModule - The sub module
  * @param {number} subModuleIndex - The sub module index
  * @param {string} moduleId - The module progress ID
  * @param {string} userId - The user ID
@@ -659,13 +510,13 @@ async function createSubModules(
  */
 async function upsertSubModule(
   txn: Prisma.TransactionClient,
-  githubSubModule: GithubSubModule,
+  metaSubModule: MetaSubModule,
   subModuleIndex: number,
   moduleId: string,
   userId: string
 ) {
   const existingSubModule = await txn.subModule.findFirst({
-    where: { title: githubSubModule.title, users: { some: { id: userId } } },
+    where: { title: metaSubModule.title, users: { some: { id: userId } } },
   });
 
   if (existingSubModule) {
@@ -679,21 +530,21 @@ async function upsertSubModule(
   } else {
     return txn.subModule.create({
       data: {
-        title: githubSubModule.title,
-        slug: slugify(githubSubModule.title, { lower: true }),
+        title: metaSubModule.title,
+        slug: metaSubModule.slug,
         order: subModuleIndex + 1,
         users: { connect: { id: userId } },
         module: { connect: { id: moduleId } },
         test: {
           create: {
-            title: `${githubSubModule.title} test`,
+            title: `${metaSubModule.title} test`,
             users: { connect: { id: userId } },
           },
         },
-        checkpoint: githubSubModule?.checkpoint
+        checkpoint: metaSubModule?.checkpoint
           ? {
               create: {
-                title: `${githubSubModule.title} checkpoint`,
+                title: `${metaSubModule.title} checkpoint`,
                 users: { connect: { id: userId } },
               },
             }
@@ -706,20 +557,20 @@ async function upsertSubModule(
 /**
  * Create lesson progresses
  * @param {Prisma.TransactionClient} txn - The transaction client
- * @param {GithubLesson[]} githubLessons - The lessons
+ * @param {MetaLesson[]} metaLessons - The lessons
  * @param {SubModule} subModule - The sub module progress
  * @param {String} userId - The user ID
  * @returns {Promise<void>}
  */
 async function createLessons(
   txn: Prisma.TransactionClient,
-  githubLessons: GithubLesson[],
+  metaLessons: MetaLesson[],
   subModule: SubModule,
   userId: string
 ): Promise<void> {
-  for (const [lessonIndex, githubLesson] of githubLessons.entries()) {
+  for (const [lessonIndex, metaLesson] of metaLessons.entries()) {
     const existingLesson = await txn.lesson.findFirst({
-      where: { title: githubLesson.title, users: { some: { id: userId } } },
+      where: { title: metaLesson.title, users: { some: { id: userId } } },
     });
 
     if (existingLesson) {
@@ -733,8 +584,8 @@ async function createLessons(
     } else {
       await txn.lesson.create({
         data: {
-          title: githubLesson.title,
-          slug: slugify(githubLesson.title, { lower: true }),
+          title: metaLesson.title,
+          slug: metaLesson.slug,
           order: lessonIndex + 1,
           users: { connect: { id: userId } },
           subModule: { connect: { id: subModule.id } },

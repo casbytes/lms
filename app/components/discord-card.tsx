@@ -9,7 +9,7 @@ export function DiscordCard({ user }: { user: User }) {
   return (
     <Card className="rounded-md bg-blue-400/35 p-4 flex flex-col items-center h-full border border-blue-500 shadow-lg">
       <CardHeader>
-        <CardTitle>Discord community</CardTitle>
+        <CardTitle className="font-mono">Discord community</CardTitle>
       </CardHeader>
 
       <CardContent>

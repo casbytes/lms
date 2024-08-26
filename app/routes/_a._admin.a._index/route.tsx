@@ -8,19 +8,21 @@ import { useLoaderData } from "@remix-run/react";
 import { prisma } from "~/utils/db.server";
 import { IoMdPeople } from "react-icons/io";
 import { PiSubtitles } from "react-icons/pi";
+import { getMetaCourses, getMetaModules } from "~/services/sanity/index.server";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function loader({ request }: LoaderFunctionArgs) {
   const cacheStats = getCacheStats();
   const totalUsers = await prisma.user.count();
   const subscriptions = await prisma.user.count({
     where: { subscribed: true },
   });
-  return { cacheStats, totalUsers, subscriptions };
+  const courses = await getMetaCourses();
+  const modules = await getMetaModules();
+  return { cacheStats, totalUsers, subscriptions, courses, modules };
 }
 
 export default function AdminDashboardRoute() {
-  const { cacheStats, totalUsers, subscriptions } =
+  const { cacheStats, totalUsers, subscriptions, courses, modules } =
     useLoaderData<typeof loader>();
   return (
     <Container className="bg-2 bg-no-repeat">
@@ -55,6 +57,20 @@ export default function AdminDashboardRoute() {
                   </li>
                 ))}
               </ul>
+            }
+          />
+          <DashboardCard
+            cardTitle="Courses"
+            cardIcon={<PiSubtitles className="h-4 w-4 text-muted-foreground" />}
+            cardContent={
+              <div className="text-2xl font-bold">{courses.length}</div>
+            }
+          />
+          <DashboardCard
+            cardTitle="Modules"
+            cardIcon={<PiSubtitles className="h-4 w-4 text-muted-foreground" />}
+            cardContent={
+              <div className="text-2xl font-bold">{modules.length}</div>
             }
           />
         </div>
