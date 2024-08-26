@@ -28,6 +28,7 @@ export async function loader() {
 
 export default function CoursesRoute() {
   const courses = useLoaderData<typeof loader>();
+
   return (
     <Container className="max-w-3xl">
       <PageTitle title="Courses" />

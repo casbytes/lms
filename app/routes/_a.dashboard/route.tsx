@@ -33,6 +33,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const userModules = getUserModules(request);
     const timeData = getLearningTime(request);
     const user = await getUser(request);
+
     return defer({
       courseData,
       moduleData,
@@ -69,19 +70,21 @@ export default function Dashboard() {
     <Container className="bg-2 bg-no-repeat">
       <div className="lg:px-8 max-w-7xl mx-auto">
         <PageTitle title="Dashboard" className="mb-12" />
-        <div className="flex flex-col gap-4 bg-white p-4 rounded-md shadow-sm">
+        <div className="flex flex-col gap-4 -mt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <UserCard user={user} />
-            <Courses courseData={courseData} />
+            {/* <Courses courseData={courseData} /> */}
+            {/* <Modules moduleData={moduleData} user={user} /> */}
             <UserCourses userCourses={userCourses} />
-            <Modules moduleData={moduleData} user={user} />
             <UserModules userModules={userModules} />
+          </div>
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
             <MembershipCard user={user} />
+            <DiscordCard user={user} />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-auto md:h-48">
+          <div className="grid grid-cols-1 h-auto md:h-48">
             <Chart timeData={timeData} />
-            <DiscordCard user={user} />
           </div>
         </div>
       </div>

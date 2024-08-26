@@ -11,7 +11,7 @@ export function Header() {
       <div className="flex flex-col-reverse md:flex-row justify-between items-center">
         <div className="md:self-start">
           <Slide duration={300} damping={0.2} cascade triggerOnce>
-            <h1 className="text-2xl md:text-3xl font-black max-w-md text-center md:text-left mb-4">
+            <h1 className="text-2xl md:text-3xl font-black max-w-md text-center md:text-left mb-4 font-mono">
               Launch Your
               <span className="text-blue-700"> Software Engineering</span>{" "}
               Career with

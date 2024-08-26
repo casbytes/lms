@@ -2,7 +2,7 @@ import { TableCell, TableRow } from "~/components/ui/table";
 import { capitalizeFirstLetter } from "~/utils/helpers";
 import { ConfirmationDialog } from "./confirmation-dialog";
 import type { User } from "~/utils/db.server";
-import type { GithubModule } from "../utils.server";
+import type { MetaModule } from "~/services/sanity/types";
 
 export function Module({
   user,
@@ -10,7 +10,7 @@ export function Module({
   inCatalog,
 }: {
   user: User;
-  module: GithubModule;
+  module: MetaModule;
   inCatalog: boolean;
 }) {
   const moduleWithType = { ...module, type: "module" as const };

@@ -120,7 +120,10 @@ export function MainNav({
 
           <div className="lg:flex gap-4 hidden items-center">
             <DialogTrigger asChild>
-              <Button aria-label="sign in" className="capitalize text-lg">
+              <Button
+                aria-label="sign in"
+                className="capitalize text-lg font-mono"
+              >
                 sign in
               </Button>
             </DialogTrigger>

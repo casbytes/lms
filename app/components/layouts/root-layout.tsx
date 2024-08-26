@@ -133,13 +133,13 @@ export function RootLayout() {
         ) : null}
         <div
           className={cn(
-            "duration-300",
+            "duration-300 bg-slate-100 min-h-screen",
             {
               "cursor-wait": isLoading,
             },
             isNavOpen
               ? addMargin
-                ? "ml-0 lg:ml-52"
+                ? "ml-0 lg:ml-56"
                 : ""
               : addMargin
               ? "ml-0 lg:ml-16"
