@@ -12,6 +12,7 @@ import {
 import { toast } from "~/components/ui/use-toast";
 import { metaFn } from "~/utils/meta";
 import { ROLE } from "~/utils/helpers";
+import { getMetaCourses, getMetaModules } from "~/services/sanity/index.server";
 
 export const meta = metaFn;
 
@@ -32,15 +33,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
     if (session.has("error")) {
       error = session.get("error");
     }
-    const plans = await listPlans();
-    return json({ plans, error }, await destroyAuthSession(session));
+    const [plans, courses, modules] = await Promise.all([
+      listPlans(),
+      getMetaCourses(),
+      getMetaModules(),
+    ]);
+    return json(
+      { plans, courses, modules, error },
+      await destroyAuthSession(session)
+    );
   } catch (error) {
     throw error;
   }
 }
 
 export default function Index() {
-  const { plans, error } = useLoaderData<typeof loader>();
+  const { plans, courses, modules, error } = useLoaderData<typeof loader>();
 
   React.useEffect(() => {
     if (error) {
@@ -52,5 +60,5 @@ export default function Index() {
     }
   }, [error]);
 
-  return <Home plans={plans} />;
+  return <Home plans={plans} courses={courses} modules={modules} />;
 }
