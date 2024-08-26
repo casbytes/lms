@@ -14,7 +14,6 @@ export function Module({
   inCatalog: boolean;
 }) {
   const moduleWithType = { ...module, type: "module" as const };
-  console.log("yo");
   return (
     <TableRow className="w-full flex justify-between">
       <TableCell>{capitalizeFirstLetter(module.title)}</TableCell>
