@@ -1,5 +1,5 @@
 import React from "react";
-import { json, LoaderFunctionArgs, redirect } from "@remix-run/node";
+import { defer, LoaderFunctionArgs, redirect } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { listPlans } from "~/services/stripe.server";
 import { Home } from "~/components/home";
@@ -33,12 +33,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
     if (session.has("error")) {
       error = session.get("error");
     }
-    const [plans, courses, modules] = await Promise.all([
-      listPlans(),
-      getMetaCourses(),
-      getMetaModules(),
-    ]);
-    return json(
+    const plans = listPlans();
+    const courses = getMetaCourses();
+    const modules = getMetaModules();
+    return defer(
       { plans, courses, modules, error },
       await destroyAuthSession(session)
     );

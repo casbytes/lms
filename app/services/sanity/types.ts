@@ -3,8 +3,11 @@ type TestEnv = "node" | "browser" | "python";
 export interface MetaCourse {
   id: string;
   title: string;
+  image: string;
   slug: string;
+  premium: boolean;
   testEnvironment?: TestEnv;
+  description: string;
   modules: MetaModule[];
 }
 
