@@ -8,17 +8,15 @@ import {
   CardTitle,
 } from "./ui/card";
 import { Image } from "./image";
-import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { FaStar } from "react-icons/fa6";
 import { Separator } from "./ui/separator";
 
 type CatalogCardProps = {
   button: React.ReactNode;
-  isAuth?: boolean;
 };
 
-export function CatalogCard({ button, isAuth = true }: CatalogCardProps) {
+export function CatalogCard({ button }: CatalogCardProps) {
   return (
     <Card>
       <CardHeader className="flex flex-col gap-4">
@@ -41,7 +39,6 @@ export function CatalogCard({ button, isAuth = true }: CatalogCardProps) {
           <FaStar /> <Separator orientation="vertical" className="mx-2" /> 4.5
         </Badge>
       </CardContent>
-      {"if is not auth just trigger the sign in modal"}
       <CardFooter className="flex justify-end">{button}</CardFooter>
     </Card>
   );
