@@ -1,12 +1,13 @@
+# fly.toml app configuration file generated for casbytes on 2024-08-27T01:15:54+01:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
 app = 'casbytes'
 primary_region = 'ams'
 kill_signal = 'SIGINT'
 kill_timeout = '5s'
 swap_size_mb = 512
-
-[experimental]
-  # auto_rollback = true
-  # enable_consul = true
 
 [build]
 

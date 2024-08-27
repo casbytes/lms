@@ -47,9 +47,9 @@
     "@radix-ui/react-toggle": "^1.1.0",
     "@radix-ui/react-toggle-group": "^1.1.0",
     "@radix-ui/react-tooltip": "^1.1.2",
-    "@remix-run/node": "^2.11.2",
-    "@remix-run/react": "^2.11.2",
-    "@remix-run/serve": "^2.11.2",
+    "@remix-run/node": "2.11.2",
+    "@remix-run/react": "2.11.2",
+    "@remix-run/serve": "2.11.2",
     "@sanity/client": "^6.21.3",
     "@sanity/react-loader": "^1.10.6",
     "chalk": "^5.3.0",
@@ -91,7 +91,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.46.1",
-    "@remix-run/dev": "^2.11.2",
+    "@remix-run/dev": "2.11.2",
     "@testing-library/jest-dom": "^6.4.8",
     "@testing-library/react": "^16.0.0",
     "@testing-library/user-event": "^14.5.2",
@@ -118,12 +118,15 @@
     "prisma": "^5.18.0",
     "tailwindcss": "^3.4.10",
     "tsx": "^4.17.0",
+    "typescript": "^5.1.6",
+    "typescript-eslint": "^8.2.0",
     "vite": "^5.4.2",
     "vite-tsconfig-paths": "^5.0.1",
     "vitest": "^2.0.5",
-    "vitest-mock-extended": "^2.0.0",
-    "typescript": "^5.1.6",
-    "typescript-eslint": "^8.2.0"
+    "vitest-mock-extended": "^2.0.0"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "4.6.1"
   },
   "engines": {
     "node": ">=20"
