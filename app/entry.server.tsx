@@ -1,9 +1,7 @@
+/* eslint-disable no-console */
+import chalk from "chalk";
 import { PassThrough } from "node:stream";
-import type {
-  AppLoadContext,
-  EntryContext,
-  HandleDocumentRequestFunction,
-} from "@remix-run/node";
+import type { HandleDocumentRequestFunction } from "@remix-run/node";
 import { createReadableStreamFromReadable } from "@remix-run/node";
 import { RemixServer } from "@remix-run/react";
 import { isbot } from "isbot";
@@ -27,7 +25,8 @@ async function setHeaders(responseHeaders: Headers) {
 }
 
 export default async function handleRequest(...args: DocRequestArgs) {
-  const [request, , responseHeaders, , ,] = args;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [request, initialStatusCode, responseHeaders, remixContext] = args;
   await setHeaders(responseHeaders);
   return isbot(request.headers.get("user-agent") || "")
     ? handleBotRequest(...args)
@@ -71,11 +70,8 @@ function handleBotRequest(...args: DocRequestArgs) {
         },
         onError(error: unknown) {
           responseStatusCode = 500;
-          // Log streaming rendering errors from inside the shell.  Don't log
-          // errors encountered during initial shell rendering since they'll
-          // reject and get logged in handleDocumentRequest.
           if (shellRendered) {
-            console.error(error);
+            console.error(chalk.red(error));
           }
         },
       }
@@ -118,11 +114,8 @@ function handleBrowserRequest(...args: DocRequestArgs) {
         },
         onError(error: unknown) {
           responseStatusCode = 500;
-          // Log streaming rendering errors from inside the shell.  Don't log
-          // errors encountered during initial shell rendering since they'll
-          // reject and get logged in handleDocumentRequest.
           if (shellRendered) {
-            console.error(error);
+            console.error(chalk.red(error));
           }
         },
       }
