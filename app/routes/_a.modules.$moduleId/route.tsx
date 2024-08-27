@@ -33,7 +33,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   return defer({ moduleBadges, subModules, module, test, checkpoint, user });
 }
 
-export default function ModuleRoute() {
+export default function SubModuleRoute() {
   const { moduleBadges, subModules, module, test, checkpoint, user } =
     useLoaderData<typeof loader>();
   const item = { test, checkpoint };

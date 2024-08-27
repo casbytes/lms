@@ -6,13 +6,23 @@ import { Testimonial } from "./testimonial";
 import { Partnerships } from "./partnerships";
 import { Subscription } from "./subscription";
 import { Stripe } from "~/services/stripe.server";
+import { ModulesOverview } from "./modules-overview";
+import { MetaCourse, MetaModule } from "~/services/sanity/types";
 
-export function Home({ plans }: { plans: Stripe.Price[] }) {
+export function Home({
+  plans,
+  courses,
+  modules,
+}: {
+  plans: Stripe.Price[];
+  courses: MetaCourse[];
+  modules: MetaModule[];
+}) {
   return (
     <div className="bg-white">
       <Header />
-      <CoursesOverview />
-      <CoursesOverview />
+      <CoursesOverview courses={courses} />
+      <ModulesOverview modules={modules} />
       <ContentOverview />
       <FeatureOverview />
       <Testimonial />
