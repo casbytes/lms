@@ -7,7 +7,7 @@ export const schema = z.object({
   SECRET: z.string(),
   BASE_URL: z.string(),
   CDN_URL: z.string(),
-  CHECKER_URL: z.string(),
+  JAVASCRIPT_CHECKER_URL: z.string(),
   IFRAME_URL: z.string(),
   VIDEO_LIBRARY_ID: z.string(),
   GITHUB_OWNER: z.string(),
