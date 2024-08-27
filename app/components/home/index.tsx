@@ -14,9 +14,9 @@ export function Home({
   courses,
   modules,
 }: {
-  plans: Stripe.Price[];
-  courses: MetaCourse[];
-  modules: MetaModule[];
+  plans: Promise<Stripe.Price[]>;
+  courses: Promise<MetaCourse[]>;
+  modules: Promise<MetaModule[]>;
 }) {
   return (
     <div className="bg-white">

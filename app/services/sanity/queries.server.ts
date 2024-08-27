@@ -1,11 +1,14 @@
 import groq from "groq";
 
-export const COURSES_QUERY = groq`*[_type=="course" && published==true]{
+export const COURSES_QUERY = groq`*[_type=="course" && published==true] | order(title asc){
   "id":_id,
   title,
+  image,
   "slug":slug.current,
   published,
+  premium,
   testEnvironment,
+  description,
   "modules": module[]->{
     "id":_id,
     title,
@@ -30,8 +33,11 @@ export const COURSES_QUERY = groq`*[_type=="course" && published==true]{
 export const COURSE_BY_ID_QUERY = groq`*[_type=="course" && _id==$id][0]{
     "id":_id,
     title,
+    image,
     "slug":slug.current,
+    premium,
     testEnvironment,
+    description,
     "modules": module[]->{
         "id":_id,
         title,
