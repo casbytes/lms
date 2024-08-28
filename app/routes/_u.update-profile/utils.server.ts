@@ -29,7 +29,7 @@ export async function updateUser(request: Request) {
     const formData = await request.formData();
     const email = formData.get("email") as string;
     const name = formData.get("name") as string;
-    const githubUsername = formData.get("githubUsername") ?? null;
+    const githubUsername = formData.get("githubUsername") as string | null;
     const intent = formData.get("intent") as string;
 
     invariant(email, "Email is required.");

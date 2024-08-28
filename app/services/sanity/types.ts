@@ -15,7 +15,9 @@ export interface MetaModule {
   id: string;
   title: string;
   slug: string;
+  premium: boolean;
   checkpoint?: boolean;
+  description: string;
   testEnvironment?: TestEnv;
   subModules: MetaSubModule[];
 }

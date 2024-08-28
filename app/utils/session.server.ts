@@ -7,7 +7,6 @@ import {
   redirect,
   LoaderFunctionArgs,
 } from "@remix-run/node";
-import { ensurePrimary } from "./litefs.server";
 import { type User, prisma } from "./db.server";
 import { Emails } from "~/services/resend/emails.server";
 import { ROLE } from "./helpers";
@@ -165,9 +164,6 @@ export async function handleMagiclinkRedirect(request: Request) {
   const authState = crypto.randomBytes(16).toString("hex");
 
   try {
-    if (MODE === "production") {
-      await ensurePrimary();
-    }
     const existingUser = await prisma.user.findUnique({
       where: { email },
       select: { email: true },

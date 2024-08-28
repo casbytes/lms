@@ -3,6 +3,7 @@ import {
   FaBook,
   FaRegCircleUser,
   FaRegCreditCard,
+  FaSignal,
   FaUsers,
 } from "react-icons/fa6";
 import { MdOutlineArticle, MdOutlineDirections } from "react-icons/md";
@@ -10,6 +11,7 @@ import { SiBookstack } from "react-icons/si";
 export { RootLayout } from "./root-layout";
 
 const ARTICLE_URL = "https://articles.casbytes.com";
+const STATUS_URL = "https://status.casbytes.com";
 
 export const unAuthMenuItems = [
   { label: "courses", href: "courses" },
@@ -54,6 +56,12 @@ export const userMenuItems = [
     target: "_blank",
   },
   {
+    icon: <FaSignal size={30} />,
+    label: "status",
+    href: STATUS_URL,
+    target: "_blank",
+  },
+  {
     icon: <FaRegCircleUser size={30} />,
     label: "profile",
     href: "profile",
@@ -75,6 +83,12 @@ export const adminMenuItems = [
     icon: <MdOutlineArticle size={30} />,
     label: "articles",
     href: ARTICLE_URL,
+    target: "_blank",
+  },
+  {
+    icon: <FaSignal size={30} />,
+    label: "status",
+    href: STATUS_URL,
     target: "_blank",
   },
   {

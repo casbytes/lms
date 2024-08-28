@@ -6,20 +6,20 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "./ui/card";
-import { Image } from "./image";
-import { Badge } from "./ui/badge";
+} from "../ui/card";
+import { Image } from "../image";
+import { Badge } from "../ui/badge";
 import { FaStar } from "react-icons/fa6";
-import { Separator } from "./ui/separator";
+import { Separator } from "../ui/separator";
 import type { MetaCourse } from "~/services/sanity/types";
 import { capitalizeFirstLetter } from "~/utils/helpers";
 
 type CatalogCardProps = {
-  button: React.ReactNode;
+  cardActionButton: React.ReactNode;
   course: MetaCourse;
 };
 
-export function CatalogCard({ button, course }: CatalogCardProps) {
+export function CourseCard({ cardActionButton, course }: CatalogCardProps) {
   return (
     <Card>
       <CardHeader className="flex flex-col gap-4">
@@ -36,12 +36,12 @@ export function CatalogCard({ button, course }: CatalogCardProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="-my-2 flex justify-between">
-        <Badge>{course.premium ? "Premium" : "free"}</Badge>{" "}
+        <Badge>{course.premium ? "premium" : "free"}</Badge>{" "}
         <Badge>
           <FaStar /> <Separator orientation="vertical" className="mx-2" /> 4.5
         </Badge>
       </CardContent>
-      <CardFooter className="flex justify-end">{button}</CardFooter>
+      <CardFooter className="flex justify-end">{cardActionButton}</CardFooter>
     </Card>
   );
 }
