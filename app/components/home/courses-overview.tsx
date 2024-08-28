@@ -30,7 +30,7 @@ export function CoursesOverview({
                               course={course}
                               cardButton={
                                 <DialogTrigger asChild>
-                                  <Button>learn more</Button>
+                                  <Button>Learn more</Button>
                                 </DialogTrigger>
                               }
                             />

@@ -36,7 +36,11 @@ export const links = () => {
 };
 
 export function loader() {
-  return { ENV: getEnv() };
+  try {
+    return { ENV: getEnv() };
+  } catch (error) {
+    throw error;
+  }
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
