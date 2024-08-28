@@ -3,6 +3,7 @@ import { DialogTrigger } from "../ui/dialog";
 import { Stripe } from "~/services/stripe.server";
 import React from "react";
 import { Await } from "@remix-run/react";
+import { Button } from "../ui/button";
 
 export function Subscription({ plans }: { plans: Promise<Stripe.Price[]> }) {
   return (
@@ -51,7 +52,9 @@ export function Subscription({ plans }: { plans: Promise<Stripe.Price[]> }) {
                   </Await>
                 </React.Suspense>
               </div>
-              <DialogTrigger>Get started</DialogTrigger>
+              <Button asChild>
+                <DialogTrigger>Get started</DialogTrigger>
+              </Button>
             </div>
           </div>
         </div>
