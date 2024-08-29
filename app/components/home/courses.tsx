@@ -3,11 +3,7 @@ import { Slide } from "react-awesome-reveal";
 import { MetaCourse } from "~/services/sanity/types";
 import { MetaCourses } from "../catalog/meta-courses";
 
-export function CoursesOverview({
-  courses,
-}: {
-  courses: Promise<MetaCourse[]>;
-}) {
+export function Courses({ courses }: { courses: Promise<MetaCourse[]> }) {
   return (
     <Container className="bg-white mb-8" id="courses">
       <div className="flex flex-col items-center max-w-6xl mx-auto gap-8">

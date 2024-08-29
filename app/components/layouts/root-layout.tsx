@@ -117,7 +117,7 @@ export function RootLayout() {
   }, []);
 
   return isOnline ? (
-    <Dialog>
+    <Dialog defaultOpen>
       <Sheet>
         <NavBar
           menuItems={menuItems}
