@@ -150,6 +150,7 @@ export function RootLayout() {
           <Toaster />
           {isNavigating ? <FullPagePendingUI /> : null}
           <Outlet />
+          <BackToTopButton />
         </div>
       </Sheet>
     </Dialog>
