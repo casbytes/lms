@@ -15,6 +15,7 @@ import { adminMenuItems, userMenuItems, unAuthMenuItems } from ".";
 import { OfflineUI } from "../offline-ui";
 import { FullPagePendingUI } from "../full-page-pending-ui";
 import { useLearningTimer } from "~/utils/hooks";
+import { BackToTopButton } from "../back-to-top-button";
 
 export function RootLayout() {
   const [isOnline, setIsOnline] = React.useState(true);
