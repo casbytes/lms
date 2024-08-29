@@ -6,7 +6,7 @@ import {
   useSearchParams,
 } from "@remix-run/react";
 import { Footer } from "~/components/footer";
-import { AuthDialog } from "./components/auth-dialog";
+import { AuthDialogContent } from "./components/auth-dialog";
 import { ActionFunctionArgs } from "@remix-run/node";
 import { toast } from "~/components/ui/use-toast";
 
@@ -54,10 +54,13 @@ export default function UnAuthApp() {
     const params = ["email", "error", "success"];
     for (const param of params) {
       if (searchParams.has(param) && indexRoute) {
-        setSearchParams((params) => {
-          params.delete(param);
-          return params;
-        });
+        setSearchParams(
+          (params) => {
+            params.delete(param);
+            return params;
+          },
+          { preventScrollReset: true }
+        );
       }
     }
   }, [indexRoute, searchParams, setSearchParams]);
@@ -65,7 +68,7 @@ export default function UnAuthApp() {
   return (
     <>
       <Outlet />
-      <AuthDialog />
+      <AuthDialogContent />
       <Footer />
     </>
   );

@@ -8,7 +8,7 @@ import {
 import { Link } from "@remix-run/react";
 import { AuthForm } from "./auth-form";
 
-export function AuthDialog() {
+export function AuthDialogContent() {
   return (
     <DialogContent className="max-w-md bg-sky-600/40 gap-4">
       <DialogHeader>

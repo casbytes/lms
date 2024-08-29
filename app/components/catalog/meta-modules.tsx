@@ -9,7 +9,7 @@ import { DialogTrigger } from "../ui/dialog";
 import { cn } from "~/libs/shadcn";
 
 export function MetaModules({ modules }: { modules: Promise<MetaModule[]> }) {
-  const [initialModules, setInitialModules] = React.useState(20);
+  const [initialModules, setInitialModules] = React.useState(16);
   return (
     <>
       <div className="md:max-w-[60%] mb-8 w-full mx-auto mt-4">
