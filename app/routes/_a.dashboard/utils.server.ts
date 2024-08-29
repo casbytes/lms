@@ -221,7 +221,6 @@ export async function getModules(
   const searchTerm = url.searchParams.get("module") ?? "";
   try {
     const modules = await getMetaModules(searchTerm);
-
     const inCatalog = await checkCatalog(userId);
     return { modules, inCatalog };
   } catch (error) {
