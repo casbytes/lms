@@ -26,7 +26,7 @@ export const metaFn: MetaFunction = ({ matches }) => {
     "Crafting exceptional software solutions for tomorrow's challenges.";
   const keywords =
     "CASBytes, Software Development, Web Development, Mobile Development";
-  const image = `https://cdn.casbytes.com/logo.png`;
+  const image = `https://cdn.casbytes.com/assets/logo.png`;
   const url = `https://casbytes.com`;
   const pageMeta = [
     { title },
