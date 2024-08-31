@@ -44,7 +44,7 @@ function Modules({ userModules }: ModulesProps) {
   return (
     <Dialog>
       <Card className="shadow-lg">
-        <CardHeader className="py-2">
+        <CardHeader className="py-4">
           <div className="flex justify-between items-center">
             <CardTitle className="font-mono">My modules</CardTitle>
             {userModules?.length ? (
@@ -95,7 +95,7 @@ function Modules({ userModules }: ModulesProps) {
               <li className="text-center text-sm text-slate-500 mt-4">
                 No modules in your catalog.
                 <br />
-                Add a module to your catalog to begin.
+                Add a module to your catalog to start your journey.
               </li>
             )}
           </ul>
@@ -131,7 +131,7 @@ function ModuleTable({ userModules }: { userModules: IModule[] }) {
               No modules in your catalog.
               <br />
               <span className="text-sm">
-                Add a module to your catalog to begin.
+                Add a module to your catalog to start your journey.
               </span>
             </TableCell>
           </TableRow>

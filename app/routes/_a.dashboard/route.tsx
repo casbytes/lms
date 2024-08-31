@@ -23,8 +23,6 @@ export const meta = metaFn;
 
 export async function loader({ request }: LoaderFunctionArgs) {
   try {
-    // const courseData = getCourses(request);
-    // const moduleData = getModules(request);
     const userCourses = getUserCourses(request);
     const userModules = getUserModules(request);
     const timeData = getLearningTime(request);

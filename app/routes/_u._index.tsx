@@ -20,10 +20,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
   let error: string | undefined;
   try {
     const url = new URL(request.url);
-    const search = url.searchParams.get("moduleTitle");
+    const searchTerm = url.searchParams.get("moduleTitle");
     const plans = listPlans();
     const courses = getMetaCourses();
-    const modules = getMetaModules(search);
+    const modules = getMetaModules({ searchTerm });
     const session = await getUserSession(request);
     if (session.has(sessionKey)) {
       const user = await getUser(request);

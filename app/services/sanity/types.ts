@@ -1,4 +1,9 @@
+import { Reviews, User } from "~/utils/db.server";
 type TestEnv = "node" | "browser" | "python";
+
+export interface ReviewWithUser extends Reviews {
+  user: User;
+}
 
 export interface MetaCourse {
   id: string;
@@ -6,6 +11,8 @@ export interface MetaCourse {
   image: string;
   slug: string;
   premium: boolean;
+  inCatalog: boolean;
+  reviews?: ReviewWithUser[];
   testEnvironment?: TestEnv;
   description: string;
   modules: MetaModule[];
@@ -18,6 +25,8 @@ export interface MetaModule {
   premium: boolean;
   checkpoint?: boolean;
   description: string;
+  inCatalog: boolean;
+  reviews?: ReviewWithUser[];
   testEnvironment?: TestEnv;
   subModules: MetaSubModule[];
 }

@@ -8,6 +8,7 @@ import { Partnerships } from "./partnerships";
 import { Subscription } from "./subscription";
 import { Stripe } from "~/services/stripe.server";
 import { MetaCourse, MetaModule } from "~/services/sanity/types";
+// import { AddReview } from "../add-review";
 
 export function Home({
   plans,
@@ -21,6 +22,7 @@ export function Home({
   return (
     <div className="bg-white">
       <Header />
+      {/* <AddReview /> */}
       <Courses courses={courses} />
       <Modules modules={modules} />
       <ContentOverview />

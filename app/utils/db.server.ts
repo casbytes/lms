@@ -14,6 +14,7 @@ import {
   Checkpoint,
   Test as ITest,
   Project,
+  Reviews,
 } from "@prisma/client";
 
 type User = Omit<PUser, "createdAt" | "updatedAt"> & {
@@ -43,6 +44,7 @@ export type {
   Checkpoint,
   Test,
   Project,
+  Reviews,
   MDX,
 };
 
