@@ -6,20 +6,20 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "./ui/card";
-import { Image } from "./image";
-import { Badge } from "./ui/badge";
-import { FaStar } from "react-icons/fa6";
-import { Separator } from "./ui/separator";
+} from "../ui/card";
+import { Image } from "../image";
+import { Badge } from "../ui/badge";
 import type { MetaCourse } from "~/services/sanity/types";
 import { capitalizeFirstLetter } from "~/utils/helpers";
+import { ReviewsDialog } from "./reviews-dialog";
 
 type CatalogCardProps = {
-  button: React.ReactNode;
+  cardActionButton: React.ReactNode;
   course: MetaCourse;
 };
 
-export function CatalogCard({ button, course }: CatalogCardProps) {
+export function _CourseCard({ cardActionButton, course }: CatalogCardProps) {
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   return (
     <Card>
       <CardHeader className="flex flex-col gap-4">
@@ -36,12 +36,22 @@ export function CatalogCard({ button, course }: CatalogCardProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="-my-2 flex justify-between">
-        <Badge>{course.premium ? "Premium" : "free"}</Badge>{" "}
-        <Badge>
-          <FaStar /> <Separator orientation="vertical" className="mx-2" /> 4.5
+        <Badge>{course.premium ? "premium" : "free"}</Badge>{" "}
+        <Badge
+          onClick={() => setIsDialogOpen(true)}
+          className="flex gap-2 cursor-pointer"
+        >
+          {course?.reviews?.length} <span>reviews</span>
         </Badge>
       </CardContent>
-      <CardFooter className="flex justify-end">{button}</CardFooter>
+      <CardFooter className="flex justify-end">{cardActionButton}</CardFooter>
+      <ReviewsDialog
+        item={course}
+        isDialogOpen={isDialogOpen}
+        setIsDialogOpen={setIsDialogOpen}
+      />
     </Card>
   );
 }
+
+export const CourseCard = React.memo(_CourseCard);

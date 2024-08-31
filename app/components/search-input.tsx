@@ -16,23 +16,29 @@ export function ModuleSearchInput({
   const [, setSearchParams] = useSearchParams();
 
   const [searchTerm, setSearchTerm] = React.useState("");
-  const [debouncedValue] = useDebounce(searchTerm, 500);
+  const [debouncedValue] = useDebounce(searchTerm, 400);
 
   React.useEffect(() => {
     if (debouncedValue) {
-      setSearchParams((params) => {
-        params.set(searchValue, encodeURIComponent(debouncedValue));
-        return params;
-      });
+      setSearchParams(
+        (params) => {
+          params.set(searchValue, encodeURIComponent(debouncedValue));
+          return params;
+        },
+        { preventScrollReset: true }
+      );
     }
   }, [debouncedValue, searchValue, setSearchParams]);
 
   React.useEffect(() => {
     if (!searchTerm) {
-      setSearchParams((params) => {
-        params.delete(searchValue);
-        return params;
-      });
+      setSearchParams(
+        (params) => {
+          params.delete(searchValue);
+          return params;
+        },
+        { preventScrollReset: true }
+      );
     }
   }, [searchTerm, searchValue, setSearchParams]);
 

@@ -33,7 +33,7 @@ export function Header() {
               </DialogTrigger>
 
               <Button variant="outline" aria-label="curriculum" asChild>
-                <Link to="/courses">courses</Link>
+                <Link to="#courses">courses</Link>
               </Button>
             </div>
             <ul className="flex flex-wrap justify-center md:justify-start gap-4 mt-6">

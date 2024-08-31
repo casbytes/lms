@@ -1,3 +1,4 @@
+import React from "react";
 import type { Module as IModule, Course } from "~/utils/db.server";
 import { Table, TableBody, TableCell, TableRow } from "~/components/ui/table";
 import { UserModule } from "./user-module";
@@ -8,15 +9,14 @@ import {
   DialogTrigger,
 } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
-import React from "react";
 import { Await, Link } from "@remix-run/react";
 import { PendingCard } from "./pending-card";
 import { capitalizeFirstLetter, STATUS } from "~/utils/helpers";
-import { ModuleSearchInput } from "./module-search-input";
 import { FaRegEye } from "react-icons/fa6";
 import { DeleteConfirmationDialog } from "./delete-confirmation-dialog";
 import { Separator } from "~/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { ModuleSearchInput } from "~/components/search-input";
 
 type ModuleWithCourse = IModule & {
   course?: Course;
@@ -44,7 +44,7 @@ function Modules({ userModules }: ModulesProps) {
   return (
     <Dialog>
       <Card className="shadow-lg">
-        <CardHeader className="py-2">
+        <CardHeader className="py-4">
           <div className="flex justify-between items-center">
             <CardTitle className="font-mono">My modules</CardTitle>
             {userModules?.length ? (
@@ -95,7 +95,7 @@ function Modules({ userModules }: ModulesProps) {
               <li className="text-center text-sm text-slate-500 mt-4">
                 No modules in your catalog.
                 <br />
-                Add a module to your catalog to begin.
+                Add a module to your catalog to start your journey.
               </li>
             )}
           </ul>
@@ -115,7 +115,10 @@ function ModuleTable({ userModules }: { userModules: IModule[] }) {
       <TableBody className="text-slate-600 text-lg">
         <TableRow>
           <TableCell colSpan={2}>
-            <ModuleSearchInput searchValue="userModule" />
+            <ModuleSearchInput
+              searchValue="userModule"
+              placeholder="search modules"
+            />
           </TableCell>
         </TableRow>
         {userModules?.length ? (
@@ -128,7 +131,7 @@ function ModuleTable({ userModules }: { userModules: IModule[] }) {
               No modules in your catalog.
               <br />
               <span className="text-sm">
-                Add a module to your catalog to begin.
+                Add a module to your catalog to start your journey.
               </span>
             </TableCell>
           </TableRow>

@@ -1,21 +1,31 @@
 import invariant from "tiny-invariant";
 import { type LoaderFunctionArgs } from "@remix-run/node";
-// import { ensurePrimary } from "litefs-js/remix";
-import { handleMagiclinkAuth } from "~/utils/session.server";
+import { ensurePrimary } from "~/utils/litefs.server";
+import {
+  handleGithubCallback,
+  handleGoogleCallback,
+  handleMagiclinkCallback,
+} from "~/utils/session.server";
+const { NODE_ENV } = process.env;
 
-// const { NODE_ENV } = process.env;
-// const P_MODE = NODE_ENV === "production";
-
-export async function loader(loaderArgs: LoaderFunctionArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   try {
-    invariant(
-      loaderArgs.params.provider && loaderArgs.params.provider === "magic-link",
-      "Invalid provider."
-    );
-    // if (P_MODE) {
-    //   await ensurePrimary();
-    // }
-    return handleMagiclinkAuth(loaderArgs);
+    invariant(params.provider, "Invalid provider.");
+    const provider = params.provider as "magic-link" | "google" | "github";
+
+    if (NODE_ENV === "production") {
+      await ensurePrimary();
+    }
+    switch (provider) {
+      case "magic-link":
+        return handleMagiclinkCallback(request);
+      case "google":
+        return handleGoogleCallback(request);
+      case "github":
+        return handleGithubCallback(request);
+      default:
+        throw new Error("Invalid intent.");
+    }
   } catch (error) {
     throw error;
   }

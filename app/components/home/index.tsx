@@ -1,13 +1,14 @@
 import { Header } from "./header";
-import { CoursesOverview } from "./courses-overview";
+import { Courses } from "./courses";
+import { Modules } from "./modules";
 import { ContentOverview } from "./content-overview";
-import { FeatureOverview } from "./feature-overview";
+import { Features } from "./features";
 import { Testimonial } from "./testimonial";
 import { Partnerships } from "./partnerships";
 import { Subscription } from "./subscription";
 import { Stripe } from "~/services/stripe.server";
-import { ModulesOverview } from "./modules-overview";
 import { MetaCourse, MetaModule } from "~/services/sanity/types";
+// import { AddReview } from "../add-review";
 
 export function Home({
   plans,
@@ -21,10 +22,11 @@ export function Home({
   return (
     <div className="bg-white">
       <Header />
-      <CoursesOverview courses={courses} />
-      <ModulesOverview modules={modules} />
+      {/* <AddReview /> */}
+      <Courses courses={courses} />
+      <Modules modules={modules} />
       <ContentOverview />
-      <FeatureOverview />
+      <Features />
       <Testimonial />
       <Partnerships />
       <Subscription plans={plans} />

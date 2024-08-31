@@ -19,6 +19,11 @@ export const meta = metaFn;
 export async function loader({ request }: LoaderFunctionArgs) {
   let error: string | undefined;
   try {
+    const url = new URL(request.url);
+    const searchTerm = url.searchParams.get("moduleTitle");
+    const plans = listPlans();
+    const courses = getMetaCourses();
+    const modules = getMetaModules({ searchTerm });
     const session = await getUserSession(request);
     if (session.has(sessionKey)) {
       const user = await getUser(request);
@@ -33,9 +38,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     if (session.has("error")) {
       error = session.get("error");
     }
-    const plans = listPlans();
-    const courses = getMetaCourses();
-    const modules = getMetaModules();
+
     return defer(
       { plans, courses, modules, error },
       await destroyAuthSession(session)

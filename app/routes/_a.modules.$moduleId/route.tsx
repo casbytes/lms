@@ -18,6 +18,8 @@ import { PageTitle } from "~/components/page-title";
 import { SubModules } from "~/components/modules";
 import { SideContent } from "./components/side-content";
 import { metaFn } from "~/utils/meta";
+// import { AddReview } from "~/components/add-review";
+// import { isCourseOrModuleReviewed } from "~/utils/helpers.server";
 
 export const meta = metaFn;
 
@@ -25,18 +27,39 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const module = getModule(request, params);
   const moduleBadges = getModuleBadges(request, params);
   const subModules = getSubModules(request, params);
-  const [test, checkpoint] = await Promise.all([
+  const [test, checkpoint, user] = await Promise.all([
     getTest(request, params),
     getCheckpoint(request, params),
+    getUser(request),
   ]);
-  const user = await getUser(request);
-  return defer({ moduleBadges, subModules, module, test, checkpoint, user });
+  // const isModuleReviewed = await isCourseOrModuleReviewed({
+  //   userId: user.id,
+  //   moduleId: await module.then((m) => m.id),
+  // });
+  return defer({
+    moduleBadges,
+    subModules,
+    module,
+    test,
+    checkpoint,
+    user,
+    // isModuleReviewed,
+  });
 }
 
 export default function SubModuleRoute() {
-  const { moduleBadges, subModules, module, test, checkpoint, user } =
-    useLoaderData<typeof loader>();
+  const {
+    moduleBadges,
+    subModules,
+    module,
+    test,
+    checkpoint,
+    user,
+    // isModuleReviewed,
+  } = useLoaderData<typeof loader>();
   const item = { test, checkpoint };
+  // const [isDialogOpen, setIsDialogOpen] = React.useState(true);
+
   return (
     <Container className="max-w-3xl lg:max-w-7xl">
       <BackButton to="/dashboard" buttonText="dashboard" />
@@ -44,7 +67,17 @@ export default function SubModuleRoute() {
         fallback={<PageTitle title="Loading..." className="mb-8" />}
       >
         <Await resolve={module}>
-          {(module) => <PageTitle title={module.title} className="mb-8" />}
+          {(module) => (
+            <>
+              <PageTitle title={module.title} className="mb-8" />
+              {/* <AddReview
+                user={user}
+                module={module}
+                isDialogOpen={isDialogOpen}
+                setIsDialogOpen={setIsDialogOpen}
+              /> */}
+            </>
+          )}
         </Await>
       </React.Suspense>
 

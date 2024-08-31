@@ -84,9 +84,6 @@ export function MainNav({
                         target={item.target ?? "_self"}
                         aria-label={item.label}
                         prefetch="intent"
-                        className={({ isActive }) =>
-                          isActive ? "text-blue-600" : ""
-                        }
                       >
                         <Button variant="link" className="text-lg capitalize">
                           {item.label}

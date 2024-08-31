@@ -14,7 +14,8 @@ model User {
   id                  String         @id @default(uuid())
   name                String?
   email               String         @unique
-  role                String         @default("USER") //USER, ADMIN, 
+  role                String         @default("USER") //USER, ADMIN,
+  avatarUrl           String?
   stripeCustomerId    String?        @unique
   githubUsername      String?
   subscribed          Boolean        @default(false)
@@ -34,6 +35,7 @@ model User {
   projects            Project[]
   badges              Badge[]
   learningHours       LearningTime[]
+  reviews             Reviews[]
 }
 
 model LearningTime {
@@ -48,14 +50,15 @@ model LearningTime {
 //                 PROGRESS                 //
 //||||||||||||||||##########||||||||||||||||//
 model Course {
-  id      String   @id @default(uuid())
+  id      String    @id @default(uuid())
   title   String
   slug    String
-  score   Int      @default(0)
-  status  String   @default("IN_PROGRESS") //IN_PROGRESS, COMPLETED
+  score   Int       @default(0)
+  status  String    @default("IN_PROGRESS") //IN_PROGRESS, COMPLETED
   users   User[]
   modules Module[]
   project Project?
+  reviews Reviews[]
 }
 
 model Module {
@@ -73,6 +76,7 @@ model Module {
   badges     Badge[]
   test       Test?
   checkpoint Checkpoint?
+  reviews    Reviews[]
 
   @@index([courseId], name: "courseId")
 }
@@ -157,4 +161,17 @@ model Project {
   courseId        String @unique
   contributors    User[]
   course          Course @relation(fields: [courseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model Reviews {
+  id          String   @id @default(uuid())
+  userId      String
+  courseId    String?  @unique
+  moduleId    String?  @unique
+  rating      Int      @default(0)
+  description String
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course      Course?  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  module      Module?  @relation(fields: [moduleId], references: [id], onDelete: Cascade)
 }

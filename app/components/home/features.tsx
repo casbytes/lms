@@ -5,9 +5,9 @@ import { MdQuiz } from "react-icons/md";
 import { IoShieldCheckmarkSharp } from "react-icons/io5";
 import { FaProjectDiagram } from "react-icons/fa";
 
-export function FeatureOverview() {
+export function Features() {
   return (
-    <Container className="bg-2 bg-no-repeat bg-cover" id="curriculum_overview">
+    <Container className="bg-2 bg-no-repeat bg-cover" id="features">
       <div className="max-w-3xl flex flex-col items-center justify-center mx-auto gap-6 px-2 py-6">
         <h1 className="text-3xl font-bold mb-8 text-blue-500">
           Features overview

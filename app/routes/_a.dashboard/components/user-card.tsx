@@ -1,4 +1,3 @@
-import React from "react";
 import { format } from "date-fns";
 import { Image } from "~/components/image";
 import type { User } from "~/utils/db.server";
@@ -9,10 +8,6 @@ type UserCardProps = {
 };
 
 export function UserCard({ user }: UserCardProps) {
-  const avatarSrc = React.useMemo(() => {
-    const seed = user.name!.split(" ")[0];
-    return `https://api.dicebear.com/9.x/avataaars/svg?seed=${seed}`;
-  }, [user.name]);
   return (
     <Card className="shadow-lg bg-gradient-to-r from-zinc-100 to-sky-200">
       <CardHeader>
@@ -31,11 +26,11 @@ export function UserCard({ user }: UserCardProps) {
         </div>
         <Image
           cdn={false}
-          src={avatarSrc}
-          alt="Welcome back"
+          src={user.avatarUrl!}
+          alt={user.name!}
           width={24}
           height={24}
-          className="w-24 hidden sm:block h-24"
+          className="w-24 hidden sm:block h-24 rounded-full"
         />
       </CardContent>
     </Card>

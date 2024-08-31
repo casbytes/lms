@@ -8,16 +8,12 @@ import { DiscordCard } from "~/components/discord-card";
 import { UserCard } from "./components/user-card";
 import { Chart } from "./components/chart";
 import {
-  getCourses,
   getLearningTime,
-  getModules,
   getUserCourses,
   getUserModules,
   handleActions,
 } from "./utils.server";
-import { Courses } from "./components/courses";
 import { getUser } from "~/utils/session.server";
-import { Modules } from "./components/modules";
 import { toast } from "~/components/ui/use-toast";
 import { metaFn } from "~/utils/meta";
 import { UserCourses } from "./components/user-courses";
@@ -27,16 +23,12 @@ export const meta = metaFn;
 
 export async function loader({ request }: LoaderFunctionArgs) {
   try {
-    const courseData = getCourses(request);
-    const moduleData = getModules(request);
     const userCourses = getUserCourses(request);
     const userModules = getUserModules(request);
     const timeData = getLearningTime(request);
     const user = await getUser(request);
 
     return defer({
-      courseData,
-      moduleData,
       userCourses,
       userModules,
       timeData,
@@ -52,7 +44,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function Dashboard() {
-  const { courseData, moduleData, userCourses, userModules, timeData, user } =
+  const { userCourses, userModules, timeData, user } =
     useLoaderData<typeof loader>();
   const ad = useActionData<typeof action>();
 
