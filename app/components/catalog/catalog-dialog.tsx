@@ -12,7 +12,6 @@ import {
 import { capitalizeFirstLetter } from "~/utils/helpers";
 import { MetaCourse, MetaModule } from "~/services/sanity/types";
 import { Badge } from "../ui/badge";
-import { Separator } from "../ui/separator";
 import { Button } from "../ui/button";
 import { Image } from "../image";
 import { CourseCard } from "./course-card";
@@ -76,8 +75,7 @@ export function CatalogDialog({
                 onClick={() => setIsDialogOpen(true)}
                 className="flex gap-2 cursor-pointer"
               >
-                <span>Reviews</span>
-                <Separator orientation="vertical" /> {item?.reviews?.length}{" "}
+                {item?.reviews?.length} <span>reviews</span>
               </Badge>
             </div>
             <Button variant={"outline"} asChild className="self-end">

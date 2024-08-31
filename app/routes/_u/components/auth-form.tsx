@@ -27,7 +27,7 @@ export function AuthForm({
         required
       />
       {provider === "magic-link" ? (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4">
           <Input
             type="email"
             name="email"
@@ -53,7 +53,7 @@ export function AuthForm({
         <Button
           type="submit"
           size="lg"
-          className="capitalize text-lg bg-zinc-600 hover:bg-zinc-500 w-full"
+          className="text-lg bg-zinc-600 hover:bg-zinc-500 w-full flex gap-2"
           aria-label={`continue with ${label}`}
           {...props}
           disabled={isLoading}

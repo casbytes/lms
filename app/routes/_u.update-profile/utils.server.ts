@@ -37,15 +37,20 @@ export async function updateUser(request: Request) {
     invariant(intent === "submit", "Invalid intent.");
 
     const stripeCustomer = await createStripeCustomer({ email, name });
-    if (!stripeCustomer.id) {
+    if (!stripeCustomer) {
       session.flash("error", "Failed to create stripe customer, try again.");
       throw redirect("/", await commitAuthSession(session));
     }
+
+    const firstName = name.split(" ")[0];
+    const avatar_url = `https://api.dicebear.com/9.x/avataaars/svg?seed=${firstName}`;
+
     const user = await prisma.user.update({
       where: { email },
       data: {
         name,
         githubUsername,
+        avatarUrl: avatar_url,
         verified: true,
         verificationToken: null,
         authState: null,

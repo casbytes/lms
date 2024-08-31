@@ -9,7 +9,6 @@ import {
 } from "../ui/card";
 import { Image } from "../image";
 import { Badge } from "../ui/badge";
-import { Separator } from "../ui/separator";
 import type { MetaCourse } from "~/services/sanity/types";
 import { capitalizeFirstLetter } from "~/utils/helpers";
 import { ReviewsDialog } from "./reviews-dialog";
@@ -42,8 +41,7 @@ export function _CourseCard({ cardActionButton, course }: CatalogCardProps) {
           onClick={() => setIsDialogOpen(true)}
           className="flex gap-2 cursor-pointer"
         >
-          <span>Reviews</span>
-          <Separator orientation="vertical" /> {course?.reviews?.length}{" "}
+          {course?.reviews?.length} <span>reviews</span>
         </Badge>
       </CardContent>
       <CardFooter className="flex justify-end">{cardActionButton}</CardFooter>

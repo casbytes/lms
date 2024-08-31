@@ -49,15 +49,6 @@ export async function deleteUser(
         await txn.module.deleteMany({
           where: { users: { some: { id: userId } } },
         }),
-        await txn.test.deleteMany({
-          where: { id: user.id },
-        }),
-        await txn.project.deleteMany({
-          where: { id: user.id },
-        }),
-        await txn.checkpoint.deleteMany({
-          where: { id: user.id },
-        }),
         await txn.user.delete({
           where: { id: user.id },
         });

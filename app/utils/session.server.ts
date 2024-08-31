@@ -1,15 +1,13 @@
 import crypto from "node:crypto";
 import JWT from "jsonwebtoken";
 import invariant from "tiny-invariant";
-import {
-  Session,
-  createCookieSessionStorage,
-  redirect,
-  LoaderFunctionArgs,
-} from "@remix-run/node";
+import { google } from "googleapis";
+import { Session, createCookieSessionStorage, redirect } from "@remix-run/node";
 import { type User, prisma } from "./db.server";
 import { Emails } from "~/services/resend/emails.server";
 import { ROLE } from "./helpers";
+import { customFetch } from "./helpers.server";
+import { createStripeCustomer } from "~/services/stripe.server";
 
 export interface SessionData {
   userId: string;
@@ -19,7 +17,16 @@ interface SessionError {
   error: string;
 }
 
-const { SECRET, NODE_ENV, BASE_URL, COOKIE_DOMAIN } = process.env;
+const {
+  SECRET,
+  NODE_ENV,
+  BASE_URL,
+  COOKIE_DOMAIN,
+  GITHUB_CLIENT_ID,
+  GITHUB_CLIENT_SECRET,
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET,
+} = process.env;
 const MODE = NODE_ENV;
 
 export const sessionKey = "userId";
@@ -154,6 +161,14 @@ export async function checkAdmin(request: Request) {
 }
 
 /**
+ * Generate state
+ * @returns {string} - State
+ */
+function generateState() {
+  return crypto.randomBytes(16).toString("hex");
+}
+
+/**
  * Handle magic link redirect
  * @param request - Request
  * @returns {TypedResponse<never>}
@@ -161,7 +176,7 @@ export async function checkAdmin(request: Request) {
 export async function handleMagiclinkRedirect(request: Request) {
   const formData = await request.formData();
   const email = formData.get("email") as string;
-  const authState = crypto.randomBytes(16).toString("hex");
+  const authState = generateState();
 
   try {
     const existingUser = await prisma.user.findUnique({
@@ -215,11 +230,7 @@ export async function handleMagiclinkRedirect(request: Request) {
  * @param {Params<string>} params - Params
  * @returns {null | TypedResponse<never>}
  */
-export async function handleMagiclinkAuth({
-  request,
-  params,
-}: LoaderFunctionArgs) {
-  invariant(params.provider, "Invalid provider.");
+export async function handleMagiclinkCallback(request: Request) {
   const session = await getUserSession(request);
   const url = new URL(request.url);
   const token = url.searchParams.get("token");
@@ -274,6 +285,286 @@ export async function handleMagiclinkAuth({
       );
     }
     throw error;
+  }
+}
+
+const GOOGLE_AUTH_REDIRECT_URL = `${BASE_URL}/google/callback`;
+
+/**
+ * Generate oauth2 client
+ * @returns {Promise<OAuth2Client>} - OAuth2Client
+ */
+async function generateOauth2Client() {
+  return new google.auth.OAuth2(
+    GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET,
+    GOOGLE_AUTH_REDIRECT_URL
+  );
+}
+
+/**
+ * Handle google redirect
+ * @param {Request} request - Request
+ * @returns {TypedResponse<never>}
+ * @throws {Error}
+ */
+export async function handleGoogleRedirect() {
+  const SCOPES = [
+    "https://www.googleapis.com/auth/userinfo.email",
+    "https://www.googleapis.com/auth/userinfo.profile",
+  ];
+
+  const oauth2Client = await generateOauth2Client();
+  const authorizationUrl = oauth2Client.generateAuthUrl({
+    access_type: "offline",
+    scope: SCOPES,
+    include_granted_scopes: true,
+    state: generateState(),
+  });
+  return redirect(authorizationUrl);
+}
+
+/**
+ * Handle google callback
+ * @param {Request} request - Request
+ * @returns {null | TypedResponse<never>}
+ */
+export async function handleGoogleCallback(request: Request) {
+  const session = await getUserSession(request);
+  const url = new URL(request.url);
+  const code = url.searchParams.get("code");
+  const state = url.searchParams.get("state");
+  const error = url.searchParams.get("error");
+
+  invariant(code, "Code is required to authenticate user.");
+  invariant(state, "State is required authenticate user.");
+
+  if (error) {
+    session.flash("error", "Failed to authenticate user, please try again.");
+    throw redirect("/", await commitAuthSession(session));
+  }
+
+  const oauth2Client = await generateOauth2Client();
+  const { tokens } = await oauth2Client.getToken(code);
+  oauth2Client.setCredentials(tokens);
+
+  const oauth2 = google.oauth2({
+    auth: oauth2Client,
+    version: "v2",
+  });
+
+  const { data: userInfo } = (await oauth2.userinfo.get()) as {
+    data: { email: string; name: string; picture: string; given_name: string };
+  };
+
+  let user = await prisma.user.findUnique({
+    where: { email: userInfo.email },
+    select: {
+      id: true,
+      role: true,
+      currentUrl: true,
+      completedOnboarding: true,
+    },
+  });
+
+  if (!user) {
+    const stripeCustomer = await createStripeCustomer({
+      email: userInfo.email,
+      name: userInfo.name,
+    });
+    if (!stripeCustomer) {
+      session.flash(
+        "error",
+        "Failed to create stripe account, please try again."
+      );
+      throw redirect("/", await commitAuthSession(session));
+    }
+
+    const avatar_url = `https://api.dicebear.com/9.x/avataaars/svg?seed=${userInfo.given_name}`;
+
+    const data = {
+      name: userInfo.name,
+      email: userInfo.email,
+      avatarUrl: userInfo?.picture?.trim() || avatar_url,
+      stripeCustomerId: stripeCustomer.id,
+      verified: true,
+    };
+
+    user = await prisma.user.create({
+      data,
+      select: {
+        id: true,
+        role: true,
+        currentUrl: true,
+        completedOnboarding: true,
+      },
+    });
+    //send welcome email
+  }
+
+  session.set(sessionKey, user.id);
+
+  if (user.role === (ROLE.ADMIN as ROLE)) {
+    return redirect("/a", await commitAuthSession(session));
+  } else {
+    const redirectUrl = user.completedOnboarding
+      ? user.currentUrl ?? "/dashboard"
+      : "/onboarding";
+    return redirect(redirectUrl, await commitAuthSession(session));
+  }
+}
+
+const GITHUB_AUTH_REDIRECT_URL = `${BASE_URL}/github/callback`;
+
+/**
+ * Handle github redirect
+ * @param {Request} request - Request
+ * @returns {TypedResponse<never>}
+ */
+export async function handleGithubRedirect() {
+  const state = generateState();
+  const REDIRECT_URL = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&state=${state}&scope=read:user&redirect_uri=${encodeURIComponent(
+    GITHUB_AUTH_REDIRECT_URL
+  )}&allow_signup=true&response_type=code`;
+
+  return redirect(REDIRECT_URL);
+}
+
+async function getGithubAccessToken(
+  code: string,
+  request: Request
+): Promise<string> {
+  const session = await getUserSession(request);
+
+  const ACCESS_TOKEN_URL = `https://github.com/login/oauth/access_token?client_id=${GITHUB_CLIENT_ID}&client_secret=${GITHUB_CLIENT_SECRET}&code=${code}&redirect_uri=${encodeURIComponent(
+    GITHUB_AUTH_REDIRECT_URL
+  )}`;
+
+  type ResponseData = {
+    access_token: string;
+    token_type: string;
+    scope: string;
+  };
+
+  const { data: accessTokenData } = await customFetch<ResponseData>(
+    ACCESS_TOKEN_URL,
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+      },
+    }
+  );
+
+  if (!accessTokenData?.access_token) {
+    session.flash("error", "Failed to fetch access token from GitHub.");
+    throw redirect("/", await commitAuthSession(session));
+  }
+
+  return accessTokenData.access_token;
+}
+
+type UserData = {
+  name: string;
+  email: string;
+  login: string;
+  avatar_url: string;
+};
+
+async function getGithubUser(
+  accessToken: string,
+  request: Request
+): Promise<UserData> {
+  const session = await getUserSession(request);
+  const AUTH_URL = "https://api.github.com/user";
+  const { data: userRes } = await customFetch<UserData>(AUTH_URL, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!userRes) {
+    session.flash("error", "Failed to fetch user data from GitHub.");
+    throw redirect("/", await commitAuthSession(session));
+  }
+
+  return userRes;
+}
+
+/**
+ * Handle github callback
+ * @param {Request} request - Request
+ * @returns {null | TypedResponse<never>}
+ */
+export async function handleGithubCallback(request: Request) {
+  const session = await getUserSession(request);
+  const url = new URL(request.url);
+  const code = url.searchParams.get("code");
+  const state = url.searchParams.get("state");
+  invariant(code, "Code is required to authenticate user.");
+  invariant(state, "State is required authenticate user.");
+
+  const accessToken = await getGithubAccessToken(code, request);
+  const githubUser = await getGithubUser(accessToken, request);
+
+  let user = await prisma.user.findUnique({
+    where: { email: githubUser.email },
+    select: {
+      id: true,
+      role: true,
+      currentUrl: true,
+      completedOnboarding: true,
+    },
+  });
+
+  if (!user) {
+    const stripeCustomer = await createStripeCustomer({
+      email: githubUser.email,
+      name: githubUser.name,
+    });
+    if (!stripeCustomer) {
+      session.flash(
+        "error",
+        "Failed to create stripe account, please try again."
+      );
+      throw redirect("/", await commitAuthSession(session));
+    }
+
+    const avatar_url = `https://api.dicebear.com/9.x/avataaars/svg?seed=${
+      githubUser.name.split(" ")[0]
+    }`;
+
+    const data = {
+      name: githubUser.name,
+      email: githubUser.email,
+      githubUsername: githubUser.login,
+      avatarUrl: githubUser.avatar_url.trim() || avatar_url,
+      stripeCustomerId: stripeCustomer.id,
+      verified: true,
+    };
+
+    user = await prisma.user.create({
+      data,
+      select: {
+        id: true,
+        role: true,
+        currentUrl: true,
+        completedOnboarding: true,
+      },
+    });
+    //send welcome email
+  }
+
+  session.set(sessionKey, user.id);
+
+  if (user.role === (ROLE.ADMIN as ROLE)) {
+    return redirect("/a", await commitAuthSession(session));
+  } else {
+    const redirectUrl = user.completedOnboarding
+      ? user.currentUrl ?? "/dashboard"
+      : "/onboarding";
+    return redirect(redirectUrl, await commitAuthSession(session));
   }
 }
 

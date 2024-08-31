@@ -2,7 +2,6 @@ import React from "react";
 import { Card, CardHeader } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { MetaModule } from "~/services/sanity/types";
-import { Separator } from "../ui/separator";
 import { ReviewsDialog } from "./reviews-dialog";
 
 export function ModuleCard({
@@ -35,10 +34,9 @@ export function ModuleCard({
         ) : null}
         <Badge
           onClick={() => setIsDialogOpen(true)}
-          className="absolute rounded-bl-none rounded-tr-none bottom-0 right-0 cursor-pointer"
+          className="absolute rounded-bl-none rounded-tr-none bottom-0 right-0 cursor-pointer flex gap-1 items-center"
         >
-          <span>Reviews</span>
-          <Separator orientation="vertical" /> {module?.reviews?.length}
+          {module?.reviews?.length} <span>reviews</span>
         </Badge>
       </CardHeader>
     </Card>

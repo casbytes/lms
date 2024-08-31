@@ -145,8 +145,8 @@ export function getVideoSource() {
 /**
  * Fetch the checkpoint and grade it
  * @param url - URL to send the POST request to
- * @param host - Host for the X-Forwarded-For header
  * @param testEnvironment - Test environment identifier
+ * @param request - The original Request object containing the host and body
  * @returns {Promise<ApiResponse>} - The API response, formatted as needed
  */
 export async function gradeFetch({
@@ -157,29 +157,31 @@ export async function gradeFetch({
   url: string;
   testEnvironment: string;
   request: Request;
-}): Promise<ApiResponse> {
+}) {
   try {
     const host = request.headers.get("X-Forwarded-For") as string;
-    const response = await fetch(url, {
+
+    const headers = {
+      "Content-Type": "application/json",
+      "X-Forwarded-For": host,
+      "X-Test-Env": testEnvironment,
+    };
+
+    const { data, error } = await customFetch<ApiResponse>(url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Forwarded-For": host,
-        "X-Test-Env": testEnvironment,
-      },
+      headers,
     });
 
-    if (!response.ok) {
-      const errorMessage = `Failed to grade checkpoint. Status: ${response.status} - ${response.statusText}`;
-      return formatCheckerResponse({
-        error: errorMessage,
-      });
+    if (error) {
+      throw new Error(error);
     }
 
-    const data: ApiResponse = await response.json();
-    return formatCheckerResponse(data);
+    return formatCheckerResponse(data!);
   } catch (error) {
-    throw error;
+    const errorMessage = `Failed to grade checkpoint. Error: ${
+      error instanceof Error ? error.message : "Unknown error"
+    }`;
+    return formatCheckerResponse({ error: errorMessage });
   }
 }
 
@@ -956,4 +958,127 @@ export async function checkCatalog({
     });
   }
   return existingItem;
+}
+
+type FetchOptions = {
+  method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+  headers?: Record<string, string>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  body?: any;
+  signal?: AbortSignal;
+};
+
+type FetchResponse<T> = {
+  data: T | null;
+  error: string | null;
+};
+
+/**
+ * Custom fetch function
+ * @param {string} url - The URL to fetch
+ * @param {FetchOptions} options - The fetch options
+ * @returns {Promise<FetchResponse>}
+ */
+export async function customFetch<T>(
+  url: string,
+  options: FetchOptions = {}
+): Promise<FetchResponse<T>> {
+  const { method = "GET", headers = {}, body, signal } = options;
+
+  try {
+    const response = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        ...headers,
+      },
+      body: body ? JSON.stringify(body) : undefined,
+      signal,
+    });
+
+    if (!response.ok) {
+      const errorMessage = `Error: ${response.status} ${response.statusText}`;
+      return {
+        data: null,
+        error: errorMessage,
+      };
+    }
+
+    const data: T = await response.json();
+    return { data, error: null };
+  } catch (error) {
+    return {
+      data: null,
+      error:
+        error instanceof Error ? error.message : "An unknown error occurred",
+    };
+  }
+}
+
+export async function isCourseOrModuleReviewed({
+  userId,
+  courseId,
+  moduleId,
+}: {
+  userId: string;
+  courseId?: string;
+  moduleId?: string;
+}): Promise<boolean> {
+  try {
+    if (courseId) {
+      const course = await prisma.course.findFirstOrThrow({
+        where: { id: courseId, users: { some: { id: userId } } },
+        include: {
+          reviews: { where: { userId } },
+          modules: {
+            select: { id: true, status: true },
+          },
+        },
+      });
+
+      if (course.reviews.length === 0) {
+        const completedModules = course.modules.filter(
+          (module) => module.status === STATUS.COMPLETED
+        ).length;
+
+        const completedPercentage = Math.round(
+          (completedModules / course.modules.length) * 100
+        );
+
+        if (completedPercentage >= 25) {
+          return true;
+        }
+      }
+    }
+
+    if (moduleId) {
+      const module = await prisma.module.findFirstOrThrow({
+        where: { id: moduleId, users: { some: { id: userId } } },
+        include: {
+          reviews: { where: { userId } },
+          subModules: {
+            select: { id: true, status: true },
+          },
+        },
+      });
+
+      if (module.reviews.length === 0) {
+        const completedSubModules = module.subModules.filter(
+          (subModule) => subModule.status === STATUS.COMPLETED
+        ).length;
+
+        const completedPercentage = Math.round(
+          (completedSubModules / module.subModules.length) * 100
+        );
+
+        if (completedPercentage >= 25) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  } catch (error) {
+    throw error;
+  }
 }

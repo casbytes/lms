@@ -2,6 +2,7 @@ import React from "react";
 import { FaStar } from "react-icons/fa6";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -13,24 +14,41 @@ import { Button } from "./ui/button";
 import { cn } from "~/libs/shadcn";
 import { useFetcher } from "@remix-run/react";
 import { toast } from "./ui/use-toast";
+import type { Course, Module, User } from "~/utils/db.server";
 
-export function AddReview() {
+export function AddReview({
+  user,
+  course,
+  module,
+  isDialogOpen,
+  setIsDialogOpen,
+}: {
+  user: User;
+  course?: Course;
+  module?: Module;
+  isDialogOpen: boolean;
+  setIsDialogOpen: (isOpen: boolean) => void;
+}) {
   const [rating, setRating] = React.useState(0);
   const [review, setReview] = React.useState("");
   const reviewsFetcher = useFetcher();
+  const item = course ?? (module as Module);
+
   return (
-    <Dialog open>
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="mb-4">Please review this module</DialogTitle>
           <div className="flex flex-col gap-4 mt-4">
             <div>
               <div>
-                <span className="text-slate-600">Name:</span> Christopher Sesugh
+                <span className="text-slate-600">Name:</span> {user.name}
               </div>
               <div>
-                <span className="text-slate-600">Module:</span> Front end
-                overview
+                <span className="text-slate-600">
+                  {course ? "Course" : "Module"}:
+                </span>{" "}
+                {item.title}
               </div>
             </div>
 
@@ -56,7 +74,9 @@ export function AddReview() {
           </div>
         </DialogHeader>
         <DialogFooter>
-          <Button variant={"outline"}>Close</Button>
+          <DialogClose>
+            <Button variant={"outline"}>Remind me later</Button>
+          </DialogClose>
           <Button
             onClick={() => {
               if (rating < 1 || review.length < 10) {
@@ -64,11 +84,12 @@ export function AddReview() {
                   title:
                     "Rating must be at least 1 and your review must be at least 10 characters long",
                 });
+              } else {
+                reviewsFetcher.submit(
+                  { rating, review },
+                  { method: "POST", preventScrollReset: true }
+                );
               }
-              reviewsFetcher.submit(
-                { rating, review },
-                { method: "POST", preventScrollReset: true }
-              );
             }}
           >
             Submit
@@ -87,7 +108,7 @@ type StarRatingProps = {
 function StarRating({ rating, setRating }: StarRatingProps) {
   return (
     <div className="flex">
-      {[...Array(5)].map((_, index) => {
+      {Array.from({ length: 5 }, (_, index) => {
         const starValue = index + 1;
         return (
           <FaStar
