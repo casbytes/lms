@@ -39,13 +39,13 @@ export const userMenuItems = [
   },
   {
     icon: <SiBookstack size={30} />,
-    label: "course catalog",
-    href: "catalog/courses",
+    label: "courses",
+    href: "courses",
   },
   {
     icon: <FaBook size={30} />,
-    label: "module catalog",
-    href: "catalog/modules",
+    label: "modules",
+    href: "modules",
   },
   {
     icon: <FaRegCreditCard size={30} />,

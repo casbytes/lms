@@ -8,7 +8,15 @@ import { CatalogDialog } from "./catalog-dialog";
 import { DialogTrigger } from "../ui/dialog";
 import { cn } from "~/libs/shadcn";
 
-export function MetaModules({ modules }: { modules: Promise<MetaModule[]> }) {
+export function MetaModules({
+  modules,
+  user,
+  currentItem,
+}: {
+  modules: Promise<MetaModule[]>;
+  user: { subscribed: boolean };
+  currentItem: { title: string } | null;
+}) {
   const [initialModules, setInitialModules] = React.useState(16);
   return (
     <>
@@ -43,12 +51,9 @@ export function MetaModules({ modules }: { modules: Promise<MetaModule[]> }) {
                           )}
                         >
                           <CatalogDialog
+                            user={user}
                             module={module}
-                            dialogActionButton={
-                              <DialogTrigger asChild>
-                                <Button>Add to catalog</Button>
-                              </DialogTrigger>
-                            }
+                            currentItem={currentItem}
                             cardActionButton={
                               <DialogTrigger asChild>
                                 <Button variant={"outline"} size={"sm"}>

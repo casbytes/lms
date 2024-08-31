@@ -86,7 +86,7 @@ export async function commitAuthSession(
  */
 export async function signOut(request: Request) {
   try {
-    return redirect(
+    throw redirect(
       "/",
       await destroyAuthSession(await getUserSession(request))
     );
@@ -192,8 +192,6 @@ export async function handleMagiclinkRedirect(request: Request) {
       link: MAGIC_LINK,
     });
 
-    console.log(error);
-
     /**
      * The data will be used to add users to mailing list
      */
@@ -207,8 +205,6 @@ export async function handleMagiclinkRedirect(request: Request) {
     }
     return redirect(`/?email=${encodeURIComponent(email)}&success=true`);
   } catch (error) {
-    console.error(error);
-
     throw error;
   }
 }

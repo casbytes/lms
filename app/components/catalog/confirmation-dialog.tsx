@@ -1,6 +1,6 @@
 import { Link, useNavigation, useSubmit } from "@remix-run/react";
 import { CgSpinnerTwo } from "react-icons/cg";
-import { FaPlus } from "react-icons/fa6";
+import { FaBook, FaPlus } from "react-icons/fa6";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -12,47 +12,43 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
-import type {
-  GithubModule as IGithubModule,
-  GithubCourse as IGithubCourse,
-} from "../utils.server";
 import { capitalizeFirstLetter } from "~/utils/helpers";
-import { User } from "~/utils/db.server";
-
-interface GithubModule extends IGithubModule {
-  type: string;
-}
-
-interface GithubCourse extends IGithubCourse {
-  type: string;
-}
+import { MetaCourse, MetaModule } from "~/services/sanity/types";
 
 export function ConfirmationDialog({
-  item,
   user,
-  inCatalog,
+  module,
+  course,
+  currentItem,
 }: {
-  user?: User;
-  item: GithubCourse | GithubModule;
-  inCatalog: boolean;
+  user: { subscribed: boolean };
+  module?: MetaModule;
+  course?: MetaCourse;
+  currentItem: { title: string } | null;
 }) {
   const n = useNavigation();
-  const isSubscribed = user?.subscribed;
-  const notSubscribed = !inCatalog && !isSubscribed && item.type === "module";
+  const item = module ?? (course as MetaCourse);
+  const isSubscribed = user.subscribed;
+  const notSubscribed = !currentItem && !isSubscribed && item.premium;
   const isSubmitting = n.formData?.get("intent") === "addGithubCourseToCatalog";
 
   return (
     <Dialog>
-      <Trigger isSubmitting={isSubmitting} />
+      <Trigger
+        isSubmitting={isSubmitting}
+        currentItem={currentItem}
+        item={item}
+      />
       <DialogContent>
-        {inCatalog ? (
+        {currentItem ? (
           <NotifyInCatalog />
         ) : notSubscribed ? (
           <NotifySubscription />
         ) : (
           <Confirm
-            item={item}
-            inCatalog={inCatalog}
+            module={module}
+            course={course}
+            currentItem={currentItem}
             isSubmitting={isSubmitting}
           />
         )}
@@ -61,21 +57,40 @@ export function ConfirmationDialog({
   );
 }
 
-function Trigger({ isSubmitting }: { isSubmitting: boolean }) {
+function Trigger({
+  item,
+  isSubmitting,
+  currentItem,
+}: {
+  item: MetaCourse | MetaModule;
+  isSubmitting: boolean;
+  currentItem: { title: string } | null;
+}) {
+  const isCurrent = currentItem?.title === item.title;
   return (
-    // <Button className="bg-indigo-500 hover:bg-indigo-400 !py-0 p-0" asChild>
-    <DialogTrigger
-      disabled={isSubmitting}
-      className="disabled:bg-slate-200 text-blue-600 disabled:cursor-not-allowed"
-    >
-      {" "}
-      {isSubmitting ? (
-        <CgSpinnerTwo className="animate-spin" />
-      ) : (
-        <FaPlus size={15} />
-      )}
-    </DialogTrigger>
-    // </Button>
+    <Button asChild>
+      <DialogTrigger
+        disabled={isSubmitting || isCurrent}
+        className="disabled:cursor-not-allowed"
+      >
+        {" "}
+        {isSubmitting ? (
+          <CgSpinnerTwo className="animate-spin" />
+        ) : (
+          <>
+            {isCurrent ? (
+              <>
+                <FaBook size={15} className="mr-2" /> IN CATALOG
+              </>
+            ) : (
+              <>
+                <FaPlus size={15} className="mr-2" /> ADD TO CATALOG
+              </>
+            )}
+          </>
+        )}
+      </DialogTrigger>
+    </Button>
   );
 }
 
@@ -119,28 +134,37 @@ function NotifySubscription() {
   );
 }
 function Confirm({
-  item,
-  inCatalog,
+  module,
+  course,
+  currentItem,
   isSubmitting,
 }: {
-  item: GithubCourse | GithubModule;
-  inCatalog: boolean;
+  module?: MetaModule;
+  course?: MetaCourse;
+  currentItem: { title: string } | null;
   isSubmitting: boolean;
 }) {
   const submit = useSubmit();
+
+  const item = module ?? (course as MetaCourse);
   const submitOptions = {
-    intent:
-      item.type === "course" ? "addCourseToCatalog" : "addModuleToCatalog",
+    intent: course ? "addCourseToCatalog" : "addModuleToCatalog",
     itemId: item.id,
   };
+
+  const isCurrent = currentItem?.title === item.title;
   return (
     <>
       <DialogHeader>
         <DialogTitle>
-          Are you sure you want to add this {item.type} to your catalog?
+          Are you sure you want to add{" "}
+          <span className="text-sky-700">{item.title}</span> to your catalog ?
         </DialogTitle>
         <DialogDescription className="text-lg">
-          {capitalizeFirstLetter(item.title)}
+          {course ? "Course" : "Module"}:{" "}
+          <span className="font-mono text-black">
+            {capitalizeFirstLetter(item.title)}
+          </span>
         </DialogDescription>
       </DialogHeader>
       <DialogFooter>
@@ -149,7 +173,7 @@ function Confirm({
         </Button>
         <Button
           className="bg-indigo-500 hover:bg-indigo-400 py-1 font-black"
-          disabled={isSubmitting || inCatalog}
+          disabled={isSubmitting || isCurrent}
           onClick={() => {
             submit(submitOptions, { method: "POST" });
           }}

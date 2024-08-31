@@ -1,8 +1,9 @@
 import React from "react";
 import { Card, CardHeader } from "../ui/card";
 import { Badge } from "../ui/badge";
-import { FaStar } from "react-icons/fa6";
 import { MetaModule } from "~/services/sanity/types";
+import { Separator } from "../ui/separator";
+import { ReviewsDialog } from "./reviews-dialog";
 
 export function ModuleCard({
   module,
@@ -11,6 +12,7 @@ export function ModuleCard({
   module?: MetaModule;
   cardActionButton: React.ReactNode;
 }) {
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   return (
     <Card
       aria-label={module?.title}
@@ -24,9 +26,19 @@ export function ModuleCard({
         <Badge className="absolute rounded-bl-none rounded-tr-none -top-[0.4rem] left-0 bg-white text-sky-600 hover:bg-white">
           {module?.premium ? "premium" : "free"}
         </Badge>
-        <Badge className="absolute rounded-bl-none rounded-tr-none bottom-0 right-0">
-          <FaStar className="mr-2" />
-          4.5
+        {module ? (
+          <ReviewsDialog
+            item={module}
+            isDialogOpen={isDialogOpen}
+            setIsDialogOpen={setIsDialogOpen}
+          />
+        ) : null}
+        <Badge
+          onClick={() => setIsDialogOpen(true)}
+          className="absolute rounded-bl-none rounded-tr-none bottom-0 right-0 cursor-pointer"
+        >
+          <span>Reviews</span>
+          <Separator orientation="vertical" /> {module?.reviews?.length}
         </Badge>
       </CardHeader>
     </Card>

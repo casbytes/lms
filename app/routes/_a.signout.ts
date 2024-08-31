@@ -33,7 +33,7 @@ export async function action({ request }: ActionFunctionArgs) {
       });
     }
 
-    return signOut(request);
+    return await signOut(request);
   } catch (error) {
     throw error;
   }

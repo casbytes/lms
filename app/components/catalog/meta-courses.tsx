@@ -6,20 +6,29 @@ import { DialogTrigger } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { CatalogDialog } from "./catalog-dialog";
 
-export function MetaCourses({ courses }: { courses: Promise<MetaCourse[]> }) {
+export function MetaCourses({
+  courses,
+  user,
+  currentItem,
+}: {
+  courses: Promise<MetaCourse[]>;
+  user: { subscribed: boolean };
+  currentItem: { title: string } | null;
+}) {
   return (
     <React.Suspense fallback={<p>Loading...</p>}>
       <Await resolve={courses}>
         {(courses) => (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <Fade cascade damping={0.1} duration={200}>
                 {courses?.length
                   ? courses.map((course, index) => (
                       <CatalogDialog
                         key={`${course.id}-${index}`}
+                        user={user}
                         course={course}
-                        dialogActionButton={<Button>Add to catalog</Button>}
+                        currentItem={currentItem}
                         cardActionButton={
                           <DialogTrigger asChild>
                             <Button variant={"outline"} size={"sm"}>
