@@ -14,10 +14,10 @@ const ARTICLE_URL = "https://articles.casbytes.com";
 const STATUS_URL = "https://status.casbytes.com";
 
 export const unAuthMenuItems = [
-  { label: "courses", href: "#courses" },
-  { label: "modules", href: "#modules" },
-  { label: "features", href: "#features" },
-  { label: "subscription", href: "#subscription" },
+  { label: "courses", href: "/#courses" },
+  { label: "modules", href: "/#modules" },
+  { label: "features", href: "/#features" },
+  { label: "subscription", href: "/#subscription" },
   { label: "FAQs", href: "faqs" },
   {
     label: "articles",
