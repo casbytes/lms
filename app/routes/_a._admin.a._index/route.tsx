@@ -3,7 +3,7 @@ import { Container } from "~/components/container";
 import { PageTitle } from "~/components/page-title";
 import { DashboardCard } from "./components/dashboard-card";
 import { LoaderFunctionArgs } from "@remix-run/node";
-import { getCacheStats } from "~/utils/node-cache.server";
+import { getCacheStats } from "~/utils/cache.server";
 import { useLoaderData } from "@remix-run/react";
 import { prisma } from "~/utils/db.server";
 import { IoMdPeople } from "react-icons/io";

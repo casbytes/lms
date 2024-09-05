@@ -1,4 +1,5 @@
 import { Link } from "@remix-run/react";
+import { readingTime } from "reading-time-estimator";
 import { Image } from "~/components/image";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -14,15 +15,11 @@ import { Article } from "~/services/sanity/types";
 import { capitalizeFirstLetter } from "~/utils/helpers";
 
 export function ArticleCard({ article }: { article: Article }) {
+  const stats = readingTime(article.content);
+
   return (
     <Card>
       <CardHeader className="flex flex-col gap-4">
-        {/* <Image
-          cdn={false}
-          src={article.image}
-          alt={article.title}
-          className="rounded-md mx-auto w-full h-[14rem] object-cover"
-        /> */}
         <CardTitle className="font-bold text-2xl -mb-4">
           {capitalizeFirstLetter(article.title)}
         </CardTitle>
@@ -51,7 +48,7 @@ export function ArticleCard({ article }: { article: Article }) {
           </div>
           <div className="flex flex-col items-center">
             <p className="text-sm font-bold">Reading time</p>
-            <p className="text-sm">~ 7 minutes</p>
+            <p className="text-sm">~ {stats.text}</p>
           </div>
         </div>
       </CardContent>

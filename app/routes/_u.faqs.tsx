@@ -11,7 +11,7 @@ import {
 import { MDX } from "~/utils/db.server";
 import { readContent } from "~/utils/helpers.server";
 import { metaFn } from "~/utils/meta";
-import { cache } from "~/utils/node-cache.server";
+import { cache } from "~/utils/cache.server";
 
 export const meta = metaFn;
 

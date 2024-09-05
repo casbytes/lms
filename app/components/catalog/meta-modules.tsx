@@ -1,6 +1,6 @@
 import React from "react";
 import { MetaModule } from "~/services/sanity/types";
-import { ModuleSearchInput } from "../search-input";
+import { SearchInput } from "../search-input";
 import { Await } from "@remix-run/react";
 import { Fade } from "react-awesome-reveal";
 import { Button } from "../ui/button";
@@ -21,7 +21,7 @@ export function MetaModules({
   return (
     <>
       <div className="md:max-w-[60%] mb-8 w-full mx-auto mt-4">
-        <ModuleSearchInput
+        <SearchInput
           searchValue="moduleTitle"
           placeholder="search modules"
           className="bg-white shadow-lg p-2"

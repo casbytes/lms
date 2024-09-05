@@ -21,6 +21,7 @@ export const schema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string(),
   SANITY_STUDIO_PROJECT_ID: z.string(),
   SANITY_STUDIO_DATASET: z.string(),
+  REDIS_CLIENT_URL: z.string(),
 });
 
 declare global {

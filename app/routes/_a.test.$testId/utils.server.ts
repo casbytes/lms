@@ -5,7 +5,7 @@ import { getUserId } from "~/utils/session.server";
 import { prisma, Test } from "~/utils/db.server";
 import { STATUS, TEST_STATUS } from "~/utils/helpers";
 import { getContentFromGithub } from "~/utils/octokit.server";
-import { cache } from "~/utils/node-cache.server";
+import { cache } from "~/utils/cache.server";
 import {
   updateModuleStatusAndFindNextModule,
   updateSubmoduleStatusAndFindNextSubmodule,

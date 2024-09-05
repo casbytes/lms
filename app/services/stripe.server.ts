@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 import { remember } from "@epic-web/remember";
-import { cache } from "~/utils/node-cache.server";
+import { Cache } from "~/utils/cache.server";
 
 export const stripe = remember(
   "stripe",
@@ -59,14 +59,14 @@ export async function deleteStripeCustomer({
  */
 export async function listPlans() {
   const cacheKey = "stripe-prices";
-  if (cache.has(cacheKey)) {
-    return cache.get(cacheKey) as Stripe.Price[];
+  if (await Cache.has(cacheKey)) {
+    return (await Cache.get(cacheKey)) as Stripe.Price[];
   }
   const prices = await stripe.prices.list({
     active: true,
     limit: 4,
   });
-  cache.set<Stripe.Price[]>(cacheKey, prices.data);
+  await Cache.set<Stripe.Price[]>(cacheKey, prices.data);
   return prices.data;
 }
 
@@ -127,15 +127,15 @@ export async function listSubscriptions({
   customerId?: string;
 }) {
   const cacheKey = `stripe-subscriptions-${customerId}`;
-  if (cache.has(cacheKey)) {
-    return cache.get(cacheKey) as Stripe.Subscription[];
+  if (await Cache.has(cacheKey)) {
+    return (await Cache.get(cacheKey)) as Stripe.Subscription[];
   }
   const subs = await stripe.subscriptions.list({
     customer: customerId,
     limit: 1,
     status: "active",
   });
-  cache.set<Stripe.Subscription[]>(cacheKey, subs.data);
+  await Cache.set<Stripe.Subscription[]>(cacheKey, subs.data);
   return subs.data;
 }
 
@@ -150,7 +150,7 @@ export async function constructWebhookEvent(request: Request) {
   return stripe.webhooks.constructEvent(
     payload,
     signature!,
-    process.env.STRIPE_WEBHOOK_SECRET!
+    process.env.STRIPE_WEBHOOK_SECRET
   );
 }
 

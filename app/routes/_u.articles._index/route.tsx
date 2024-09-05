@@ -9,9 +9,12 @@ import { useLoaderData, useSearchParams } from "@remix-run/react";
 import { Badge } from "~/components/ui/badge";
 import { cn } from "~/libs/shadcn";
 import { Input } from "~/components/ui/input";
+import { LoaderFunctionArgs } from "@remix-run/node";
 
-export async function loader() {
-  const articles = await getArticles();
+export async function loader({ request }: LoaderFunctionArgs) {
+  const url = new URL(request.url);
+  const searchTerm = url.searchParams.get("articles") ?? "";
+  const articles = await getArticles(searchTerm);
   const tags = await getArticleAllArticleTags();
   return { articles, tags };
 }
@@ -23,27 +26,19 @@ export default function Articles() {
   const [searchParams, setSearchParams] = useSearchParams();
   const currentSearch = searchParams.get("articles");
 
-  console.log({ currentSearch });
-
   React.useEffect(() => {
-    if (searchTerm) {
-      setSearchParams(
-        (params) => {
+    setSearchParams(
+      (params) => {
+        if (searchTerm) {
           params.set("articles", encodeURIComponent(searchTerm));
-          return params;
-        },
-        { preventScrollReset: true }
-      );
-    } else {
-      setSearchParams(
-        (params) => {
+        } else {
           params.delete("articles");
-          return params;
-        },
-        { preventScrollReset: true }
-      );
-    }
-  }, [currentSearch, searchTerm, setSearchParams]);
+        }
+        return params;
+      },
+      { preventScrollReset: true }
+    );
+  }, [searchTerm, setSearchParams]);
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     setSearchTerm(e.currentTarget.value);
@@ -78,9 +73,15 @@ export default function Articles() {
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {articles.map((article) => (
-          <ArticleCard key={article.slug} article={article} />
-        ))}
+        {articles?.length ? (
+          articles.map((article) => (
+            <ArticleCard key={article.slug} article={article} />
+          ))
+        ) : (
+          <div className="text-3xl font-mono text-slate-600 text-center col-span-2 mt-8">
+            No articles match your search.
+          </div>
+        )}
       </div>
     </Container>
   );

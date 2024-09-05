@@ -4,7 +4,7 @@ import { Params } from "@remix-run/react";
 import { MDX, prisma, Project } from "~/utils/db.server";
 import { getContentFromGithub } from "~/utils/octokit.server";
 import { getUserId } from "~/utils/session.server";
-import { cache } from "~/utils/node-cache.server";
+import { cache } from "~/utils/cache.server";
 import {
   computeScore,
   formatResponse,

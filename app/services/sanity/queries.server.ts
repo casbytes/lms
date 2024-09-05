@@ -125,3 +125,22 @@ export const ARTICLES_QUERY = groq`*[_type == "article" && published==true] | or
           "image": image.asset->url
         }
       }`;
+
+export const ARTICLE_QUERY = groq`*[_type == "article" && slug.current==$slug][0]{
+        "id": _id,
+        title,
+        "slug": slug.current,
+        createdAt,
+        tags,
+        published,
+        "image": image.asset->url,
+        description,
+        content,
+        "author": author->{
+          "id": _id,
+          name,
+          profession,
+          bio,
+          "image": image.asset->url
+        }
+      }`;

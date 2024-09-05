@@ -1,7 +1,7 @@
 import invariant from "tiny-invariant";
 import { prisma, type Course, type Module } from "~/utils/db.server";
 import { getUserId } from "~/utils/session.server";
-import { cache } from "~/utils/node-cache.server";
+import { cache } from "~/utils/cache.server";
 import {
   endOfMonth,
   endOfWeek,

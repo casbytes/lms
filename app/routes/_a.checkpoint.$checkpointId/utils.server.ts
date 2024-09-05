@@ -4,7 +4,7 @@ import { Params } from "@remix-run/react";
 import { Checkpoint, MDX, Module, prisma, SubModule } from "~/utils/db.server";
 import { getContentFromGithub } from "~/utils/octokit.server";
 import { getUserId } from "~/utils/session.server";
-import { cache } from "~/utils/node-cache.server";
+import { cache } from "~/utils/cache.server";
 import { CHECKPOINT_STATUS, STATUS } from "~/utils/helpers";
 import {
   computeScore,

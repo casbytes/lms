@@ -6,7 +6,7 @@ import { Params } from "@remix-run/react";
 import { getContentFromGithub } from "~/utils/octokit.server";
 import { getUserId } from "~/utils/session.server";
 import { prisma } from "~/utils/db.server";
-import { cache } from "~/utils/node-cache.server";
+import { Cache } from "~/utils/cache.server";
 import { STATUS, TEST_STATUS } from "~/utils/helpers";
 import { ensurePrimary } from "litefs-js/remix";
 
@@ -220,9 +220,9 @@ export async function getLesson(
     };
 
     const cacheKey = `lesson-${currentLesson.id}`;
-    if (cache.has(cacheKey)) {
+    if (await Cache.has(cacheKey)) {
       return {
-        mdx: cache.get(cacheKey) as MDX,
+        mdx: (await Cache.get(cacheKey)) as MDX,
         ...lessonData,
       };
     }
@@ -241,7 +241,7 @@ export async function getLesson(
       path,
     });
     const { data, content } = matter(mdxContent);
-    cache.set<MDX>(cacheKey, { data, content });
+    await Cache.set<MDX>(cacheKey, { data, content });
     return {
       mdx: { data, content },
       ...lessonData,
