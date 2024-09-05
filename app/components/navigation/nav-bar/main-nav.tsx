@@ -1,4 +1,4 @@
-import { Link, NavLink, useMatches } from "@remix-run/react";
+import { Link, useLocation, useMatches } from "@remix-run/react";
 import { TfiMenu } from "react-icons/tfi";
 import { RiMenuFoldFill } from "react-icons/ri";
 import { cn } from "~/libs/shadcn";
@@ -26,11 +26,14 @@ export function MainNav({
   handleNavToggle,
 }: MainNavProps) {
   const matches = useMatches();
+  const location = useLocation();
+
+  console.log(location.pathname);
 
   const contentRoutes = matches.some(
     (match) =>
-      match.id.includes("courses") ||
-      match.id.includes("modules") ||
+      match.id.includes("courses.$courseId") ||
+      match.id.includes("modules.$moduleId") ||
       match.id.includes("sub-modules")
   );
   return (
@@ -78,17 +81,24 @@ export function MainNav({
               {menuItems && menuItems?.length > 0
                 ? menuItems?.map((item: ItemProps, index: number) => (
                     <li key={`${item}-${index}`}>
-                      <NavLink
-                        key={`${item.href}-${index}`}
-                        to={item.href}
-                        target={item.target ?? "_self"}
-                        aria-label={item.label}
-                        prefetch="intent"
+                      <Button
+                        variant="link"
+                        className={cn("text-lg capitalize", {
+                          "text-blue-700 underline underline-offset-4":
+                            location.pathname.includes(item.href),
+                        })}
+                        asChild
                       >
-                        <Button variant="link" className="text-lg capitalize">
+                        <Link
+                          key={`${item.href}-${index}`}
+                          to={item.href}
+                          target={item.target ?? "_self"}
+                          aria-label={item.label}
+                          prefetch="intent"
+                        >
                           {item.label}
-                        </Button>
-                      </NavLink>
+                        </Link>
+                      </Button>
                     </li>
                   ))
                 : null}

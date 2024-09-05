@@ -36,12 +36,11 @@ const { getSession, commitSession, destroySession } =
     cookie: {
       name: "__casbytes_session",
       secrets: [SECRET],
-      domain: COOKIE_DOMAIN,
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24 * 7,
       httpOnly: true,
-      secure: MODE === "production",
+      ...(MODE === "production" ? { domain: COOKIE_DOMAIN, secure: true } : {}),
     },
   });
 
@@ -150,7 +149,7 @@ export async function checkAdmin(request: Request) {
   try {
     const user = await getUser(request);
     const session = await getUserSession(request);
-    if (user.role !== (ROLE.ADMIN as ROLE)) {
+    if (user.role !== ROLE.ADMIN) {
       session.flash("error", "Forbidden.");
       throw redirect("/dashboard");
     }
@@ -165,8 +164,12 @@ export async function checkAdmin(request: Request) {
  * @returns {string} - State
  */
 function generateState() {
-  return crypto.randomBytes(16).toString("hex");
+  return crypto.randomBytes(32).toString("hex");
 }
+
+//######################
+// Magic Link
+//######################
 
 /**
  * Handle magic link redirect
@@ -265,15 +268,13 @@ export async function handleMagiclinkCallback(request: Request) {
 
     session.set(sessionKey, user.id);
 
-    if (user.role === (ROLE.ADMIN as ROLE)) {
-      return redirect("/a", await commitAuthSession(session));
-    } else {
-      const redirectUrl = user.completedOnboarding
+    const redirectUrl =
+      user.role === ROLE.ADMIN
+        ? "/a"
+        : user.completedOnboarding
         ? user.currentUrl ?? "/dashboard"
         : "/onboarding";
-
-      return redirect(redirectUrl, await commitAuthSession(session));
-    }
+    return redirect(redirectUrl, await commitAuthSession(session));
   } catch (error) {
     if (error instanceof JWT.TokenExpiredError) {
       const message =
@@ -288,7 +289,11 @@ export async function handleMagiclinkCallback(request: Request) {
   }
 }
 
-const GOOGLE_AUTH_REDIRECT_URL = `${BASE_URL}/google/callback`;
+//######################
+// Google
+//######################
+
+const GOOGLE_REDIRECT_URL = `${BASE_URL}/google/callback`;
 
 /**
  * Generate oauth2 client
@@ -298,7 +303,7 @@ async function generateOauth2Client() {
   return new google.auth.OAuth2(
     GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET,
-    GOOGLE_AUTH_REDIRECT_URL
+    GOOGLE_REDIRECT_URL
   );
 }
 
@@ -340,7 +345,7 @@ export async function handleGoogleCallback(request: Request) {
   invariant(state, "State is required authenticate user.");
 
   if (error) {
-    session.flash("error", "Failed to authenticate user, please try again.");
+    session.flash("error", error);
     throw redirect("/", await commitAuthSession(session));
   }
 
@@ -359,12 +364,6 @@ export async function handleGoogleCallback(request: Request) {
 
   let user = await prisma.user.findUnique({
     where: { email: userInfo.email },
-    select: {
-      id: true,
-      role: true,
-      currentUrl: true,
-      completedOnboarding: true,
-    },
   });
 
   if (!user) {
@@ -392,30 +391,19 @@ export async function handleGoogleCallback(request: Request) {
 
     user = await prisma.user.create({
       data,
-      select: {
-        id: true,
-        role: true,
-        currentUrl: true,
-        completedOnboarding: true,
-      },
     });
     //send welcome email
   }
 
   session.set(sessionKey, user.id);
-
-  if (user.role === (ROLE.ADMIN as ROLE)) {
-    return redirect("/a", await commitAuthSession(session));
-  } else {
-    const redirectUrl = user.completedOnboarding
-      ? user.currentUrl ?? "/dashboard"
-      : "/onboarding";
-    return redirect(redirectUrl, await commitAuthSession(session));
-  }
+  return determineRedirectUrl(user, session);
 }
 
-const GITHUB_AUTH_REDIRECT_URL = `${BASE_URL}/github/callback`;
+//######################
+// Github
+//######################
 
+const GITHUB_AUTH_REDIRECT_URL = `${BASE_URL}/github/callback`;
 /**
  * Handle github redirect
  * @param {Request} request - Request
@@ -430,8 +418,16 @@ export async function handleGithubRedirect() {
   return redirect(REDIRECT_URL);
 }
 
+/**
+ * Get github access token
+ * @param {string} code - Code
+ * @param {string | null} error - Error
+ * @param {Request} request - Request
+ * @returns {Promise<string>} - Github access token
+ */
 async function getGithubAccessToken(
   code: string,
+  error: string | null,
   request: Request
 ): Promise<string> {
   const session = await getUserSession(request);
@@ -446,7 +442,7 @@ async function getGithubAccessToken(
     scope: string;
   };
 
-  const { data: accessTokenData } = await customFetch<ResponseData>(
+  const { data: tokenData } = await customFetch<ResponseData>(
     ACCESS_TOKEN_URL,
     {
       method: "POST",
@@ -456,12 +452,15 @@ async function getGithubAccessToken(
     }
   );
 
-  if (!accessTokenData?.access_token) {
-    session.flash("error", "Failed to fetch access token from GitHub.");
+  if (!tokenData?.access_token || error) {
+    session.flash(
+      "error",
+      error ?? "Failed to fetch access token from GitHub."
+    );
     throw redirect("/", await commitAuthSession(session));
   }
 
-  return accessTokenData.access_token;
+  return tokenData.access_token;
 }
 
 type UserData = {
@@ -471,6 +470,12 @@ type UserData = {
   avatar_url: string;
 };
 
+/**
+ * Get github user data
+ * @param {string} accessToken - Access token
+ * @param {Request} request - Request
+ * @returns {Promise<UserData>} - Github user data
+ */
 async function getGithubUser(
   accessToken: string,
   request: Request
@@ -502,20 +507,16 @@ export async function handleGithubCallback(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
+  const error = url.searchParams.get("error");
+
   invariant(code, "Code is required to authenticate user.");
   invariant(state, "State is required authenticate user.");
 
-  const accessToken = await getGithubAccessToken(code, request);
+  const accessToken = await getGithubAccessToken(code, error, request);
   const githubUser = await getGithubUser(accessToken, request);
 
   let user = await prisma.user.findUnique({
     where: { email: githubUser.email },
-    select: {
-      id: true,
-      role: true,
-      currentUrl: true,
-      completedOnboarding: true,
-    },
   });
 
   if (!user) {
@@ -546,26 +547,28 @@ export async function handleGithubCallback(request: Request) {
 
     user = await prisma.user.create({
       data,
-      select: {
-        id: true,
-        role: true,
-        currentUrl: true,
-        completedOnboarding: true,
-      },
     });
     //send welcome email
   }
 
   session.set(sessionKey, user.id);
+  return determineRedirectUrl(user, session);
+}
 
-  if (user.role === (ROLE.ADMIN as ROLE)) {
-    return redirect("/a", await commitAuthSession(session));
-  } else {
-    const redirectUrl = user.completedOnboarding
-      ? user.currentUrl ?? "/dashboard"
-      : "/onboarding";
-    return redirect(redirectUrl, await commitAuthSession(session));
-  }
+/**
+ * Determine redirect url based on user role and onboarding status
+ * @param {User} user - User
+ * @param {Session} session - Session
+ * @returns {TypedResponse<never>}
+ */
+async function determineRedirectUrl(user: User, session: Session) {
+  const redirectUrl =
+    user.role === ROLE.USER
+      ? !user.completedOnboarding
+        ? "/onboarding"
+        : user.currentUrl ?? "/dashboard"
+      : "/a";
+  return redirect(redirectUrl, await commitAuthSession(session));
 }
 
 export { getSession, commitSession, destroySession };

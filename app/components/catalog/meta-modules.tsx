@@ -38,33 +38,37 @@ export function MetaModules({
               ) : null}
               <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 items-end">
                 <Fade cascade damping={0.1} duration={200}>
-                  {modules?.length
-                    ? modules.slice(0, initialModules).map((module, index) => (
-                        <div
-                          key={`${module.id}-${index}`}
-                          className={cn(
-                            "bg-[url('https://cdn.casbytes.com/assets/icon.png')] bg-no-repeat bg-center",
-                            {
-                              "bg-cover": index % 2 === 0,
-                              "bg-contain": index % 2 === 1,
-                            }
-                          )}
-                        >
-                          <CatalogDialog
-                            user={user}
-                            module={module}
-                            currentItem={currentItem}
-                            cardActionButton={
-                              <DialogTrigger asChild>
-                                <Button variant={"outline"} size={"sm"}>
-                                  learn more
-                                </Button>
-                              </DialogTrigger>
-                            }
-                          />
-                        </div>
-                      ))
-                    : null}
+                  {modules?.length ? (
+                    modules.slice(0, initialModules).map((module, index) => (
+                      <div
+                        key={`${module.id}-${index}`}
+                        className={cn(
+                          "bg-[url('https://cdn.casbytes.com/assets/icon.png')] bg-no-repeat bg-center",
+                          {
+                            "bg-cover": index % 2 === 0,
+                            "bg-contain": index % 2 === 1,
+                          }
+                        )}
+                      >
+                        <CatalogDialog
+                          user={user}
+                          module={module}
+                          currentItem={currentItem}
+                          cardActionButton={
+                            <DialogTrigger asChild>
+                              <Button variant={"outline"} size={"sm"}>
+                                learn more
+                              </Button>
+                            </DialogTrigger>
+                          }
+                        />
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-center col-span-4 w-full text-lg font-mono">
+                      No modules match your search, try again.
+                    </p>
+                  )}
                 </Fade>
               </div>
               <Button

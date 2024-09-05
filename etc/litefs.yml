@@ -1,0 +1,20 @@
+fuse:
+  dir: "${LITEFS_DIR}"
+
+data:
+  dir: "/data/litefs"
+
+exit-on-error: false
+
+lease:
+  type: "static"
+  candidate: true
+
+exec:
+  - cmd: npx prisma migrate deploy
+    if-candidate: true
+
+  - cmd: sqlite3 $DATABASE_PATH "PRAGMA journal_mode=WAL;"
+    if-candidate: true
+
+  - cmd: litestream replicate -exec "npm start"

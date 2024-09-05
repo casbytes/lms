@@ -12,6 +12,7 @@ import { Badge } from "../ui/badge";
 import type { MetaCourse } from "~/services/sanity/types";
 import { capitalizeFirstLetter } from "~/utils/helpers";
 import { ReviewsDialog } from "./reviews-dialog";
+import { Markdown } from "../markdown";
 
 type CatalogCardProps = {
   cardActionButton: React.ReactNode;
@@ -28,15 +29,17 @@ export function _CourseCard({ cardActionButton, course }: CatalogCardProps) {
           alt={course.title}
           className="rounded-md mx-auto w-full h-[14rem] object-cover"
         />
-        <CardTitle className="font-mono">
+        <CardTitle className="font-mono -mb-2">
           {capitalizeFirstLetter(course.title)}
         </CardTitle>
         <CardDescription>
-          {course.description.substring(0, 300)}...
+          <div className="-mt-5">
+            <Markdown source={`${course.description.substring(0, 300)}...`} />
+          </div>
         </CardDescription>
       </CardHeader>
-      <CardContent className="-my-2 flex justify-between">
-        <Badge>{course.premium ? "premium" : "free"}</Badge>{" "}
+      <CardContent className="-mb-2 -mt-4 flex justify-between">
+        <Badge>premium</Badge>{" "}
         <Badge
           onClick={() => setIsDialogOpen(true)}
           className="flex gap-2 cursor-pointer"

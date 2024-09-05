@@ -18,6 +18,8 @@ import { CourseCard } from "./course-card";
 import { ModuleCard } from "./module-card";
 import { ConfirmationDialog } from "./confirmation-dialog";
 import { ReviewsDialog } from "./reviews-dialog";
+import { Markdown } from "../markdown";
+import { ItemList } from "./item-list";
 
 export function CatalogDialog({
   module,
@@ -42,7 +44,7 @@ export function CatalogDialog({
 
   return (
     <Dialog>
-      <DialogContent>
+      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{capitalizeFirstLetter(item.title!)}</DialogTitle>
           <DialogDescription>
@@ -53,7 +55,12 @@ export function CatalogDialog({
                 className="rounded-md mx-auto w-full h-[14rem] object-cover my-4"
               />
             ) : null}
-            {item?.description}
+            <Markdown source={item?.description} />
+            {course ? (
+              <ItemList course={course} />
+            ) : (
+              <ItemList module={module} />
+            )}
             {!isAuth ? (
               <span className="mt-4 font-mono text-xs max-w-xs text-center mx-auto font-black block">
                 Sign in to complete your onboarding and start your learning
@@ -70,7 +77,9 @@ export function CatalogDialog({
         <DialogFooter>
           <div className="flex flex-col gap-4 w-full">
             <div className="flex justify-between w-full">
-              <Badge>{item?.premium ? "premium" : "free"}</Badge>{" "}
+              <Badge>
+                {course ? "premium" : module?.premium ? "premium" : "free"}
+              </Badge>{" "}
               <Badge
                 onClick={() => setIsDialogOpen(true)}
                 className="flex gap-2 cursor-pointer"

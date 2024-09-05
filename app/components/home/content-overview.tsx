@@ -1,6 +1,7 @@
 import { Fade } from "react-awesome-reveal";
 import { Container } from "../container";
 import { cn } from "~/libs/shadcn";
+import { Image } from "../image";
 
 export function ContentOverview() {
   return (
@@ -62,8 +63,8 @@ export function ContentOverview() {
             </h2>
           </div>
           <div>
-            <img
-              src="https://cdn.casbytes.com/assets/elearning2.png"
+            <Image
+              src="assets/elearning2.png"
               width={500}
               height={500}
               alt="elearning"

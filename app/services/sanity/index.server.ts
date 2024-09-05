@@ -1,12 +1,13 @@
 import { cache } from "~/utils/node-cache.server";
 import { loadQuery } from "./loader.server";
 import {
+  ARTICLES_QUERY,
   COURSE_BY_ID_QUERY,
   COURSES_QUERY,
   MODULE_BY_ID_QUERY,
   MODULES_QUERY,
 } from "./queries.server";
-import { MetaCourse, MetaModule, ReviewWithUser } from "./types";
+import { Article, MetaCourse, MetaModule, ReviewWithUser } from "./types";
 import { checkCatalog } from "~/utils/helpers.server";
 import { prisma } from "~/utils/db.server";
 
@@ -124,8 +125,16 @@ export async function getMetaModules({
   cache.set<MetaModule[]>(cacheKey, modules);
 
   if (sanitizedSearchTerm) {
-    return modules.filter((module) =>
-      module.title.toLowerCase().includes(sanitizedSearchTerm.toLowerCase())
+    return modules.filter(
+      (module) =>
+        module.title
+          .toLowerCase()
+          .includes(sanitizedSearchTerm.toLowerCase()) ||
+        module.tags
+          .split(",")
+          .some((tag) =>
+            tag.trim().toLowerCase().includes(sanitizedSearchTerm.toLowerCase())
+          )
     );
   }
 
@@ -143,4 +152,18 @@ export async function getMetaModuleById(id: string) {
 
   cache.set<MetaModule>(cacheKey, module);
   return module;
+}
+
+export async function getArticles() {
+  const { data } = await loadQuery<Article[]>(ARTICLES_QUERY);
+  return data;
+}
+
+export async function getArticleAllArticleTags() {
+  const { data } = await loadQuery<Article[]>(ARTICLES_QUERY);
+  const tags = data.reduce((acc, article) => {
+    const articleTags = article.tags.split(",");
+    return [...acc, ...articleTags];
+  }, [] as string[]);
+  return Array.from(new Set(tags));
 }

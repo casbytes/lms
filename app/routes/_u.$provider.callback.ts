@@ -9,20 +9,20 @@ import {
 const { NODE_ENV } = process.env;
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  try {
-    invariant(params.provider, "Invalid provider.");
-    const provider = params.provider as "magic-link" | "google" | "github";
+  invariant(params.provider, "Invalid provider.");
 
+  try {
+    const provider = params.provider as "magic-link" | "google" | "github";
     if (NODE_ENV === "production") {
       await ensurePrimary();
     }
     switch (provider) {
       case "magic-link":
-        return handleMagiclinkCallback(request);
+        return await handleMagiclinkCallback(request);
       case "google":
-        return handleGoogleCallback(request);
+        return await handleGoogleCallback(request);
       case "github":
-        return handleGithubCallback(request);
+        return await handleGithubCallback(request);
       default:
         throw new Error("Invalid intent.");
     }
