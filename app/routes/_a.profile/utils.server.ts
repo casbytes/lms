@@ -1,3 +1,4 @@
+import invariant from "tiny-invariant";
 import { deleteStripeCustomer } from "~/services/stripe.server";
 import { prisma } from "~/utils/db.server";
 import { getUserId, signOut } from "~/utils/session.server";
@@ -22,19 +23,12 @@ export async function deleteUser(
   request: Request
 ) {
   const intent = formData.get("intent") as "deleteAccount";
+  invariant(intent === "deleteAccount", "No intent found in form data");
 
   try {
-    if (intent !== "deleteAccount") {
-      throw new Error("Invalid form data.");
-    }
-
-    const user = await prisma.user.findUnique({
+    const user = await prisma.user.findUniqueOrThrow({
       where: { id: userId },
     });
-
-    if (!user) {
-      throw new Error("User not found.");
-    }
 
     await prisma.$transaction(async (txn) => {
       await deleteStripeCustomer({
@@ -67,11 +61,9 @@ export async function updateUser(formData: FormData, userId: string) {
   const intent = formData.get("intent") as "updateProfile";
   const name = formData.get("name") as string;
   const githubUsername = formData.get("githubUsername") as string | null;
+  invariant(intent === "updateProfile", "No intent found in form data");
 
   try {
-    if (intent !== "updateProfile") {
-      throw new Error("Invalid form data.");
-    }
     const user = await prisma.user.update({
       where: { id: userId },
       data: { name, githubUsername },

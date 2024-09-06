@@ -1,29 +1,25 @@
-import { GrStorage } from "react-icons/gr";
+// import { GrStorage } from "react-icons/gr";
 import { Container } from "~/components/container";
 import { PageTitle } from "~/components/page-title";
 import { DashboardCard } from "./components/dashboard-card";
 import { LoaderFunctionArgs } from "@remix-run/node";
-import { getCacheStats } from "~/utils/cache.server";
 import { useLoaderData } from "@remix-run/react";
 import { prisma } from "~/utils/db.server";
 import { IoMdPeople } from "react-icons/io";
 import { PiSubtitles } from "react-icons/pi";
-import { getMetaCourses, getMetaModules } from "~/services/sanity/index.server";
+import { getMetaCourses } from "~/services/sanity/index.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const cacheStats = getCacheStats();
   const totalUsers = await prisma.user.count();
   const subscriptions = await prisma.user.count({
     where: { subscribed: true },
   });
   const courses = await getMetaCourses();
-  const modules = await getMetaModules();
-  return { cacheStats, totalUsers, subscriptions, courses, modules };
+  return { totalUsers, subscriptions, courses };
 }
 
 export default function AdminDashboardRoute() {
-  const { cacheStats, totalUsers, subscriptions, courses, modules } =
-    useLoaderData<typeof loader>();
+  const { totalUsers, subscriptions, courses } = useLoaderData<typeof loader>();
   return (
     <Container className="bg-2 bg-no-repeat">
       <div className="max-w-5xl mx-auto">
@@ -46,7 +42,7 @@ export default function AdminDashboardRoute() {
               <div className="text-2xl font-bold">{subscriptions}</div>
             }
           />
-          <DashboardCard
+          {/* <DashboardCard
             cardTitle="Cache"
             cardIcon={<GrStorage className="h-4 w-4 text-muted-foreground" />}
             cardContent={
@@ -58,7 +54,7 @@ export default function AdminDashboardRoute() {
                 ))}
               </ul>
             }
-          />
+          /> */}
           <DashboardCard
             cardTitle="Courses"
             cardIcon={<PiSubtitles className="h-4 w-4 text-muted-foreground" />}
@@ -66,13 +62,13 @@ export default function AdminDashboardRoute() {
               <div className="text-2xl font-bold">{courses.length}</div>
             }
           />
-          <DashboardCard
+          {/* <DashboardCard
             cardTitle="Modules"
             cardIcon={<PiSubtitles className="h-4 w-4 text-muted-foreground" />}
             cardContent={
               <div className="text-2xl font-bold">{modules.length}</div>
             }
-          />
+          /> */}
         </div>
       </div>
     </Container>

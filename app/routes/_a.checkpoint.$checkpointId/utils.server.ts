@@ -4,11 +4,11 @@ import { Params } from "@remix-run/react";
 import { Checkpoint, MDX, Module, prisma, SubModule } from "~/utils/db.server";
 import { getContentFromGithub } from "~/utils/octokit.server";
 import { getUserId } from "~/utils/session.server";
-import { cache } from "~/utils/cache.server";
+import { Cache } from "~/utils/cache.server";
 import { CHECKPOINT_STATUS, STATUS } from "~/utils/helpers";
 import {
   computeScore,
-  formatResponse,
+  formatCheckerResponse,
   getRequestUrl,
   gradeFetch,
   LINT_CUTOFF_SCORE,
@@ -55,10 +55,11 @@ export async function getCheckpoint(request: Request, params: Params<string>) {
       (checkpoint?.subModule?.module?.slug as string);
 
     const cacheKey = `checkpoint-${checkpointId}`;
-    if (cache.has(cacheKey)) {
+    const cachedCheckpoint = await Cache.get<MDX>(cacheKey);
+    if (cachedCheckpoint) {
       return {
         checkpoint,
-        checkpointContent: cache.get(cacheKey) as MDX,
+        checkpointContent: cachedCheckpoint,
       };
     }
 
@@ -69,7 +70,7 @@ export async function getCheckpoint(request: Request, params: Params<string>) {
 
     const { data, content } = matter(mdx);
     const checkpointMdx = { data, content };
-    cache.set<MDX>(cacheKey, checkpointMdx);
+    await Cache.set<MDX>(cacheKey, checkpointMdx);
     return {
       checkpoint,
       checkpointContent: checkpointMdx,
@@ -124,7 +125,9 @@ async function autoGradeCheckpoint(
 
     const username = user?.githubUsername as string;
     if (!username) {
-      return formatResponse({ error: "Please, update your Github username." });
+      return formatCheckerResponse({
+        error: "Please, update your Github username.",
+      });
     }
     const testEnvironment = checkpoint?.testEnvironment;
     const repo =

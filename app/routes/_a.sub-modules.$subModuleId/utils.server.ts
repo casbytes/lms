@@ -220,9 +220,11 @@ export async function getLesson(
     };
 
     const cacheKey = `lesson-${currentLesson.id}`;
-    if (await Cache.has(cacheKey)) {
+
+    const cachedLesson = await Cache.get<MDX>(cacheKey);
+    if (cachedLesson) {
       return {
-        mdx: (await Cache.get(cacheKey)) as MDX,
+        mdx: cachedLesson,
         ...lessonData,
       };
     }

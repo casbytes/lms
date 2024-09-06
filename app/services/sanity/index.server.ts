@@ -14,8 +14,9 @@ import { prisma } from "~/utils/db.server";
 
 export async function getMetaCourses(userId?: string): Promise<MetaCourse[]> {
   const cacheKey = "meta-courses";
-  if (await Cache.has(cacheKey)) {
-    return (await Cache.get(cacheKey)) as MetaCourse[];
+  const cachedMetaCourses = (await Cache.get(cacheKey)) as MetaCourse[] | null;
+  if (cachedMetaCourses) {
+    return cachedMetaCourses;
   }
 
   const { data: coursesData } = await loadQuery<MetaCourse[]>(COURSES_QUERY);
@@ -60,8 +61,9 @@ export async function getMetaCourses(userId?: string): Promise<MetaCourse[]> {
 
 export async function getMetaCourseById(id: string) {
   const cacheKey = `meta-course-${id}`;
-  if (await Cache.has(cacheKey)) {
-    return (await Cache.get(cacheKey)) as MetaCourse;
+  const cachedMetaCourse = (await Cache.get(cacheKey)) as MetaCourse | null;
+  if (cachedMetaCourse) {
+    return cachedMetaCourse;
   }
   const { data: course } = await loadQuery<MetaCourse>(COURSE_BY_ID_QUERY, {
     id,
@@ -83,8 +85,9 @@ export async function getMetaModules({
     ? `some-meta-modules-${sanitizedSearchTerm}`
     : "all-meta-modules";
 
-  if (await Cache.has(cacheKey)) {
-    return (await Cache.get(cacheKey)) as MetaModule[];
+  const cachedMetaModules = (await Cache.get(cacheKey)) as MetaModule[] | null;
+  if (cachedMetaModules) {
+    return cachedMetaModules;
   }
 
   const { data: modulesData } = await loadQuery<MetaModule[]>(MODULES_QUERY);
@@ -139,8 +142,9 @@ export async function getMetaModules({
 
 export async function getMetaModuleById(id: string) {
   const cacheKey = `meta-module-${id}`;
-  if (await Cache.has(cacheKey)) {
-    return (await Cache.get(cacheKey)) as MetaModule;
+  const cachedMetaModule = (await Cache.get(cacheKey)) as MetaModule | null;
+  if (cachedMetaModule) {
+    return cachedMetaModule;
   }
   const { data: module } = await loadQuery<MetaModule>(MODULE_BY_ID_QUERY, {
     id,
@@ -151,11 +155,11 @@ export async function getMetaModuleById(id: string) {
 }
 
 export async function getArticles(searchTerm?: string): Promise<Article[]> {
-  const cacheKey = `articles:${searchTerm}`;
+  const cacheKey = searchTerm ? `articles:${searchTerm}` : "articles";
 
-  const cachedData = await Cache.get(cacheKey);
-  if (cachedData) {
-    return cachedData as Article[];
+  const cachedArticles = (await Cache.get(cacheKey)) as Article[] | null;
+  if (cachedArticles) {
+    return cachedArticles;
   }
 
   const { data } = await loadQuery<Article[]>(ARTICLES_QUERY);
@@ -172,18 +176,19 @@ export async function getArticles(searchTerm?: string): Promise<Article[]> {
       article.tags.includes(searchTerm)
   );
 
-  await Cache.set(cacheKey, filteredArticles);
+  await Cache.set(cacheKey, filteredArticles, { EX: 3600 });
   return filteredArticles;
 }
 
 export async function getArticle(slug: string): Promise<Article> {
-  const cacheKey = `article:${slug}`;
   try {
     const { data } = await loadQuery<Article>(ARTICLE_QUERY, { slug });
-    if (await Cache.get(cacheKey)) {
-      return (await Cache.get(cacheKey)) as Article;
+    const cacheKey = `article:${slug}`;
+    const cachedArticle = (await Cache.get(cacheKey)) as Article | null;
+    if (cachedArticle) {
+      return cachedArticle;
     }
-    await Cache.set<Article>(cacheKey, data);
+    await Cache.set<Article>(cacheKey, data, { EX: 3600 });
     return data;
   } catch (error) {
     throw error;
@@ -192,13 +197,16 @@ export async function getArticle(slug: string): Promise<Article> {
 
 export async function getArticleAllArticleTags() {
   const cacheKey = "article-tags";
-  if (await Cache.has(cacheKey)) {
-    return (await Cache.get(cacheKey)) as string[];
+  const cachedTags = (await Cache.get(cacheKey)) as string[] | null;
+  if (cachedTags) {
+    return cachedTags;
   }
   const { data } = await loadQuery<Article[]>(ARTICLES_QUERY);
   const tags = data.reduce((acc, article) => {
     const articleTags = article.tags.split(",");
     return [...acc, ...articleTags];
   }, [] as string[]);
-  return await Cache.set<string[]>(cacheKey, Array.from(new Set(tags)));
+  return await Cache.set<string[]>(cacheKey, Array.from(new Set(tags)), {
+    EX: 3600,
+  });
 }

@@ -4,10 +4,10 @@ import { Params } from "@remix-run/react";
 import { MDX, prisma, Project } from "~/utils/db.server";
 import { getContentFromGithub } from "~/utils/octokit.server";
 import { getUserId } from "~/utils/session.server";
-import { cache } from "~/utils/cache.server";
+import { Cache } from "~/utils/cache.server";
 import {
   computeScore,
-  formatResponse,
+  formatCheckerResponse,
   getRequestUrl,
   gradeFetch,
   LINT_CUTOFF_SCORE,
@@ -26,7 +26,6 @@ export async function getProject(request: Request, params: Params<string>) {
   const projectId = params.projectId;
   invariant(projectId, "Project ID is required to get Project");
 
-  const cacheKey = `project-${projectId}`;
   const userId = await getUserId(request);
 
   const project = await prisma.project.findUniqueOrThrow({
@@ -38,8 +37,10 @@ export async function getProject(request: Request, params: Params<string>) {
       course: true,
     },
   });
-  if (cache.has(cacheKey)) {
-    return { project, projectContent: cache.get(cacheKey) as MDX };
+  const cacheKey = `project-${projectId}`;
+  const cachedContent = (await Cache.get(cacheKey)) as MDX | null;
+  if (cachedContent) {
+    return { project, projectContent: cachedContent };
   }
 
   const repo = "meta";
@@ -47,7 +48,7 @@ export async function getProject(request: Request, params: Params<string>) {
   const { content: mdx } = await getContentFromGithub({ repo, path });
 
   const { data, content } = matter(mdx);
-  cache.set<MDX>(cacheKey, { data, content });
+  await Cache.set<MDX>(cacheKey, { data, content });
   return { project, projectContent: { data, content } };
 }
 
@@ -87,7 +88,9 @@ async function autoGradeProject(
 
   const username = user.githubUsername;
   if (!username) {
-    return formatResponse({ error: "Please, update your Github username." });
+    return formatCheckerResponse({
+      error: "Please, update your Github username.",
+    });
   }
 
   const testEnvironment = project.testEnvironment;

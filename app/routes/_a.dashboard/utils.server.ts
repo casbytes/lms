@@ -1,7 +1,7 @@
 import invariant from "tiny-invariant";
 import { prisma, type Course, type Module } from "~/utils/db.server";
 import { getUserId } from "~/utils/session.server";
-import { cache } from "~/utils/cache.server";
+import { Cache } from "~/utils/cache.server";
 import {
   endOfMonth,
   endOfWeek,
@@ -108,9 +108,10 @@ export async function getLearningTime(request: Request): Promise<TimeData[]> {
   const url = new URL(request.url);
   const filter = (url.searchParams.get("filter") as TimeUnit) ?? "days";
   const cacheKey = `learningTime-${filter}`;
+  const cachedLearningTime = (await Cache.get(cacheKey)) as TimeData[];
 
-  if (cache.has(cacheKey)) {
-    return cache.get(cacheKey) as TimeData[];
+  if (cachedLearningTime) {
+    return cachedLearningTime;
   }
 
   const result = await getLearningData(
@@ -118,7 +119,7 @@ export async function getLearningTime(request: Request): Promise<TimeData[]> {
     filter,
     { days: 7, weeks: 8, months: 6 }[filter]
   );
-  cache.set<TimeData[]>(cacheKey, result, 5000);
+  await Cache.set<TimeData[]>(cacheKey, result, { EX: 5000 });
   return result;
 }
 

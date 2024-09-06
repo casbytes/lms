@@ -10,6 +10,11 @@ import { format } from "date-fns";
 import { Markdown } from "~/components/markdown";
 import { Separator } from "~/components/ui/separator";
 import { BackButton } from "~/components/back-button";
+import { metaFn } from "~/utils/meta";
+import { Author } from "./components/author";
+import { Share } from "./components/share";
+
+export const meta = metaFn;
 
 export async function loader({ params }: LoaderFunctionArgs) {
   invariant(params.slug, "Slug is required.");
@@ -27,7 +32,7 @@ export default function Article() {
         cdn={false}
         src={article.image}
         alt={article.title}
-        className="w-full h-[25rem] object-cover rounded-md"
+        className="w-full h-[15rem] sm:h-[25rem] object-cover rounded-md"
       />
       <h1 className="text-4xl font-bold my-6">
         {capitalizeFirstLetter(article.title)}
@@ -62,6 +67,13 @@ export default function Article() {
       <p>{article.description}</p>
       <Separator className="my-6" />
       <Markdown source={article.content} />
+      <Separator className="mt-12 mb-4" />
+      <Share
+        title={article.title}
+        url={`https://casbytes.com/articles/${article.slug}`}
+      />
+      <Separator className="mb-12 mt-4" />
+      <Author author={article.author} />
     </Container>
   );
 }

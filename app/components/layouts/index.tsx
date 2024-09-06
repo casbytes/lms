@@ -18,11 +18,7 @@ export const unAuthMenuItems = [
   { label: "features", href: "/#features" },
   { label: "subscription", href: "/#subscription" },
   { label: "FAQs", href: "faqs" },
-  {
-    label: "articles",
-    href: "articles",
-    target: "_blank",
-  },
+  { label: "articles", href: "articles" },
 ];
 
 export const userMenuItems = [

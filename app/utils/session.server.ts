@@ -151,7 +151,7 @@ export async function checkAdmin(request: Request) {
     const session = await getUserSession(request);
     if (user.role !== ROLE.ADMIN) {
       session.flash("error", "Forbidden.");
-      throw redirect("/dashboard");
+      throw redirect("/dashboard", await commitAuthSession(session));
     }
     return null;
   } catch (error) {
@@ -240,7 +240,7 @@ export async function handleMagiclinkCallback(request: Request) {
   invariant(token, "Token is required.");
 
   try {
-    const { email, authState } = JWT.verify(token, SECRET!) as {
+    const { email, authState } = JWT.verify(token, SECRET) as {
       email: string;
       authState: string;
     };
@@ -267,14 +267,7 @@ export async function handleMagiclinkCallback(request: Request) {
     }
 
     session.set(sessionKey, user.id);
-
-    const redirectUrl =
-      user.role === ROLE.ADMIN
-        ? "/a"
-        : user.completedOnboarding
-        ? user.currentUrl ?? "/dashboard"
-        : "/onboarding";
-    return redirect(redirectUrl, await commitAuthSession(session));
+    return determineRedirectUrl(user, session);
   } catch (error) {
     if (error instanceof JWT.TokenExpiredError) {
       const message =
@@ -296,7 +289,7 @@ export async function handleMagiclinkCallback(request: Request) {
 const GOOGLE_REDIRECT_URL = `${BASE_URL}/google/callback`;
 
 /**
- * Generate oauth2 client
+ * Generate google oauth2 client
  * @returns {Promise<OAuth2Client>} - OAuth2Client
  */
 async function generateOauth2Client() {
@@ -341,11 +334,13 @@ export async function handleGoogleCallback(request: Request) {
   const state = url.searchParams.get("state");
   const error = url.searchParams.get("error");
 
-  invariant(code, "Code is required to authenticate user.");
-  invariant(state, "State is required authenticate user.");
+  invariant(state, "State is required to authenticate user.");
 
-  if (error) {
-    session.flash("error", error);
+  if (error || !code) {
+    session.flash(
+      "error",
+      error ?? "Failed to authenticate user, please try again."
+    );
     throw redirect("/", await commitAuthSession(session));
   }
 
@@ -374,13 +369,12 @@ export async function handleGoogleCallback(request: Request) {
     if (!stripeCustomer) {
       session.flash(
         "error",
-        "Failed to create stripe account, please try again."
+        "Stripe account creation failed, please try again."
       );
       throw redirect("/", await commitAuthSession(session));
     }
 
-    const avatar_url = `https://api.dicebear.com/9.x/avataaars/svg?seed=${userInfo.given_name}`;
-
+    const avatar_url = getAvatarUrl(userInfo.given_name);
     const data = {
       name: userInfo.name,
       email: userInfo.email,
@@ -431,7 +425,6 @@ async function getGithubAccessToken(
   request: Request
 ): Promise<string> {
   const session = await getUserSession(request);
-
   const ACCESS_TOKEN_URL = `https://github.com/login/oauth/access_token?client_id=${GITHUB_CLIENT_ID}&client_secret=${GITHUB_CLIENT_SECRET}&code=${code}&redirect_uri=${encodeURIComponent(
     GITHUB_AUTH_REDIRECT_URL
   )}`;
@@ -455,7 +448,7 @@ async function getGithubAccessToken(
   if (!tokenData?.access_token || error) {
     session.flash(
       "error",
-      error ?? "Failed to fetch access token from GitHub."
+      error ?? "Failed to authenticate user, please try again."
     );
     throw redirect("/", await commitAuthSession(session));
   }
@@ -527,15 +520,12 @@ export async function handleGithubCallback(request: Request) {
     if (!stripeCustomer) {
       session.flash(
         "error",
-        "Failed to create stripe account, please try again."
+        "Failed to create Stripe account, please try again."
       );
       throw redirect("/", await commitAuthSession(session));
     }
 
-    const avatar_url = `https://api.dicebear.com/9.x/avataaars/svg?seed=${
-      githubUser.name.split(" ")[0]
-    }`;
-
+    const avatar_url = getAvatarUrl(githubUser.name.split(" ")[0]);
     const data = {
       name: githubUser.name,
       email: githubUser.email,
@@ -569,6 +559,15 @@ async function determineRedirectUrl(user: User, session: Session) {
         : user.currentUrl ?? "/dashboard"
       : "/a";
   return redirect(redirectUrl, await commitAuthSession(session));
+}
+
+/**
+ * Get avatar url
+ * @param {string} name - Name
+ * @returns {string} - Avatar url
+ */
+function getAvatarUrl(name: string) {
+  return `https://api.dicebear.com/9.x/avataaars/svg?seed=${name}`;
 }
 
 export { getSession, commitSession, destroySession };

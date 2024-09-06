@@ -23,7 +23,9 @@ export function ArticleCard({ article }: { article: Article }) {
         <CardTitle className="font-bold text-2xl -mb-4">
           {capitalizeFirstLetter(article.title)}
         </CardTitle>
-        <CardDescription>{article.description}</CardDescription>
+        <CardDescription>
+          {article.description.substring(0, 300)}...
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex flex-wrap -mt-2 mb-4">
@@ -52,7 +54,7 @@ export function ArticleCard({ article }: { article: Article }) {
           </div>
         </div>
       </CardContent>
-      <CardFooter className="flex justify-end">
+      <CardFooter className="flex mt-auto">
         <Button className="w-full text-lg" asChild>
           <Link to={`/articles/${article.slug}`} prefetch="intent">
             Read More

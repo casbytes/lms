@@ -59,7 +59,7 @@ export interface Article {
   author: Author;
 }
 
-interface Author {
+export interface Author {
   id: string;
   name: string;
   profession: string;

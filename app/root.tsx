@@ -55,12 +55,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
+        <ScrollRestoration />
         <script
           dangerouslySetInnerHTML={{
             __html: `window.ENV = ${JSON.stringify(data.ENV)}`,
           }}
         />
-        <ScrollRestoration />
         <Scripts />
       </body>
     </html>

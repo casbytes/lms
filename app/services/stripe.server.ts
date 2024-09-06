@@ -59,8 +59,9 @@ export async function deleteStripeCustomer({
  */
 export async function listPlans() {
   const cacheKey = "stripe-prices";
-  if (await Cache.has(cacheKey)) {
-    return (await Cache.get(cacheKey)) as Stripe.Price[];
+  const cachedPrices = (await Cache.get(cacheKey)) as Stripe.Price[];
+  if (cachedPrices) {
+    return cachedPrices;
   }
   const prices = await stripe.prices.list({
     active: true,
@@ -127,8 +128,9 @@ export async function listSubscriptions({
   customerId?: string;
 }) {
   const cacheKey = `stripe-subscriptions-${customerId}`;
-  if (await Cache.has(cacheKey)) {
-    return (await Cache.get(cacheKey)) as Stripe.Subscription[];
+  const cachedSubs = (await Cache.get(cacheKey)) as Stripe.Subscription[];
+  if (cachedSubs) {
+    return cachedSubs;
   }
   const subs = await stripe.subscriptions.list({
     customer: customerId,

@@ -1,15 +1,21 @@
 import { createClient, SetOptions } from "redis";
 const { REDIS_CLIENT_URL, NODE_ENV } = process.env;
 
+const REDIS_URL =
+  NODE_ENV === "production" ? REDIS_CLIENT_URL : "redis://localhost:6379";
+
 const cache = createClient({
-  url: NODE_ENV === "production" ? REDIS_CLIENT_URL : undefined,
+  url: REDIS_URL,
 });
 
-cache.on("error", function (err) {
-  throw err;
+cache.on("error", (error) => {
+  throw error;
 });
 
-await cache.connect();
+//to avoid top-level await
+(async () => {
+  await cache.connect();
+})();
 
 /**
  * Set cache value
@@ -44,21 +50,7 @@ async function get<T>(key: string): Promise<T | null> {
   }
 }
 
-/**
- * Check if key exists in cache
- * @param key - cache key
- * @returns {Promise<boolean>}
- */
-async function has(key: string): Promise<boolean> {
-  try {
-    return !!(await cache.get(key));
-  } catch (error) {
-    throw error;
-  }
-}
-
 export class Cache {
   static set = set;
   static get = get;
-  static has = has;
 }

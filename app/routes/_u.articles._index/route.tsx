@@ -10,6 +10,9 @@ import { Badge } from "~/components/ui/badge";
 import { cn } from "~/libs/shadcn";
 import { Input } from "~/components/ui/input";
 import { LoaderFunctionArgs } from "@remix-run/node";
+import { metaFn } from "~/utils/meta";
+
+export const meta = metaFn;
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
@@ -58,18 +61,19 @@ export default function Articles() {
       <div className="my-6">
         <h2 className="mb-2">Search articles by tags:</h2>
         <div className="flex flex-wrap">
-          {tags.map((tag) => (
-            <Badge
-              onClick={() => setSearchTerm(tag)}
-              key={tag}
-              className={cn("mr-2 text-lg cursor-pointer rounded-3xl", {
-                "bg-white border-sky-600 hover:bg-white text-sky-600":
-                  currentSearch && tag.includes(currentSearch),
-              })}
-            >
-              {tag}
-            </Badge>
-          ))}
+          {tags?.length &&
+            tags.map((tag) => (
+              <Badge
+                onClick={() => setSearchTerm(tag.trim())}
+                key={tag}
+                className={cn("mr-2 text-lg cursor-pointer rounded-3xl", {
+                  "bg-white border-sky-600 hover:bg-white text-sky-600":
+                    currentSearch && tag.includes(currentSearch),
+                })}
+              >
+                {tag}
+              </Badge>
+            ))}
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

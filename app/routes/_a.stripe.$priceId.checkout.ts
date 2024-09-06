@@ -3,8 +3,7 @@ import { ActionFunctionArgs, redirect } from "@remix-run/node";
 import { createCheckoutSession } from "~/services/stripe.server";
 import { getUser } from "~/utils/session.server";
 
-const { BASE_URL, DEV_BASE_URL, NODE_ENV } = process.env;
-const baseUrl = NODE_ENV === "production" ? BASE_URL : DEV_BASE_URL;
+const { BASE_URL } = process.env;
 
 export function loader() {
   return redirect("/");
@@ -22,8 +21,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const session = await createCheckoutSession({
       priceId,
       customerId: user.stripeCustomerId!,
-      successUrl: `${baseUrl}/subscription?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancelUrl: `${baseUrl}/subscription?canceled=true`,
+      successUrl: `${BASE_URL}/subscription?success=true&session_id={CHECKOUT_SESSION_ID}`,
+      cancelUrl: `${BASE_URL}/subscription?canceled=true`,
     });
     if (!session.url) throw new Error("No stripe session URL");
     return redirect(session.url, 303);
