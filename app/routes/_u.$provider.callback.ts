@@ -24,7 +24,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       case "github":
         return await handleGithubCallback(request);
       default:
-        throw new Error("Invalid intent.");
+        throw new Error("Invalid provider.");
     }
   } catch (error) {
     throw error;

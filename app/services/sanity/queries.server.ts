@@ -136,6 +136,7 @@ export const ARTICLE_QUERY = groq`*[_type == "article" && slug.current==$slug][0
         "image": image.asset->url,
         description,
         content,
+        videoId,
         "author": author->{
           "id": _id,
           name,

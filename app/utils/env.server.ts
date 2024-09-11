@@ -17,6 +17,8 @@ export const schema = z.object({
   GITHUB_OWNER: z.string(),
   GITHUB_TOKEN: z.string(),
   RESEND_API_KEY: z.string(),
+  PAYSTACK_SECRET_KEY: z.string(),
+  // PAYSTACK_PUBLIC_KEY: z.string(),
   STRIPE_SECRET_KEY: z.string(),
   STRIPE_WEBHOOK_SECRET: z.string(),
   SANITY_STUDIO_PROJECT_ID: z.string(),

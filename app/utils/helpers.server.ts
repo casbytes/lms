@@ -143,6 +143,18 @@ export function getVideoSource() {
 }
 
 /**
+ * Construct the user's full name
+ * @param name - user's name
+ * @returns {Record<string, string>} - user's first and last name
+ */
+export function constructUsername(name: string) {
+  const nameParts = name.split(" ");
+  const firstName = nameParts[0] || name;
+  const lastName = nameParts.slice(1).join(" ") || name;
+  return { firstName, lastName };
+}
+
+/**
  * Fetch the checkpoint and grade it
  * @param url - URL to send the POST request to
  * @param testEnvironment - Test environment identifier
@@ -485,19 +497,17 @@ async function updateCourseProject(moduleId: string, userId: string) {
 
 /**
  * Update user subscription status
- * @param stripeCustomerId - Stripe customer ID
+ * @param paystackCustomerCode - Paystack customer code
  * @param subscribed - Subscription status
  */
 export async function updateUserSubscription(
-  stripeCustomerId: string,
+  paystackCustomerCode: string,
   subscribed: boolean
 ) {
   try {
     return await prisma.user.update({
-      where: { stripeCustomerId },
-      data: {
-        subscribed,
-      },
+      where: { paystackCustomerCode },
+      data: { subscribed },
     });
   } catch (error) {
     throw error;
@@ -506,12 +516,12 @@ export async function updateUserSubscription(
 
 /**
  * Update user progress based on the subscription status
- * @param stripeCustomerId - Stripe customer ID
+ * @param paystackCustomerCode - Paystack customer code
  */
-export async function updateUserProgress(stripeCustomerId: string) {
+export async function updateUserProgress(paystackCustomerCode: string) {
   try {
     const { id: userId } = await prisma.user.findUniqueOrThrow({
-      where: { stripeCustomerId },
+      where: { paystackCustomerCode },
       select: { id: true },
     });
 

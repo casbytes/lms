@@ -1,5 +1,4 @@
 import invariant from "tiny-invariant";
-import { deleteStripeCustomer } from "~/services/stripe.server";
 import { prisma } from "~/utils/db.server";
 import { getUserId, signOut } from "~/utils/session.server";
 
@@ -31,12 +30,12 @@ export async function deleteUser(
     });
 
     await prisma.$transaction(async (txn) => {
-      await deleteStripeCustomer({
-        stripeCustomerId: user.stripeCustomerId!,
+      // await deleteStripeCustomer({
+      //   stripeCustomerId: user.stripeCustomerId!,
+      // }),
+      await txn.course.deleteMany({
+        where: { users: { some: { id: userId } } },
       }),
-        await txn.course.deleteMany({
-          where: { users: { some: { id: userId } } },
-        }),
         /**
          * Delete individual user modules progress if any
          */

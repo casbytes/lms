@@ -56,7 +56,9 @@ export interface Article {
   image: string;
   description: string;
   content: string;
+  videoId?: string;
   author: Author;
+  realtedArticles: Article[];
 }
 
 export interface Author {

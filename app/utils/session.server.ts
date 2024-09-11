@@ -6,8 +6,8 @@ import { Session, createCookieSessionStorage, redirect } from "@remix-run/node";
 import { type User, prisma } from "./db.server";
 import { Emails } from "~/services/resend/emails.server";
 import { ROLE } from "./helpers";
-import { customFetch } from "./helpers.server";
-import { createStripeCustomer } from "~/services/stripe.server";
+import { constructUsername, customFetch } from "./helpers.server";
+import { Paystack } from "~/services/paystack.server";
 
 export interface SessionData {
   userId: string;
@@ -362,15 +362,15 @@ export async function handleGoogleCallback(request: Request) {
   });
 
   if (!user) {
-    const stripeCustomer = await createStripeCustomer({
+    const { firstName, lastName } = constructUsername(userInfo.name);
+    const paystackCustomer = await Paystack.createCustomer({
       email: userInfo.email,
-      name: userInfo.name,
+      first_name: firstName,
+      last_name: lastName,
     });
-    if (!stripeCustomer) {
-      session.flash(
-        "error",
-        "Stripe account creation failed, please try again."
-      );
+
+    if (paystackCustomer.status !== true) {
+      session.flash("error", "Failed to create paystack customer, try again.");
       throw redirect("/", await commitAuthSession(session));
     }
 
@@ -379,7 +379,7 @@ export async function handleGoogleCallback(request: Request) {
       name: userInfo.name,
       email: userInfo.email,
       avatarUrl: userInfo?.picture?.trim() || avatar_url,
-      stripeCustomerId: stripeCustomer.id,
+      paystackCustomerCode: paystackCustomer.data!.customer_code,
       verified: true,
     };
 
@@ -513,25 +513,25 @@ export async function handleGithubCallback(request: Request) {
   });
 
   if (!user) {
-    const stripeCustomer = await createStripeCustomer({
+    const { firstName, lastName } = constructUsername(githubUser.name);
+    const paystackCustomer = await Paystack.createCustomer({
       email: githubUser.email,
-      name: githubUser.name,
+      first_name: firstName,
+      last_name: lastName,
     });
-    if (!stripeCustomer) {
-      session.flash(
-        "error",
-        "Failed to create Stripe account, please try again."
-      );
+
+    if (paystackCustomer.status !== true) {
+      session.flash("error", "Failed to create paystack customer, try again.");
       throw redirect("/", await commitAuthSession(session));
     }
 
-    const avatar_url = getAvatarUrl(githubUser.name.split(" ")[0]);
+    const avatar_url = getAvatarUrl(firstName);
     const data = {
       name: githubUser.name,
       email: githubUser.email,
       githubUsername: githubUser.login,
       avatarUrl: githubUser.avatar_url.trim() || avatar_url,
-      stripeCustomerId: stripeCustomer.id,
+      paystackCustomerCode: paystackCustomer.data!.customer_code,
       verified: true,
     };
 

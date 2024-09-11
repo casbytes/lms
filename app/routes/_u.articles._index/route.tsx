@@ -11,13 +11,15 @@ import { cn } from "~/libs/shadcn";
 import { Input } from "~/components/ui/input";
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { metaFn } from "~/utils/meta";
+import { Button } from "~/components/ui/button";
 
 export const meta = metaFn;
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
-  const searchTerm = url.searchParams.get("articles") ?? "";
-  const articles = await getArticles(searchTerm);
+  const searchTerm = url.searchParams.get("articleSearch") ?? "";
+  const articleCount = Number(url.searchParams.get("articleCount")) ?? 8;
+  const articles = await getArticles(searchTerm, articleCount);
   const tags = await getArticleAllArticleTags();
   return { articles, tags };
 }
@@ -25,6 +27,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export default function Articles() {
   const { articles, tags } = useLoaderData<typeof loader>();
   const [searchTerm, setSearchTerm] = React.useState("");
+  const [articleCount, setArticleCount] = React.useState(8);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const currentSearch = searchParams.get("articles");
@@ -33,15 +36,25 @@ export default function Articles() {
     setSearchParams(
       (params) => {
         if (searchTerm) {
-          params.set("articles", encodeURIComponent(searchTerm));
+          params.set("articleSearch", encodeURIComponent(searchTerm));
         } else {
-          params.delete("articles");
+          params.delete("articleSearch");
         }
         return params;
       },
       { preventScrollReset: true }
     );
   }, [searchTerm, setSearchParams]);
+
+  React.useEffect(() => {
+    setSearchParams(
+      (params) => {
+        params.set("articleCount", articleCount.toString());
+        return params;
+      },
+      { preventScrollReset: true }
+    );
+  }, [articleCount, setSearchParams]);
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     setSearchTerm(e.currentTarget.value);
@@ -87,6 +100,14 @@ export default function Articles() {
           </div>
         )}
       </div>
+      <Button
+        onClick={() => setArticleCount((count) => count + 4)}
+        className="mx-auto block mt-8 text-lg"
+        size={"lg"}
+        disabled={articleCount >= articles.length}
+      >
+        {articleCount < articles.length ? "Load More" : "No More Articles"}
+      </Button>
     </Container>
   );
 }

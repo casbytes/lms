@@ -18,24 +18,25 @@ export function ArticleCard({ article }: { article: Article }) {
   const stats = readingTime(article.content);
 
   return (
-    <Card>
+    <Card className="flex flex-col h-full">
       <CardHeader className="flex flex-col gap-4">
         <CardTitle className="font-bold text-2xl -mb-4">
           {capitalizeFirstLetter(article.title)}
         </CardTitle>
         <CardDescription>
-          {article.description.substring(0, 300)}...
+          {article.description.substring(0, 200)}...
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex flex-wrap -mt-2 mb-4">
-          {article.tags.split(",").map((tag) => (
-            <Badge key={tag} className="mr-2">
-              {tag}
-            </Badge>
-          ))}
+          {article.tags?.length &&
+            article.tags.split(",").map((tag) => (
+              <Badge key={tag} className="mr-2">
+                {tag}
+              </Badge>
+            ))}
         </div>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-auto">
           <div className="flex items-center gap-2">
             <Image
               cdn={false}
@@ -54,8 +55,8 @@ export function ArticleCard({ article }: { article: Article }) {
           </div>
         </div>
       </CardContent>
-      <CardFooter className="flex mt-auto">
-        <Button className="w-full text-lg" asChild>
+      <CardFooter className="mt-auto">
+        <Button className="w-full text-lg" variant={"outline"} asChild>
           <Link to={`/articles/${article.slug}`} prefetch="intent">
             Read More
           </Link>

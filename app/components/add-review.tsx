@@ -86,7 +86,7 @@ export function AddReview({
                 });
               } else {
                 reviewsFetcher.submit(
-                  { rating, review },
+                  { rating, review, itemTitle: item.title },
                   { method: "POST", preventScrollReset: true }
                 );
               }
