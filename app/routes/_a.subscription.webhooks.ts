@@ -12,11 +12,10 @@ export function loader() {
 export async function action({ request }: ActionFunctionArgs) {
   try {
     const webhook = await Paystack.constructWebhookEvent(request);
-    const { data } = webhook;
     switch (webhook.event) {
       case "charge.success":
       case "subscription.create": {
-        const customerCode = data.customer.customer_code;
+        const customerCode = webhook.data.customer.customer_code;
         await Promise.all([
           updateUserSubscription(customerCode, true),
           updateUserProgress(customerCode),
@@ -26,7 +25,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
       case "subscription.disable":
       case "invoice.payment_failed": {
-        const customerCode = data.customer.customer_code;
+        const customerCode = webhook.data.customer.customer_code;
         await updateUserSubscription(customerCode, false);
         break;
       }
