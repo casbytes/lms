@@ -31,7 +31,7 @@ export function AccountDetails({ user }: AccountDetailsProps) {
             </TableRow>
             <TableRow>
               <TableCell>Github username</TableCell>
-              <TableCell>{user?.githubUsername ?? "🤷‍♂️"}</TableCell>
+              <TableCell>{user?.githubUsername || "🤷‍♂️"}</TableCell>
             </TableRow>
             <TableRow>
               <TableCell>Joined On</TableCell>

@@ -5,6 +5,7 @@ import { cn } from "~/libs/shadcn";
 import { Button } from "~/components/ui/button";
 import { SheetTrigger } from "~/components/ui/sheet";
 import { DialogTrigger } from "~/components/ui/dialog";
+import { Image } from "~/components/image";
 
 type MainNavProps = {
   menuItems?: { label: string; href: string }[];
@@ -27,8 +28,6 @@ export function MainNav({
 }: MainNavProps) {
   const matches = useMatches();
   const location = useLocation();
-
-  console.log(location.pathname);
 
   const contentRoutes = matches.some(
     (match) =>
@@ -63,10 +62,8 @@ export function MainNav({
           ) : null}
           <Button variant="ghost" asChild>
             <Link to={authApp ? "/dashboard" : "/"}>
-              <img
-                src={`https://cdn.casbytes.com/assets/${
-                  authApp ? "icon.png" : "logo.png"
-                }`}
+              <Image
+                src={`assets/${authApp ? "icon.png" : "logo.png"}`}
                 alt="CASBytes"
                 width={authApp ? 40 : 200}
                 height={authApp ? 40 : 200}

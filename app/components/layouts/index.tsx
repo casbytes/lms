@@ -13,9 +13,9 @@ export { RootLayout } from "./root-layout";
 const STATUS_URL = "https://status.casbytes.com";
 
 export const unAuthMenuItems = [
+  { label: "features", href: "/#features" },
   { label: "courses", href: "/#courses" },
   { label: "modules", href: "/#modules" },
-  { label: "features", href: "/#features" },
   { label: "subscription", href: "/#subscription" },
   { label: "FAQs", href: "faqs" },
   { label: "articles", href: "articles" },

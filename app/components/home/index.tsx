@@ -6,27 +6,25 @@ import { Features } from "./features";
 import { Testimonial } from "./testimonial";
 import { Partnerships } from "./partnerships";
 import { Subscription } from "./subscription";
-import { Stripe } from "~/services/stripe.server";
 import { MetaCourse, MetaModule } from "~/services/sanity/types";
-// import { AddReview } from "../add-review";
 
 export function Home({
   plans,
   courses,
   modules,
 }: {
-  plans: Promise<Stripe.Price[]>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  plans: Promise<Record<string, any>>;
   courses: Promise<MetaCourse[]>;
   modules: Promise<MetaModule[]>;
 }) {
   return (
     <div className="bg-white">
       <Header />
-      {/* <AddReview /> */}
+      <Features />
       <Courses courses={courses} />
       <Modules modules={modules} />
       <ContentOverview />
-      <Features />
       <Testimonial />
       <Partnerships />
       <Subscription plans={plans} />

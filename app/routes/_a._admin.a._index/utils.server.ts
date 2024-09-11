@@ -1,10 +1,8 @@
 import invariant from "tiny-invariant";
 import { Prisma, prisma } from "~/utils/db.server";
 import { INTENT } from "./components/user-dialog";
-import {
-  deleteStripeCustomer,
-  updateStripeCustomer,
-} from "~/services/stripe.server";
+import { Paystack } from "~/services/paystack.server";
+import { constructUsername } from "~/utils/helpers.server";
 //#################
 //LOADER UTILS
 //################
@@ -84,12 +82,7 @@ export async function updateUser(request: Request) {
   switch (intent) {
     case INTENT.DELETE_USER: {
       try {
-        await Promise.all([
-          deleteStripeCustomer({
-            stripeCustomerId: user!.stripeCustomerId as string,
-          }),
-          prisma.user.delete({ where: { id: userId } }),
-        ]);
+        await prisma.user.delete({ where: { id: userId } });
         return null;
       } catch (error) {
         throw error;
@@ -98,10 +91,12 @@ export async function updateUser(request: Request) {
     case INTENT.UPDATE_USER: {
       try {
         const userData = { name, githubUsername, email, role, subscribed };
+        const { firstName, lastName } = constructUsername(userData.name);
         await Promise.all([
-          updateStripeCustomer({
-            stripeCustomerId: user!.stripeCustomerId as string,
-            data: { name, email },
+          await Paystack.updateCustomer(user!.paystackCustomerCode!, {
+            email: userData.email,
+            first_name: firstName,
+            last_name: lastName,
           }),
           prisma.user.update({ where: { id: userId }, data: { ...userData } }),
         ]);
@@ -119,7 +114,7 @@ export async function updateUser(request: Request) {
 async function getUser(userId: string) {
   return prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, stripeCustomerId: true },
+    select: { id: true, paystackCustomerCode: true },
   });
 }
 

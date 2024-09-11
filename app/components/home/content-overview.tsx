@@ -5,9 +5,9 @@ import { Image } from "../image";
 
 export function ContentOverview() {
   return (
-    <Container id="overview" className="container mb-8">
+    <Container className="bg-2 bg-no-repeat bg-cover mb-8" id="overview">
       <div className="flex flex-col md:flex-row justify-evenly max-w-6xl mx-auto">
-        <Fade direction="up" cascade duration={300}>
+        <Fade direction="down" cascade duration={300}>
           <div className={cn("max-w-md mx-auto")}>
             <h1 className="text-3xl font-bold text-center my-12 md:text-left">
               Transform Your Dreams into Reality:{" "}

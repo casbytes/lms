@@ -1,5 +1,5 @@
 {
-  "name": "client",
+  "name": "lms",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -133,6 +133,6 @@
     "@rollup/rollup-linux-x64-gnu": "4.6.1"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=20.0.0"
   }
 }
