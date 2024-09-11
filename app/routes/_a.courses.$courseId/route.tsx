@@ -1,3 +1,4 @@
+import React from "react";
 import { useLoaderData } from "@remix-run/react";
 import { LoaderFunctionArgs, defer } from "@remix-run/node";
 import {
@@ -19,6 +20,9 @@ import { PageTitle } from "~/components/page-title";
 import { getUser } from "~/utils/session.server";
 import { SubModules } from "~/components/modules";
 import { metaFn } from "~/utils/meta";
+import { AddReview } from "~/components/add-review";
+import { prisma } from "~/utils/db.server";
+import { isCourseOrModuleReviewed } from "~/utils/helpers.server";
 
 export const meta = metaFn;
 
@@ -26,13 +30,20 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const modules = getModules(request, params);
   const subModules = getSubModules(request, params);
   const badges = getModuleBadges(request, params);
-  const [test, checkpoint] = await Promise.all([
+  const [test, checkpoint, project, module, user, course] = await Promise.all([
     getTest(request, params),
     getCheckpoint(request, params),
+    getProject(request, params),
+    getModule(request, params),
+    getUser(request),
+    prisma.course.findUniqueOrThrow({
+      where: { id: params.courseId },
+    }),
   ]);
-  const project = await getProject(request, params);
-  const module = await getModule(request, params);
-  const user = await getUser(request);
+  const isCourseReviewed = await isCourseOrModuleReviewed({
+    userId: user.id,
+    courseId: course.id,
+  });
   return defer({
     test,
     modules,
@@ -42,6 +53,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     project,
     module,
     user,
+    course,
+    isCourseReviewed,
   });
 }
 
@@ -55,12 +68,21 @@ export default function CoursesRoute() {
     project,
     module,
     user,
+    course,
+    isCourseReviewed,
   } = useLoaderData<typeof loader>();
   const item = { test, checkpoint };
+  const [isDialogOpen, setIsDialogOpen] = React.useState(isCourseReviewed);
   return (
     <Container className="max-w-3xl lg:max-w-7xl">
       <BackButton to="/dashboard" buttonText="dashboard" />
       <PageTitle title={module.title} className="mb-8" />
+      <AddReview
+        user={user}
+        course={course}
+        isDialogOpen={isDialogOpen}
+        setIsDialogOpen={setIsDialogOpen}
+      />
       <div className="lg:grid lg:grid-cols lg:grid-cols-5 gap-6">
         <ul className="col-span-3 flex flex-col gap-6 overflow-y-auto h-auto max-h-screen">
           <div className="bg-[url('https://cdn.casbytes.com/assets/elearning2.png')] bg-no-repeat bg-contain">

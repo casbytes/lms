@@ -1,6 +1,6 @@
 import React from "react";
 import { MetaModule } from "~/services/sanity/types";
-import { ModuleSearchInput } from "../search-input";
+import { SearchInput } from "../search-input";
 import { Await } from "@remix-run/react";
 import { Fade } from "react-awesome-reveal";
 import { Button } from "../ui/button";
@@ -8,12 +8,20 @@ import { CatalogDialog } from "./catalog-dialog";
 import { DialogTrigger } from "../ui/dialog";
 import { cn } from "~/libs/shadcn";
 
-export function MetaModules({ modules }: { modules: Promise<MetaModule[]> }) {
-  const [initialModules, setInitialModules] = React.useState(20);
+export function MetaModules({
+  modules,
+  user,
+  currentItem,
+}: {
+  modules: Promise<MetaModule[]>;
+  user: { subscribed: boolean };
+  currentItem: { title: string } | null;
+}) {
+  const [initialModules, setInitialModules] = React.useState(16);
   return (
     <>
       <div className="md:max-w-[60%] mb-8 w-full mx-auto mt-4">
-        <ModuleSearchInput
+        <SearchInput
           searchValue="moduleTitle"
           placeholder="search modules"
           className="bg-white shadow-lg p-2"
@@ -30,36 +38,37 @@ export function MetaModules({ modules }: { modules: Promise<MetaModule[]> }) {
               ) : null}
               <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 items-end">
                 <Fade cascade damping={0.1} duration={200}>
-                  {modules?.length
-                    ? modules.slice(0, initialModules).map((module, index) => (
-                        <div
-                          key={`${module.id}-${index}`}
-                          className={cn(
-                            "bg-[url('https://cdn.casbytes.com/assets/icon.png')] bg-no-repeat bg-center",
-                            {
-                              "bg-cover": index % 2 === 0,
-                              "bg-contain": index % 2 === 1,
-                            }
-                          )}
-                        >
-                          <CatalogDialog
-                            module={module}
-                            dialogActionButton={
-                              <DialogTrigger asChild>
-                                <Button>Add to catalog</Button>
-                              </DialogTrigger>
-                            }
-                            cardActionButton={
-                              <DialogTrigger asChild>
-                                <Button variant={"outline"} size={"sm"}>
-                                  learn more
-                                </Button>
-                              </DialogTrigger>
-                            }
-                          />
-                        </div>
-                      ))
-                    : null}
+                  {modules?.length ? (
+                    modules.slice(0, initialModules).map((module, index) => (
+                      <div
+                        key={`${module.id}-${index}`}
+                        className={cn(
+                          "bg-[url('https://cdn.casbytes.com/assets/icon.png')] bg-no-repeat bg-center",
+                          {
+                            "bg-cover": index % 2 === 0,
+                            "bg-contain": index % 2 === 1,
+                          }
+                        )}
+                      >
+                        <CatalogDialog
+                          user={user}
+                          module={module}
+                          currentItem={currentItem}
+                          cardActionButton={
+                            <DialogTrigger asChild>
+                              <Button variant={"outline"} size={"sm"}>
+                                learn more
+                              </Button>
+                            </DialogTrigger>
+                          }
+                        />
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-center col-span-4 w-full text-lg font-mono">
+                      No modules match your search, try again.
+                    </p>
+                  )}
                 </Fade>
               </div>
               <Button

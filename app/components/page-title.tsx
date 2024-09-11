@@ -10,7 +10,7 @@ type TitleProps = {
 
 export function PageTitle({ className, title }: TitleProps) {
   const matches = useMatches();
-  const isArticle = matches.some((match) => match.id.includes("article"));
+  const isFaqs = matches.some((match) => match.id.includes("faqs"));
   return (
     <h1
       aria-label={title}
@@ -20,7 +20,7 @@ export function PageTitle({ className, title }: TitleProps) {
       )}
     >
       {title}{" "}
-      {!isArticle ? (
+      {!isFaqs ? (
         <ul className="hidden sm:flex gap-4">
           <li className="flex items-center">
             <Badge className="rounded-md text-sm">

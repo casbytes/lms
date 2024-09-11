@@ -8,15 +8,19 @@ export const schema = z.object({
   BASE_URL: z.string(),
   CDN_URL: z.string(),
   JAVASCRIPT_CHECKER_URL: z.string(),
+  GOOGLE_CLIENT_ID: z.string(),
+  GOOGLE_CLIENT_SECRET: z.string(),
+  GITHUB_CLIENT_ID: z.string(),
+  GITHUB_CLIENT_SECRET: z.string(),
   IFRAME_URL: z.string(),
   VIDEO_LIBRARY_ID: z.string(),
   GITHUB_OWNER: z.string(),
   GITHUB_TOKEN: z.string(),
   RESEND_API_KEY: z.string(),
-  STRIPE_SECRET_KEY: z.string(),
-  STRIPE_WEBHOOK_SECRET: z.string(),
+  PAYSTACK_SECRET_KEY: z.string(),
   SANITY_STUDIO_PROJECT_ID: z.string(),
   SANITY_STUDIO_DATASET: z.string(),
+  REDIS_CLIENT_URL: z.string(),
 });
 
 declare global {

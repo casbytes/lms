@@ -11,17 +11,18 @@ import {
 import { MDX } from "~/utils/db.server";
 import { readContent } from "~/utils/helpers.server";
 import { metaFn } from "~/utils/meta";
-import { cache } from "~/utils/node-cache.server";
+import { Cache } from "~/utils/cache.server";
 
 export const meta = metaFn;
 
 export async function loader() {
   const cacheKey = "faqs";
-  if (cache.has(cacheKey)) {
-    return json(cache.get(cacheKey) as MDX[]);
+  const cachedFaqs = await Cache.get<MDX[]>(cacheKey);
+  if (cachedFaqs) {
+    return json(cachedFaqs);
   }
-  const faqs = readContent("faqs");
-  cache.set<MDX[]>(cacheKey, faqs);
+  const faqs = readContent(cacheKey);
+  await Cache.set<MDX[]>(cacheKey, faqs);
   return json(faqs);
 }
 

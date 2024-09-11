@@ -1,77 +1,77 @@
 import React from "react";
-import { LoaderFunctionArgs, json } from "@remix-run/node";
+import {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  json,
+  redirect,
+} from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { Container } from "~/components/container";
 import { PageTitle } from "~/components/page-title";
-import { listPlans, listSubscriptions } from "~/services/stripe.server";
-import { Subscription } from "./components/subscription";
-import { CheckoutSuccessUI } from "./components/success-ui";
-import { CheckoutCancelUI } from "./components/canceled-ui";
 import { getUser } from "~/utils/session.server";
 import { metaFn } from "~/utils/meta";
+import {
+  FetchSubscription,
+  GenerateSubscriptionLink,
+  Paystack,
+} from "~/services/paystack.server";
+import { SubscriptionCard } from "./components/subscription-card";
+import { ActiveSubCard } from "./components/active-sub-card";
+import { ErrorDialog } from "./components/error-dialog";
 
 export const meta = metaFn;
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const [user, plans] = await Promise.all([getUser(request), listPlans()]);
-  const subs = await listSubscriptions({
-    customerId: user.stripeCustomerId!,
-  });
+  const [user, plans] = await Promise.all([
+    getUser(request),
+    Paystack.listPlans(),
+  ]);
+  const activeSubscription = await Paystack.retrieveActiveSubscription(
+    user.paystackCustomerCode!
+  ).then((res) => (res as FetchSubscription | undefined)?.data);
+
   const url = new URL(request.url);
-  const success = url.searchParams.get("success") === "true";
-  const canceled = url.searchParams.get("canceled") === "true";
-  return json({ user, plans, subs, success, canceled });
+  const error = url.searchParams.get("error") === "true";
+  return json({ user, plans, error, activeSubscription });
 }
 
-type StatusState = "success" | "canceled" | null;
-export type StatusAction =
-  | { type: "SET_SUCCESS" }
-  | { type: "SET_CANCELED" }
-  | { type: "RESET" };
+export async function action({ request }: ActionFunctionArgs) {
+  const formData = await request.formData();
+  const intent = formData.get("intent") as "update" | "cancel";
+  const code = formData.get("code") as string;
+  switch (intent) {
+    case "update":
+    case "cancel": {
+      const res = await Paystack.updateSubscription(code);
+      if (!res.status) {
+        throw redirect("/subscription?error=true");
+      }
+      return redirect((res as GenerateSubscriptionLink).data.link, 303);
+    }
+    default:
+      throw new Error("Invalid intent.");
+  }
+}
 
 export default function SubscriptionRoute() {
-  const { user, plans, subs, success, canceled } =
+  const { user, plans, error, activeSubscription } =
     useLoaderData<typeof loader>();
-
-  function statusReducer(
-    state: StatusState,
-    action: StatusAction
-  ): StatusState {
-    switch (action.type) {
-      case "SET_SUCCESS":
-        return "success";
-      case "SET_CANCELED":
-        return "canceled";
-      case "RESET":
-        return null;
-      default:
-        return state;
-    }
-  }
-
-  const [status, dispatch] = React.useReducer(statusReducer, null);
-  const isSuccess = status === "success";
-  const isCanceled = status === "canceled";
-
-  React.useEffect(() => {
-    if (success) {
-      dispatch({ type: "SET_SUCCESS" });
-    } else if (canceled) {
-      dispatch({ type: "SET_CANCELED" });
-    } else {
-      dispatch({ type: "RESET" });
-    }
-  }, [success, canceled]);
+  const [isError, setIsError] = React.useState(error);
 
   return (
     <Container className="max-w-6xl">
       <PageTitle title="subscription" />
-      {isSuccess ? (
-        <CheckoutSuccessUI dispatch={dispatch} />
-      ) : isCanceled ? (
-        <CheckoutCancelUI dispatch={dispatch} />
+      <ErrorDialog isError={isError} setIsError={setIsError} />
+      {activeSubscription?.plan ? (
+        <ActiveSubCard activeSubscription={activeSubscription} />
       ) : (
-        <Subscription plans={plans} user={user} subs={subs} />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-8">
+          {plans?.length &&
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            plans?.map((plan: Record<string, any>) => (
+              <SubscriptionCard plan={plan} user={user} key={plan.id} />
+            ))}
+        </div>
       )}
     </Container>
   );

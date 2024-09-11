@@ -39,8 +39,8 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function TestRoute() {
-  const { test, testQuestions } = useLoaderData<typeof loader>();
   const submit = useSubmit();
+  const { test, testQuestions } = useLoaderData<typeof loader>();
   const [isServer, setIsServer] = React.useState(true);
   const [isSubmitted, setIsSubmitted] = React.useState(false);
   const [score, setScore] = useLocalStorageState("testScore", 0);

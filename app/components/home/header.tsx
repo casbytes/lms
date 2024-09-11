@@ -26,14 +26,12 @@ export function Header() {
               <span className="text-zinc-700"> Cutting-Edge Curriculum.</span>
             </h2>
             <div className="flex flex-wrap justify-center md:justify-start gap-4 capitalize">
-              <DialogTrigger asChild>
-                <Button aria-label="get started" className="capitalize">
-                  get started
-                </Button>
-              </DialogTrigger>
+              <Button aria-label="get started" className="capitalize" asChild>
+                <DialogTrigger>get started</DialogTrigger>
+              </Button>
 
               <Button variant="outline" aria-label="curriculum" asChild>
-                <Link to="/courses">courses</Link>
+                <Link to="#features">features</Link>
               </Button>
             </div>
             <ul className="flex flex-wrap justify-center md:justify-start gap-4 mt-6">

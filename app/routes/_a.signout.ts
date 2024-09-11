@@ -21,7 +21,7 @@ export async function action({ request }: ActionFunctionArgs) {
      * instead we will just destroy the session and redirect them to the
      * homepage.
      */
-    const user = await prisma.user.findFirst({
+    const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { id: true },
     });
@@ -33,7 +33,7 @@ export async function action({ request }: ActionFunctionArgs) {
       });
     }
 
-    return signOut(request);
+    return await signOut(request);
   } catch (error) {
     throw error;
   }

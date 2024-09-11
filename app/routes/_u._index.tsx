@@ -1,7 +1,6 @@
 import React from "react";
 import { defer, LoaderFunctionArgs, redirect } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
-import { listPlans } from "~/services/stripe.server";
 import { Home } from "~/components/home";
 import {
   destroyAuthSession,
@@ -13,6 +12,7 @@ import { toast } from "~/components/ui/use-toast";
 import { metaFn } from "~/utils/meta";
 import { ROLE } from "~/utils/helpers";
 import { getMetaCourses, getMetaModules } from "~/services/sanity/index.server";
+import { listPlans } from "~/services/paystack.server";
 
 export const meta = metaFn;
 
@@ -20,10 +20,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
   let error: string | undefined;
   try {
     const url = new URL(request.url);
-    const search = url.searchParams.get("moduleTitle");
+    const searchTerm = url.searchParams.get("moduleTitle");
     const plans = listPlans();
     const courses = getMetaCourses();
-    const modules = getMetaModules(search);
+    const modules = getMetaModules({ searchTerm });
     const session = await getUserSession(request);
     if (session.has(sessionKey)) {
       const user = await getUser(request);

@@ -21,8 +21,10 @@ import { Pagination } from "./components/pagination";
 import { Separator } from "~/components/ui/separator";
 import { Assessment } from "~/components/assessment";
 import { ContentPendingUI } from "~/components/content-pending-ui";
-import { getVideoSource } from "~/utils/helpers.server";
 import { metaFn } from "~/utils/meta";
+import { AddReview } from "~/components/add-review";
+import { getUser } from "~/utils/session.server";
+import { isCourseOrModuleReviewed } from "~/utils/helpers.server";
 
 export const meta = metaFn;
 
@@ -30,11 +32,18 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   try {
     const lessons = getLessons(request, params);
     const currentLesson = getLesson(request, params);
-    const videoSource = getVideoSource();
-    const test = await getTest(request, params);
-    const checkpoint = await getCheckpoint(request, params);
-    const subModule = await getSubModule(request, params);
-    const type = await getTypeformUrl(request);
+    const [test, checkpoint, subModule, type, user] = await Promise.all([
+      getTest(request, params),
+      getCheckpoint(request, params),
+      getSubModule(request, params),
+      getTypeformUrl(request),
+      getUser(request),
+    ]);
+    const isModuleReviewed = await isCourseOrModuleReviewed({
+      userId: user.id,
+      moduleId: subModule.moduleId,
+    });
+
     return defer({
       lessons,
       currentLesson,
@@ -42,7 +51,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       test,
       checkpoint,
       type,
-      videoSource,
+      user,
+      isModuleReviewed,
     });
   } catch (error) {
     throw error;
@@ -65,9 +75,10 @@ export default function ModulesRoute() {
     test,
     checkpoint,
     type,
-    videoSource,
+    user,
+    isModuleReviewed,
   } = useLoaderData<typeof loader>();
-
+  const [isDialogOpen, setIsDialogOpen] = React.useState(isModuleReviewed);
   const redirectUrl =
     type && type === "module"
       ? `/modules/${subModule?.moduleId}`
@@ -81,6 +92,12 @@ export default function ModulesRoute() {
     <Container className="max-w-3xl lg:max-w-7xl">
       <BackButton to={redirectUrl} buttonText={buttonText} />
       <PageTitle title={title} className="mb-8" />
+      <AddReview
+        user={user}
+        module={subModule.module}
+        isDialogOpen={isDialogOpen}
+        setIsDialogOpen={setIsDialogOpen}
+      />
       <div className="lg:grid lg:grid-cols md:grid-cols-6 gap-6">
         <div className="col-span-4 flex flex-col gap-6 overflow-y-auto h-auto max-h-screen">
           <div className="col-span-3 min-h-full">
@@ -92,10 +109,7 @@ export default function ModulesRoute() {
                   <>
                     <Markdown source={currentLesson.mdx.content} />
                     {currentLesson?.mdx?.data?.videoId ? (
-                      <IFrame
-                        src={videoSource}
-                        videoId={currentLesson.mdx.data.videoId}
-                      />
+                      <IFrame videoId={currentLesson.mdx.data.videoId} />
                     ) : null}
                   </>
                 )}

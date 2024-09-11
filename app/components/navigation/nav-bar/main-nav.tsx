@@ -1,10 +1,11 @@
-import { Link, NavLink, useMatches } from "@remix-run/react";
+import { Link, useLocation, useMatches } from "@remix-run/react";
 import { TfiMenu } from "react-icons/tfi";
 import { RiMenuFoldFill } from "react-icons/ri";
 import { cn } from "~/libs/shadcn";
 import { Button } from "~/components/ui/button";
 import { SheetTrigger } from "~/components/ui/sheet";
 import { DialogTrigger } from "~/components/ui/dialog";
+import { Image } from "~/components/image";
 
 type MainNavProps = {
   menuItems?: { label: string; href: string }[];
@@ -26,11 +27,12 @@ export function MainNav({
   handleNavToggle,
 }: MainNavProps) {
   const matches = useMatches();
+  const location = useLocation();
 
   const contentRoutes = matches.some(
     (match) =>
-      match.id.includes("courses") ||
-      match.id.includes("modules") ||
+      match.id.includes("courses.$courseId") ||
+      match.id.includes("modules.$moduleId") ||
       match.id.includes("sub-modules")
   );
   return (
@@ -60,10 +62,8 @@ export function MainNav({
           ) : null}
           <Button variant="ghost" asChild>
             <Link to={authApp ? "/dashboard" : "/"}>
-              <img
-                src={`https://cdn.casbytes.com/assets/${
-                  authApp ? "icon.png" : "logo.png"
-                }`}
+              <Image
+                src={`assets/${authApp ? "icon.png" : "logo.png"}`}
                 alt="CASBytes"
                 width={authApp ? 40 : 200}
                 height={authApp ? 40 : 200}
@@ -78,20 +78,24 @@ export function MainNav({
               {menuItems && menuItems?.length > 0
                 ? menuItems?.map((item: ItemProps, index: number) => (
                     <li key={`${item}-${index}`}>
-                      <NavLink
-                        key={`${item.href}-${index}`}
-                        to={item.href}
-                        target={item.target ?? "_self"}
-                        aria-label={item.label}
-                        prefetch="intent"
-                        className={({ isActive }) =>
-                          isActive ? "text-blue-600" : ""
-                        }
+                      <Button
+                        variant="link"
+                        className={cn("text-lg capitalize", {
+                          "text-blue-700 underline underline-offset-4":
+                            location.pathname.includes(item.href),
+                        })}
+                        asChild
                       >
-                        <Button variant="link" className="text-lg capitalize">
+                        <Link
+                          key={`${item.href}-${index}`}
+                          to={item.href}
+                          target={item.target ?? "_self"}
+                          aria-label={item.label}
+                          prefetch="intent"
+                        >
                           {item.label}
-                        </Button>
-                      </NavLink>
+                        </Link>
+                      </Button>
                     </li>
                   ))
                 : null}

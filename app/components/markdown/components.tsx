@@ -323,7 +323,10 @@ export function CodeBlock(
   return language ? (
     <div className="relative mb-6 mt-10">
       <pre
-        className={cn("hljs rouned-md! text-md p-4 overflow-x-auto", className)}
+        className={cn(
+          "hljs rouned-md! text-md p-4 overflow-x-auto whitespace-pre-wrap",
+          className
+        )}
         {...rest}
       >
         {language ? (

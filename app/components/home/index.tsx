@@ -1,12 +1,11 @@
 import { Header } from "./header";
-import { CoursesOverview } from "./courses-overview";
+import { Courses } from "./courses";
+import { Modules } from "./modules";
 import { ContentOverview } from "./content-overview";
-import { FeatureOverview } from "./feature-overview";
+import { Features } from "./features";
 import { Testimonial } from "./testimonial";
 import { Partnerships } from "./partnerships";
 import { Subscription } from "./subscription";
-import { Stripe } from "~/services/stripe.server";
-import { ModulesOverview } from "./modules-overview";
 import { MetaCourse, MetaModule } from "~/services/sanity/types";
 
 export function Home({
@@ -14,17 +13,18 @@ export function Home({
   courses,
   modules,
 }: {
-  plans: Promise<Stripe.Price[]>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  plans: Promise<Record<string, any>>;
   courses: Promise<MetaCourse[]>;
   modules: Promise<MetaModule[]>;
 }) {
   return (
     <div className="bg-white">
       <Header />
-      <CoursesOverview courses={courses} />
-      <ModulesOverview modules={modules} />
+      <Features />
+      <Courses courses={courses} />
+      <Modules modules={modules} />
       <ContentOverview />
-      <FeatureOverview />
       <Testimonial />
       <Partnerships />
       <Subscription plans={plans} />

@@ -23,8 +23,6 @@ export const meta = metaFn;
 
 export async function loader({ request }: LoaderFunctionArgs) {
   try {
-    // const courseData = getCourses(request);
-    // const moduleData = getModules(request);
     const userCourses = getUserCourses(request);
     const userModules = getUserModules(request);
     const timeData = getLearningTime(request);
@@ -67,11 +65,10 @@ export default function Dashboard() {
         <div className="flex flex-col gap-4 -mt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <UserCard user={user} />
-            {/* <Courses courseData={courseData} /> */}
-            {/* <Modules moduleData={moduleData} user={user} /> */}
             <UserCourses userCourses={userCourses} />
             <UserModules userModules={userModules} />
           </div>
+
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
             <MembershipCard user={user} />
             <DiscordCard user={user} />

@@ -1,8 +1,9 @@
 import { redirect } from "@remix-run/node";
 import invariant from "tiny-invariant";
-import { createStripeCustomer } from "~/services/stripe.server";
+import { Paystack } from "~/services/paystack.server";
 import { prisma } from "~/utils/db.server";
 import { ROLE } from "~/utils/helpers";
+import { constructUsername } from "~/utils/helpers.server";
 import {
   commitAuthSession,
   getUserSession,
@@ -36,20 +37,28 @@ export async function updateUser(request: Request) {
     invariant(name, "Name is required.");
     invariant(intent === "submit", "Invalid intent.");
 
-    const stripeCustomer = await createStripeCustomer({ email, name });
-    if (!stripeCustomer.id) {
-      session.flash("error", "Failed to create stripe customer, try again.");
+    const { firstName, lastName } = constructUsername(name);
+    const paystackCustomer = await Paystack.createCustomer({
+      email,
+      first_name: firstName,
+      last_name: lastName,
+    });
+    if (paystackCustomer.status !== true) {
+      session.flash("error", "Failed to create paystack customer, try again.");
       throw redirect("/", await commitAuthSession(session));
     }
+    const avatar_url = `https://api.dicebear.com/9.x/avataaars/svg?seed=${firstName}`;
+
     const user = await prisma.user.update({
       where: { email },
       data: {
         name,
         githubUsername,
+        avatarUrl: avatar_url,
         verified: true,
         verificationToken: null,
         authState: null,
-        stripeCustomerId: stripeCustomer.id,
+        paystackCustomerCode: paystackCustomer.data!.customer_code,
       },
       select: { id: true, name: true, verified: true, role: true },
     });
@@ -61,8 +70,7 @@ export async function updateUser(request: Request) {
 
     session.set(sessionKey, user.id);
 
-    const redirectUrl =
-      user.role === (ROLE.ADMIN as ROLE) ? "/a" : "/onboarding";
+    const redirectUrl = user.role === ROLE.ADMIN ? "/a" : "/onboarding";
     return redirect(redirectUrl, await commitAuthSession(session));
   } catch (error) {
     throw error;

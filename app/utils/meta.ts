@@ -3,6 +3,11 @@ import { capitalizeFirstLetter } from "./helpers";
 
 export const metaFn: MetaFunction = ({ matches }) => {
   let pageTitle = "CASBytes";
+  let pageDescription =
+    "Crafting exceptional software solutions for tomorrow's challenges.";
+  let image = `https://cdn.casbytes.com/assets/logo.png`;
+
+  let url = `https://casbytes.com`;
 
   if (matches) {
     matches.forEach((match) => {
@@ -14,6 +19,11 @@ export const metaFn: MetaFunction = ({ matches }) => {
           pageTitle = mainPart.replace(/-/g, " ") || "CASBytes";
         } else if (match.id.includes("_admin")) {
           pageTitle = `${pathParts[3]} | CASBytes`;
+        } else if (match.id.includes("articles.$slug")) {
+          pageTitle = (match.data as { title: string }).title;
+          pageDescription = (match.data as { description: string }).description;
+          image = (match.data as { image: string }).image;
+          url = `https://casbytes.com/${match.pathname}`;
         } else {
           pageTitle = `${mainPart.replace(/-/g, " ")} | CASBytes`;
         }
@@ -22,18 +32,14 @@ export const metaFn: MetaFunction = ({ matches }) => {
   }
 
   const title = capitalizeFirstLetter(pageTitle);
-  const description =
-    "Crafting exceptional software solutions for tomorrow's challenges.";
   const keywords =
-    "CASBytes, Software Development, Web Development, Mobile Development";
-  const image = `https://cdn.casbytes.com/logo.png`;
-  const url = `https://casbytes.com`;
+    "CASBytes, Software Development, Web Development, Mobile Development, software engineering, css, html, javascript, python, reactjs, remix";
   const pageMeta = [
     { title },
-    { name: "description", content: description },
+    { name: "description", content: pageDescription },
     { name: "keywords", content: keywords },
     { property: "og:title", content: title },
-    { property: "og:description", content: description },
+    { property: "og:description", content: pageDescription },
     { property: "og:keywords", content: keywords },
     { property: "og:image", content: image },
     { property: "og:image:alt", content: title },
@@ -42,7 +48,7 @@ export const metaFn: MetaFunction = ({ matches }) => {
     { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:site", content: "@casbytes" },
     { name: "twitter:creator", content: "@casbytes" },
-    { name: "twitter:description", content: description },
+    { name: "twitter:description", content: pageDescription },
     { name: "twitter:image", content: image },
   ];
   return pageMeta;

@@ -4,7 +4,7 @@ import { useDebounce } from "use-debounce";
 import { Input } from "~/components/ui/input";
 import { cn } from "~/libs/shadcn";
 
-export function ModuleSearchInput({
+export function SearchInput({
   searchValue,
   placeholder,
   className,

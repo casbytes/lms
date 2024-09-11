@@ -5,7 +5,7 @@ import { getUserId } from "~/utils/session.server";
 import { prisma, Test } from "~/utils/db.server";
 import { STATUS, TEST_STATUS } from "~/utils/helpers";
 import { getContentFromGithub } from "~/utils/octokit.server";
-import { cache } from "~/utils/node-cache.server";
+import { Cache } from "~/utils/cache.server";
 import {
   updateModuleStatusAndFindNextModule,
   updateSubmoduleStatusAndFindNextSubmodule,
@@ -58,16 +58,16 @@ export async function getTest(request: Request, params: Params<string>) {
       : `${test?.subModule?.slug}/test.json`;
 
     const cacheKey = `test-${test.id}`;
-    if (cache.has(cacheKey)) {
-      const testQuestions = cache.get(cacheKey) as Question[];
-      return { test, testQuestions };
+    const cachedQuestions = (await Cache.get(cacheKey)) as Question[] | null;
+    if (cachedQuestions) {
+      return { test, testQuestions: cachedQuestions };
     }
     const { content } = await getContentFromGithub({
       repo,
       path,
     });
     const testQuestions = JSON.parse(content) as Question[];
-    cache.set<Question[]>(cacheKey, testQuestions);
+    await Cache.set<Question[]>(cacheKey, testQuestions);
     return { test, testQuestions };
   } catch (error) {
     throw error;
