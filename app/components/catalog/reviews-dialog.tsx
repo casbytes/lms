@@ -52,22 +52,22 @@ export function ReviewsDialog({
       <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{capitalizeFirstLetter(item.title)} reviews</DialogTitle>
-
           <div className="flex flex-col gap-1 pt-4">
             <div>
               <span className="text-slate-600">Total rating:</span>{" "}
-              {totalRating}
+              {totalRating.toFixed(1)}
             </div>
             <div>
               <span className="text-slate-600">Average rating:</span>{" "}
-              {averageRating}
+              {averageRating.toFixed(1)}
             </div>
           </div>
+          <Separator className="bg-sky-600" />{" "}
           <div className="flex flex-col gap-4">
             {item.reviews?.length ? (
               item.reviews.map((review, i) => (
                 <div key={review.id} className="flex flex-col gap-2">
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 text-sm">
                     <span className="text-slate-600">Name:</span>{" "}
                     {review.user.name}
                   </div>
@@ -82,9 +82,11 @@ export function ReviewsDialog({
                       {review.rating}
                     </Badge>
                   </div>
-                  <DialogDescription>{review.description}</DialogDescription>
-                  <div className="text-slate-700">
-                    {format(safeParseDate(review.createdAt), "dd MMMM yyyy")}{" "}
+                  <DialogDescription className="my-2">
+                    {review.description}
+                  </DialogDescription>
+                  <div className="text-slate-700 text-sm">
+                    {format(safeParseDate(review.createdAt), "dd MMMM, yyyy")}{" "}
                   </div>
                   {i < reviewsLength - 1 ? <Separator /> : null}
                 </div>

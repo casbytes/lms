@@ -27,11 +27,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const module = getModule(request, params);
   const moduleBadges = getModuleBadges(request, params);
   const subModules = getSubModules(request, params);
-  const [test, checkpoint, user] = await Promise.all([
-    getTest(request, params),
-    getCheckpoint(request, params),
-    getUser(request),
-  ]);
+  const test = await getTest(request, params);
+  const checkpoint = await getCheckpoint(request, params);
+  const user = await getUser(request);
   // const isModuleReviewed = await isCourseOrModuleReviewed({
   //   userId: user.id,
   //   moduleId: await module.then((m) => m.id),
@@ -57,6 +55,7 @@ export default function SubModuleRoute() {
     user,
     // isModuleReviewed,
   } = useLoaderData<typeof loader>();
+
   const item = { test, checkpoint };
   // const [isDialogOpen, setIsDialogOpen] = React.useState(true);
 

@@ -46,7 +46,7 @@ export function MetaCourses({
                 <h1 className="text-center text-6xl w-full font-mono mb-8">
                   COMING SOON!
                 </h1>
-                <p className="text-center text-lg max-w-lg">
+                <p className="text-center text-lg max-w-lg mx-auto">
                   Exciting news from CASBytes! We&apos;re crafting a program to
                   produce exceptional software engineers. Stay tuned.
                 </p>

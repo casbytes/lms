@@ -8,7 +8,6 @@ import { getCheckpoint, gradeCheckpoint } from "./utils.server";
 import { useActionData, useLoaderData } from "@remix-run/react";
 import { IFrame } from "~/components/iframe";
 import { getUser } from "~/utils/session.server";
-import { getVideoSource } from "~/utils/helpers.server";
 import { CheckpointResponse } from "~/components/checkpoint-response";
 import { metaFn } from "~/utils/meta";
 
@@ -16,13 +15,12 @@ export const meta = metaFn;
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   try {
-    const videoSource = getVideoSource();
     const user = await getUser(request);
     const { checkpoint, checkpointContent } = await getCheckpoint(
       request,
       params
     );
-    return json({ user, videoSource, checkpoint, checkpointContent });
+    return json({ user, checkpoint, checkpointContent });
   } catch (error) {
     throw error;
   }
@@ -37,22 +35,23 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function CheckPointRoute() {
-  const { checkpoint, checkpointContent, videoSource } =
-    useLoaderData<typeof loader>();
+  const { checkpoint, checkpointContent } = useLoaderData<typeof loader>();
   const checkpointResponse = useActionData<typeof action>();
 
+  const moduleWithCourseId = checkpoint?.module?.courseId;
   const moduleId = checkpoint?.moduleId ?? null;
-  const subModuleId = checkpoint?.subModuleId ?? null;
+  // const subModuleId = checkpoint?.subModuleId ?? null;
+  const moduleWithCourseCheckpoint = !!moduleWithCourseId;
+  const moduleCheckpoint = !!moduleId;
 
-  const moduleCheckpoint = Boolean(checkpoint?.moduleId);
   const checkpointTitle = checkpoint.title;
+  const moduleOrSubModuleTitle =
+    checkpoint?.module?.title ?? checkpoint?.subModule?.title;
 
-  const moduleOrSubModuleTitle = moduleCheckpoint
-    ? checkpoint?.module?.title
-    : checkpoint?.subModule?.title;
-
-  const moduleOrSubModuleUrl = moduleCheckpoint
+  const moduleOrSubModuleUrl = moduleWithCourseCheckpoint
     ? `/courses/${checkpoint?.module?.courseId}?moduleId=${checkpoint?.moduleId}`
+    : moduleCheckpoint
+    ? `/modules/${checkpoint?.moduleId}`
     : `/sub-modules/${checkpoint?.subModuleId}`;
 
   React.useEffect(() => {}, [checkpointResponse]);
@@ -67,7 +66,7 @@ export default function CheckPointRoute() {
       />
       <>
         {checkpointContent?.data?.videoId ? (
-          <IFrame src={videoSource} videoId={checkpointContent.data.videoId} />
+          <IFrame videoId={checkpointContent.data.videoId} />
         ) : null}
         <Markdown source={checkpointContent.content} />
       </>

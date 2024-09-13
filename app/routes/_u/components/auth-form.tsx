@@ -18,6 +18,7 @@ export function AuthForm({
 }: SocialButtonProps) {
   const navigation = useNavigation();
   const isLoading = navigation.formData?.get("intent") === `${provider}-signin`;
+  const disabled = navigation.formData?.get("disabled") === "signin";
   return (
     <Form method="POST" action={`/${provider}/redirect`} className="w-full">
       <input
@@ -26,6 +27,7 @@ export function AuthForm({
         value={`${provider}-signin`}
         required
       />
+      <input type="hidden" name="disabled" value="signin" required />
       {provider === "magic-link" ? (
         <div className="flex flex-col gap-4">
           <Input
@@ -39,7 +41,7 @@ export function AuthForm({
             type="submit"
             aria-label="Email addredd"
             className="w-full text-lg"
-            disabled={isLoading}
+            disabled={disabled}
           >
             {isLoading ? (
               <CgSpinnerTwo className="mr-2 h-6 w-6 animate-spin" />
@@ -56,7 +58,7 @@ export function AuthForm({
           className="text-lg bg-zinc-600 hover:bg-zinc-500 w-full flex gap-2"
           aria-label={`continue with ${label}`}
           {...props}
-          disabled={isLoading}
+          disabled={disabled}
         >
           {isLoading ? (
             <CgSpinnerTwo className="mr-2 h-6 w-6 animate-spin" />

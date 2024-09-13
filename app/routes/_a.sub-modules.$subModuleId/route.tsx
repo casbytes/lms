@@ -1,14 +1,13 @@
 import React from "react";
 import { ActionFunctionArgs, LoaderFunctionArgs, defer } from "@remix-run/node";
-import { Await, useLoaderData } from "@remix-run/react";
+import { Await, useLoaderData, useSearchParams } from "@remix-run/react";
 import {
   getCheckpoint,
   getLesson,
   getLessons,
   getSubModule,
   getTest,
-  getTypeformUrl,
-  updateLesson,
+  handleActions,
 } from "./utils.server";
 import { BackButton } from "~/components/back-button";
 import { Container } from "~/components/container";
@@ -32,13 +31,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   try {
     const lessons = getLessons(request, params);
     const currentLesson = getLesson(request, params);
-    const [test, checkpoint, subModule, type, user] = await Promise.all([
-      getTest(request, params),
-      getCheckpoint(request, params),
-      getSubModule(request, params),
-      getTypeformUrl(request),
-      getUser(request),
-    ]);
+    const test = await getTest(request, params);
+    const checkpoint = await getCheckpoint(request, params);
+    const subModule = await getSubModule(request, params);
+    const user = await getUser(request);
     const isModuleReviewed = await isCourseOrModuleReviewed({
       userId: user.id,
       moduleId: subModule.moduleId,
@@ -50,7 +46,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       subModule,
       test,
       checkpoint,
-      type,
       user,
       isModuleReviewed,
     });
@@ -61,7 +56,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export async function action({ request, params }: ActionFunctionArgs) {
   try {
-    return updateLesson(request, params);
+    return await handleActions(request, params);
   } catch (error) {
     throw error;
   }
@@ -74,11 +69,13 @@ export default function ModulesRoute() {
     subModule,
     test,
     checkpoint,
-    type,
     user,
     isModuleReviewed,
   } = useLoaderData<typeof loader>();
   const [isDialogOpen, setIsDialogOpen] = React.useState(isModuleReviewed);
+  const [searchParams] = useSearchParams();
+  const type = searchParams.get("type");
+
   const redirectUrl =
     type && type === "module"
       ? `/modules/${subModule?.moduleId}`
@@ -124,7 +121,10 @@ export default function ModulesRoute() {
             >
               <Await resolve={currentLesson}>
                 {(currentLesson) => (
-                  <Pagination currentLessonData={currentLesson} />
+                  <Pagination
+                    currentLessonData={currentLesson}
+                    redirectUrl={redirectUrl}
+                  />
                 )}
               </Await>
             </React.Suspense>

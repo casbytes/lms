@@ -126,8 +126,7 @@ export async function getMetaModules({
     })
   );
 
-  await Cache.set<MetaModule[]>(cacheKey, modules);
-
+  await Cache.set<MetaModule[]>(cacheKey, modules, { EX: 3600 });
   if (sanitizedSearchTerm) {
     return modules.filter(
       (module) =>

@@ -30,9 +30,30 @@ export function AddReview({
   setIsDialogOpen: (isOpen: boolean) => void;
 }) {
   const [rating, setRating] = React.useState(0);
-  const [review, setReview] = React.useState("");
+  const [description, setDescription] = React.useState("");
   const reviewsFetcher = useFetcher();
   const item = course ?? (module as Module);
+  const itemType = course ? "course" : "module";
+  const reviewRes = reviewsFetcher.data as {
+    error: boolean;
+    message: string;
+    success: boolean;
+  };
+
+  React.useEffect(() => {
+    if (reviewRes) {
+      if (reviewRes?.error) {
+        toast({
+          title: reviewRes.message,
+          variant: "destructive",
+        });
+      } else if (reviewRes?.success) {
+        toast({
+          title: reviewRes.message,
+        });
+      }
+    }
+  }, [reviewRes]);
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -60,10 +81,10 @@ export function AddReview({
               <div>
                 <Label htmlFor="review">Review:</Label>
                 <Textarea
-                  value={review}
-                  onChange={(e) => setReview(e.target.value)}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
                   id="review"
-                  name="review"
+                  name="description"
                   required
                   minLength={10}
                   rows={5}
@@ -78,15 +99,23 @@ export function AddReview({
             <Button variant={"outline"}>Remind me later</Button>
           </DialogClose>
           <Button
+            name="intent"
+            value="review"
             onClick={() => {
-              if (rating < 1 || review.length < 10) {
+              if (rating < 1 || description.length < 10) {
                 toast({
                   title:
                     "Rating must be at least 1 and your review must be at least 10 characters long",
                 });
               } else {
                 reviewsFetcher.submit(
-                  { rating, review, itemTitle: item.title },
+                  {
+                    rating,
+                    description,
+                    itemTitle: item.title,
+                    itemType,
+                    intent: "review",
+                  },
                   { method: "POST", preventScrollReset: true }
                 );
               }
