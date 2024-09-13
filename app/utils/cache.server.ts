@@ -1,11 +1,8 @@
 import { createClient, SetOptions } from "redis";
-const { REDIS_CLIENT_URL, NODE_ENV } = process.env;
-
-const REDIS_URL =
-  NODE_ENV === "production" ? REDIS_CLIENT_URL : "redis://localhost:6379";
+const { REDIS_CLIENT_URL } = process.env;
 
 const cache = createClient({
-  url: REDIS_URL,
+  url: REDIS_CLIENT_URL,
 });
 
 cache.on("error", (error) => {

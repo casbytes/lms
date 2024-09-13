@@ -3,6 +3,12 @@
   "private": true,
   "sideEffects": false,
   "type": "module",
+  "description": "Crafting exceptional software solutions for Tomorrow's challenges.",
+  "author": {
+    "name": "CASBytes",
+    "email": "support@casbytes.com",
+    "url": "https://casbytes.com"
+  },
   "scripts": {
     "build": "remix vite:build",
     "dev": "remix vite:dev --open",
