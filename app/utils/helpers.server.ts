@@ -323,7 +323,9 @@ export async function updateModuleStatusAndFindNextModule({
             data: { status: STATUS.IN_PROGRESS },
           });
         } else {
-          await updateCourseProject(moduleId, userId);
+          if (module.courseId) {
+            await updateCourseProject(module.courseId, userId);
+          }
         }
       });
     }
@@ -577,6 +579,7 @@ export async function updateUserProgress(paystackCustomerCode: string) {
  */
 export async function addModuleToCatalog(moduleId: string, userId: string) {
   const metaModule = await getMetaModuleById(moduleId);
+
   try {
     return await prisma.$transaction(async (txn) => {
       const module = await txn.module.create({
@@ -603,10 +606,8 @@ export async function addModuleToCatalog(moduleId: string, userId: string) {
         },
       });
 
-      await Promise.all([
-        createSubModules(txn, metaModule.subModules, module, userId),
-        createBadges(txn, module, userId),
-      ]);
+      await createSubModules(txn, metaModule.subModules, module, userId);
+      await createBadges(txn, module, userId);
       return formatResponse(true, `${module.title} added to catalog`);
     });
   } catch (error) {
@@ -762,6 +763,7 @@ async function createSubModules(
   userId: string
 ) {
   try {
+    const createdSubModules = Array(metaSubModules.length).fill(null);
     for (const [subModuleIndex, metaSubModule] of metaSubModules.entries()) {
       const subModule = await upsertSubModule(
         txn,
@@ -771,8 +773,9 @@ async function createSubModules(
         userId
       );
       await createLessons(txn, metaSubModule.lessons, subModule, userId);
-      return subModule;
+      createdSubModules.push(subModule);
     }
+    return createdSubModules;
   } catch (error) {
     throw error;
   }
@@ -1081,7 +1084,7 @@ export async function isCourseOrModuleReviewed({
           (completedSubModules / module.subModules.length) * 100
         );
 
-        if (completedPercentage >= 25) {
+        if (completedPercentage >= 50) {
           return true;
         }
       }
@@ -1090,5 +1093,48 @@ export async function isCourseOrModuleReviewed({
     return false;
   } catch (error) {
     throw error;
+  }
+}
+
+/**
+ * Add a user's review to a course or module
+ * @param request - Request object
+ * @returns {Promise<void>}
+ */
+export async function addReview(formData: FormData, userId: string) {
+  const itemTitle = formData.get("itemTitle") as string;
+  const itemType = formData.get("itemType") as string;
+  const rating = Number(formData.get("rating"));
+  const description = formData.get("description") as string;
+
+  try {
+    let courseOrModule: Course | Module;
+    if (itemType === "course") {
+      courseOrModule = await prisma.course.findFirstOrThrow({
+        where: { title: itemTitle },
+      });
+    } else {
+      courseOrModule = await prisma.module.findFirstOrThrow({
+        where: { title: itemTitle },
+      });
+    }
+
+    const moduleOrSubmoduleId = courseOrModule.id;
+    const moduleId = itemType === "module" ? moduleOrSubmoduleId : undefined;
+    const courseId = itemType === "course" ? moduleOrSubmoduleId : undefined;
+
+    await prisma.reviews.create({
+      data: {
+        rating,
+        description,
+        ...(moduleId && { module: { connect: { id: moduleId } } }),
+        ...(courseId && { course: { connect: { id: courseId } } }),
+        user: { connect: { id: userId } },
+      },
+    });
+
+    return { success: true, message: "Review added successfully" };
+  } catch (error) {
+    return { error: true, message: "An error occurred while adding review" };
   }
 }

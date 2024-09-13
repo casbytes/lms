@@ -30,16 +30,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const modules = getModules(request, params);
   const subModules = getSubModules(request, params);
   const badges = getModuleBadges(request, params);
-  const [test, checkpoint, project, module, user, course] = await Promise.all([
-    getTest(request, params),
-    getCheckpoint(request, params),
-    getProject(request, params),
-    getModule(request, params),
-    getUser(request),
-    prisma.course.findUniqueOrThrow({
-      where: { id: params.courseId },
-    }),
-  ]);
+  const test = await getTest(request, params);
+  const checkpoint = await getCheckpoint(request, params);
+  const project = await getProject(request, params);
+  const module = await getModule(request, params);
+  const user = await getUser(request);
+  const course = await prisma.course.findUniqueOrThrow({
+    where: { id: params.courseId },
+  });
   const isCourseReviewed = await isCourseOrModuleReviewed({
     userId: user.id,
     courseId: course.id,

@@ -122,12 +122,13 @@ export async function getProject(request: Request, params: Params<string>) {
   try {
     const courseId = params.courseId;
     const userId = await getUserId(request);
-    return await prisma.project.findFirstOrThrow({
+    const project = await prisma.project.findFirstOrThrow({
       where: {
         courseId: courseId,
         contributors: { some: { id: userId } },
       },
     });
+    return project;
   } catch (error) {
     throw error;
   }
@@ -150,24 +151,20 @@ export async function getModules(
 
     const moduleIdToUse = await getModuleIdToUse(request, params);
 
-    const [modules] = await Promise.all([
-      prisma.module.findMany({
-        where: {
-          users: { some: { id: userId } },
-          courseId: courseId,
-        },
-        orderBy: {
-          order: "asc",
-        },
-      }),
-      /**
-       * If the user have started the course, set the first module and sub module to IN_PROGRESS
-       */
-      updateFirstModule(userId, courseId),
-      updateFirstSubModule(userId, moduleIdToUse),
-    ]);
-
-    return modules;
+    /**
+     * If the user have started the course, set the first module and sub module to IN_PROGRESS
+     */
+    await updateFirstModule(userId, courseId);
+    await updateFirstSubModule(userId, moduleIdToUse);
+    return await prisma.module.findMany({
+      where: {
+        users: { some: { id: userId } },
+        courseId: courseId,
+      },
+      orderBy: {
+        order: "asc",
+      },
+    });
   } catch (error) {
     throw error;
   }

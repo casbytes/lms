@@ -1,6 +1,6 @@
 import invariant from "tiny-invariant";
 import { Params } from "@remix-run/react";
-import { prisma, type SubModule, type Badge } from "~/utils/db.server";
+import { prisma, type SubModule, type Badge, Module } from "~/utils/db.server";
 import { getUserId } from "~/utils/session.server";
 import { STATUS } from "~/utils/helpers";
 
@@ -15,17 +15,13 @@ export async function getModule(request: Request, params: Params<string>) {
     invariant(params.moduleId, "Module ID is required to get module.");
     const moduleId = params.moduleId;
     const userId = await getUserId(request);
-
-    const [module] = await Promise.all([
-      prisma.module.findUniqueOrThrow({
-        where: {
-          id: moduleId,
-          users: { some: { id: userId } },
-        },
-      }),
-      updateModuleStatus(request, moduleId),
-    ]);
-    return module;
+    await updateModuleStatus(request, moduleId);
+    return await prisma.module.findUniqueOrThrow({
+      where: {
+        id: moduleId,
+        users: { some: { id: userId } },
+      },
+    });
   } catch (error) {
     throw error;
   }
@@ -39,7 +35,7 @@ export async function getModule(request: Request, params: Params<string>) {
 async function updateModuleStatus(
   request: Request,
   moduleId: string
-): Promise<void> {
+): Promise<Module | void> {
   const userId = await getUserId(request);
   const module = await prisma.module.findUniqueOrThrow({
     where: {
@@ -51,7 +47,7 @@ async function updateModuleStatus(
   if (module.status !== STATUS.LOCKED) {
     return;
   }
-  await prisma.module.update({
+  return prisma.module.update({
     where: {
       id: moduleId,
       users: { some: { id: userId } },
@@ -76,20 +72,16 @@ export async function getSubModules(
     invariant(params.moduleId, "Module ID is required to get module.");
     const moduleId = params.moduleId;
     const userId = await getUserId(request);
-
-    const [subModules] = await Promise.all([
-      prisma.subModule.findMany({
-        where: {
-          moduleId: moduleId,
-          users: { some: { id: userId } },
-        },
-        orderBy: {
-          order: "asc",
-        },
-      }),
-      updateFirstSubModuleStatus(request, moduleId),
-    ]);
-    return subModules;
+    await updateFirstSubModuleStatus(request, moduleId);
+    return prisma.subModule.findMany({
+      where: {
+        moduleId: moduleId,
+        users: { some: { id: userId } },
+      },
+      orderBy: {
+        order: "asc",
+      },
+    });
   } catch (error) {
     throw error;
   }

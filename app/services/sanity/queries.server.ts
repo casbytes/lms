@@ -93,13 +93,13 @@ export const MODULE_BY_ID_QUERY = groq`*[_type=="module" && _id==$id][0]{
   premium,
   testEnvironment,
   description,
-  "subModules": subModules[]->{
+  "subModules": subModule[]->{
     "id": _id,
     title,
     "slug": slug.current,
     checkpoint,
     testEnvironment,
-    "lessons": lessons[]->{
+    "lessons": lesson[]->{
       "id": _id,
       title,
       "slug": slug.current

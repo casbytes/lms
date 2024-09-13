@@ -8,6 +8,7 @@ import { STATUS } from "~/utils/helpers";
 import { LessonWithModule } from "../utils.server";
 
 type PaginationProps = {
+  redirectUrl: string;
   currentLessonData: {
     previousLesson: Lesson | null;
     currentLesson: LessonWithModule;
@@ -15,14 +16,16 @@ type PaginationProps = {
   };
 };
 
-export function Pagination({ currentLessonData }: PaginationProps) {
+export function Pagination({
+  currentLessonData,
+  redirectUrl,
+}: PaginationProps) {
   const f = useFetcher();
   const navigate = useNavigate();
   const [, setSearchParams] = useSearchParams();
   const lessonId = f.formData?.get("lessonId");
   const { previousLesson, currentLesson, nextLesson } = currentLessonData;
   const moduleTitle = currentLesson.subModule?.module?.title;
-  const redirectUrl = `/courses/${currentLesson?.subModule?.module?.courseId}?moduleId=${currentLesson?.subModule?.moduleId}`;
 
   function handleSetSearchParams(lessonId: string) {
     setSearchParams((params) => {
