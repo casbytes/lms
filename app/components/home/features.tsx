@@ -7,11 +7,9 @@ import { FaProjectDiagram } from "react-icons/fa";
 
 export function Features() {
   return (
-    <Container className="bg-2 bg-no-repeat bg-cover" id="features">
+    <Container id="features">
       <div className="max-w-3xl flex flex-col items-center justify-center mx-auto gap-6 px-2 py-6">
-        <h1 className="text-3xl font-bold mb-8 text-blue-500">
-          Features overview
-        </h1>
+        <h1 className="text-3xl font-bold mb-8 text-blue-500">Features</h1>
         <div className="flex flex-col gap-10">
           <Fade cascade damping={0.3} duration={800}>
             {items.map((item, index) => (
@@ -54,7 +52,7 @@ const items = [
         </p>
         <ul className="list-disc space-y-2 mt-2">
           <li>
-            <strong>Reinforcement Through Practice:</strong>
+            <strong>Reinforcement Through Practice: </strong>
             <span className="text-sm">
               Tests act as quizzes that challenge you to recall and apply the
               concepts you&apos;ve learned. By actively engaging with the
@@ -65,7 +63,7 @@ const items = [
             </span>
           </li>
           <li>
-            <strong>Identifying Gaps in Knowledge:</strong>
+            <strong>Identifying Gaps in Knowledge: </strong>
             <span className="text-sm">
               Tests serve as a diagnostic tool, revealing areas where you might
               need additional focus. Struggling with a particular concept? Tests
@@ -76,7 +74,7 @@ const items = [
             </span>
           </li>
           <li>
-            <strong>Building Confidence and Competence:</strong>
+            <strong>Building Confidence and Competence: </strong>
             <span className="text-sm">
               Successfully completing tests fosters a sense of accomplishment
               and boosts your confidence in your abilities. As you master
@@ -103,19 +101,18 @@ const items = [
         </p>
         <ul className="list-disc space-y-2 mt-2">
           <li>
-            <strong>Solidifying Your Foundation:</strong>
+            <strong>Solidifying Your Foundation: </strong>
             <span className="text-sm">
               Checkpoints provide an opportunity to pause, reflect, and assess
               your grasp of the covered material. They might involve hands-on
-              exercises, code challenges, or non-coding challenges for fields
-              like UI/UX design, that test your understanding. By successfully
-              completing these checkpoints, you gain the confidence to move
-              forward, knowing you possess a solid foundation for the upcoming
-              concepts.
+              exercises, code challenges, that test your understanding. By
+              successfully completing these checkpoints, you gain the confidence
+              to move forward, knowing you possess a solid foundation for the
+              upcoming concepts.
             </span>
           </li>
           <li>
-            <strong>Targeted Practice and Review:</strong>
+            <strong>Targeted Practice and Review: </strong>
             <span className="text-sm">
               Checkpoints often include practical exercises or projects that
               allow you to apply the learned skills in a simulated environment.
@@ -127,7 +124,7 @@ const items = [
             </span>
           </li>
           <li>
-            <strong>Maintaining Momentum and Motivation:</strong>
+            <strong>Maintaining Momentum and Motivation: </strong>
             <span className="text-sm">
               Successfully completing checkpoints provides a sense of
               accomplishment, keeping you motivated and engaged throughout the
@@ -156,7 +153,7 @@ const items = [
         </p>
         <ul className="list-disc space-y-2 mt-2">
           <li>
-            <strong>Bridging the Gap Between Learning and Doing:</strong>
+            <strong>Bridging the Gap Between Learning and Doing: </strong>
             <span className="text-sm">
               Throughout the course, you gain a strong foundation in concepts
               and methodologies. The final project allows you to take those
@@ -167,7 +164,7 @@ const items = [
             </span>
           </li>
           <li>
-            <strong>Building a Portfolio Showcase:</strong>
+            <strong>Building a Portfolio Showcase: </strong>
             <span className="text-sm">
               The completed projects serve as a tangible testament to your
               skills and problem-solving abilities. They become valuable

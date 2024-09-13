@@ -14,7 +14,6 @@ export function ChartFilter() {
 
   return (
     <div className="flex flex-col items-start">
-      {/* <div className="text-sm text-slate-500">Filter:</div> */}
       <ToggleGroup type="single" size="sm" className="border-2 rounded-md">
         <ToggleGroupItem
           value="days"

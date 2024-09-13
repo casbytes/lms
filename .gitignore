@@ -5,10 +5,10 @@
 prisma/sqlite.db
 prisma/sqlite.db-journal
 Dockerfile
-.dockerignore
+# .dockerignore
 .git
 .DS_Store
-/test-meta/
+/test-meta
 
 # Sentry Config File
 .env.sentry-build-plugin

@@ -1,4 +1,3 @@
-/* eslint-disable no-undefined */
 import invariant from "tiny-invariant";
 import matter from "gray-matter";
 import type { Lesson, MDX, Module, SubModule, Test } from "~/utils/db.server";
@@ -6,9 +5,10 @@ import { Params } from "@remix-run/react";
 import { getContentFromGithub } from "~/utils/octokit.server";
 import { getUserId } from "~/utils/session.server";
 import { prisma } from "~/utils/db.server";
-import { cache } from "~/utils/node-cache.server";
+import { Cache } from "~/utils/cache.server";
 import { STATUS, TEST_STATUS } from "~/utils/helpers";
 import { ensurePrimary } from "litefs-js/remix";
+import { addReview } from "~/utils/helpers.server";
 
 const MODE = process.env.NODE_ENV;
 
@@ -104,7 +104,6 @@ export async function getLessons(
 ): Promise<Lesson[]> {
   invariant(params.subModuleId, "Submodule ID is required to fetch lessons.");
   const subModuleId = params.subModuleId;
-
   try {
     const userId = await getUserId(request);
     const firstLesson = await prisma.lesson.findFirstOrThrow({
@@ -220,9 +219,11 @@ export async function getLesson(
     };
 
     const cacheKey = `lesson-${currentLesson.id}`;
-    if (cache.has(cacheKey)) {
+
+    const cachedLesson = await Cache.get<MDX>(cacheKey);
+    if (cachedLesson) {
       return {
-        mdx: cache.get(cacheKey) as MDX,
+        mdx: cachedLesson,
         ...lessonData,
       };
     }
@@ -241,7 +242,7 @@ export async function getLesson(
       path,
     });
     const { data, content } = matter(mdxContent);
-    cache.set<MDX>(cacheKey, { data, content });
+    await Cache.set<MDX>(cacheKey, { data, content });
     return {
       mdx: { data, content },
       ...lessonData,
@@ -312,32 +313,31 @@ function getLessonId(request: Request): string | undefined {
   return new URLSearchParams(url.search).get("lessonId") ?? undefined;
 }
 
-/**
- * Get item type
- * @param {Request} request
- * @returns {String | undefined}
- */
-export async function getTypeformUrl(
-  request: Request
-): Promise<string | undefined> {
-  const url = new URL(request.url);
-  const type = url.searchParams.get("type");
-  if (!type) return undefined;
-  return type;
-}
-
 //##########
 //ACTIONS
 //##########
+
+export async function handleActions(request: Request, params: Params<string>) {
+  const formData = await request.formData();
+  const userId = await getUserId(request);
+  const intent = formData.get("intent") as string;
+  if (intent === "review") {
+    return await addReview(formData, userId);
+  } else {
+    return await updateLesson(formData, params, userId);
+  }
+}
 /**
  * Update lessons accordingly
  * @param request - request
  * @param params - params
  * @returns {null}
  */
-export async function updateLesson(request: Request, params: Params<string>) {
-  const formData = await request.formData();
-  const userId = await getUserId(request);
+export async function updateLesson(
+  formData: FormData,
+  params: Params<string>,
+  userId: string
+) {
   const lessonId = formData.get("lessonId") as string;
   const subModuleId = params.subModuleId;
   invariant(subModuleId, "Submodule ID is required.");

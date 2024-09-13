@@ -1,12 +1,13 @@
 import { Fade } from "react-awesome-reveal";
 import { Container } from "../container";
 import { cn } from "~/libs/shadcn";
+import { Image } from "../image";
 
 export function ContentOverview() {
   return (
-    <Container id="overview" className="container mb-8">
+    <Container className="bg-2 bg-no-repeat bg-cover mb-8" id="overview">
       <div className="flex flex-col md:flex-row justify-evenly max-w-6xl mx-auto">
-        <Fade direction="up" cascade duration={300}>
+        <Fade direction="down" cascade duration={300}>
           <div className={cn("max-w-md mx-auto")}>
             <h1 className="text-3xl font-bold text-center my-12 md:text-left">
               Transform Your Dreams into Reality:{" "}
@@ -62,8 +63,8 @@ export function ContentOverview() {
             </h2>
           </div>
           <div>
-            <img
-              src="https://cdn.casbytes.com/assets/elearning2.png"
+            <Image
+              src="assets/elearning2.png"
               width={500}
               height={500}
               alt="elearning"

@@ -1,0 +1,14 @@
+logging:
+  level: info
+  type: text
+  stderr: false
+
+dbs:
+  - path: "${DATABASE_URL}"
+    meta-path: "/data"
+    replicas:
+      - type: s3
+        bucket: "casbytes-backup"
+        path: "${DATABASE_FILENAME}"
+        endpoint: "fly.storage.tigris.dev"
+        force-path-style: true

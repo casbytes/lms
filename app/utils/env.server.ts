@@ -17,10 +17,10 @@ export const schema = z.object({
   GITHUB_OWNER: z.string(),
   GITHUB_TOKEN: z.string(),
   RESEND_API_KEY: z.string(),
-  STRIPE_SECRET_KEY: z.string(),
-  STRIPE_WEBHOOK_SECRET: z.string(),
+  PAYSTACK_SECRET_KEY: z.string(),
   SANITY_STUDIO_PROJECT_ID: z.string(),
   SANITY_STUDIO_DATASET: z.string(),
+  REDIS_CLIENT_URL: z.string(),
 });
 
 declare global {

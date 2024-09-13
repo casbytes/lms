@@ -1,0 +1,28 @@
+node_modules
+.env
+/build
+/e2e
+/tests
+/.vscode
+prisma/sqlite.db
+prisma/sqlite.db-journal
+Dockerfile
+.dockerignore
+.git
+.DS_Store
+/test-meta
+
+# Vitest
+/vitest-report/
+/coverage/
+/html/
+
+# Sentry Config File
+.env.sentry-build-plugin
+.sentryclirc
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

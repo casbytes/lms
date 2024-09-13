@@ -1,11 +1,12 @@
 import invariant from "tiny-invariant";
 import schedule from "node-schedule";
+import yaml from "js-yaml";
 import { Params, redirect } from "@remix-run/react";
 import { getUserId } from "~/utils/session.server";
 import { prisma, Test } from "~/utils/db.server";
 import { STATUS, TEST_STATUS } from "~/utils/helpers";
 import { getContentFromGithub } from "~/utils/octokit.server";
-import { cache } from "~/utils/node-cache.server";
+import { Cache } from "~/utils/cache.server";
 import {
   updateModuleStatusAndFindNextModule,
   updateSubmoduleStatusAndFindNextSubmodule,
@@ -53,21 +54,23 @@ export async function getTest(request: Request, params: Params<string>) {
     const repo =
       test?.module?.slug ?? (test?.subModule?.module?.slug as string);
 
+    const fileName = "test.yml";
     const path = test?.module
-      ? "test.json"
-      : `${test?.subModule?.slug}/test.json`;
+      ? fileName
+      : `${test?.subModule?.slug}/${fileName}`;
 
     const cacheKey = `test-${test.id}`;
-    if (cache.has(cacheKey)) {
-      const testQuestions = cache.get(cacheKey) as Question[];
-      return { test, testQuestions };
+    const cachedQuestions = (await Cache.get(cacheKey)) as Question[] | null;
+    if (cachedQuestions) {
+      return { test, testQuestions: cachedQuestions };
     }
     const { content } = await getContentFromGithub({
       repo,
       path,
     });
-    const testQuestions = JSON.parse(content) as Question[];
-    cache.set<Question[]>(cacheKey, testQuestions);
+
+    const testQuestions = yaml.load(content) as Question[];
+    await Cache.set<Question[]>(cacheKey, testQuestions);
     return { test, testQuestions };
   } catch (error) {
     throw error;
@@ -126,7 +129,7 @@ async function scheduleStatusUpdate(testId: string, nextAttemptAt: Date) {
     try {
       await prisma.test.update({
         where: { id: testId },
-        data: { status: TEST_STATUS.AVAILABLE as TEST_STATUS },
+        data: { status: TEST_STATUS.AVAILABLE },
       });
     } catch (error) {
       throw error;
@@ -191,6 +194,7 @@ export async function updateTest(request: Request) {
 
       const moduleId = testResponse.moduleId ?? null;
       const subModuleId = testResponse.subModuleId ?? null;
+      // const course = testResponse.module?.courseId ?? null;
 
       if (checkpointId) {
         await updateCheckpointStatus(checkpointId, userId);

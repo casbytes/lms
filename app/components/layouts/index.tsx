@@ -6,24 +6,19 @@ import {
   FaSignal,
   FaUsers,
 } from "react-icons/fa6";
-import { MdOutlineArticle, MdOutlineDirections } from "react-icons/md";
+import { MdOutlineDirections } from "react-icons/md";
 import { SiBookstack } from "react-icons/si";
 export { RootLayout } from "./root-layout";
 
-const ARTICLE_URL = "https://articles.casbytes.com";
 const STATUS_URL = "https://status.casbytes.com";
 
 export const unAuthMenuItems = [
-  { label: "courses", href: "#courses" },
-  { label: "modules", href: "#modules" },
-  { label: "features", href: "#features" },
-  { label: "subscription", href: "#subscription" },
+  { label: "features", href: "/#features" },
+  { label: "courses", href: "/#courses" },
+  { label: "modules", href: "/#modules" },
+  { label: "subscription", href: "/#subscription" },
   { label: "FAQs", href: "faqs" },
-  {
-    label: "articles",
-    href: ARTICLE_URL,
-    target: "_blank",
-  },
+  { label: "articles", href: "articles" },
 ];
 
 export const userMenuItems = [
@@ -53,12 +48,6 @@ export const userMenuItems = [
     href: "subscription",
   },
   {
-    icon: <MdOutlineArticle size={30} />,
-    label: "articles",
-    href: ARTICLE_URL,
-    target: "_blank",
-  },
-  {
     icon: <FaSignal size={30} />,
     label: "status",
     href: STATUS_URL,
@@ -81,12 +70,6 @@ export const adminMenuItems = [
     icon: <FaUsers size={30} />,
     label: "users",
     href: "a/users",
-  },
-  {
-    icon: <MdOutlineArticle size={30} />,
-    label: "articles",
-    href: ARTICLE_URL,
-    target: "_blank",
   },
   {
     icon: <FaSignal size={30} />,

@@ -16,7 +16,7 @@ import { FaRegEye } from "react-icons/fa6";
 import { DeleteConfirmationDialog } from "./delete-confirmation-dialog";
 import { Separator } from "~/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { ModuleSearchInput } from "~/components/search-input";
+import { SearchInput } from "~/components/search-input";
 
 type ModuleWithCourse = IModule & {
   course?: Course;
@@ -115,7 +115,7 @@ function ModuleTable({ userModules }: { userModules: IModule[] }) {
       <TableBody className="text-slate-600 text-lg">
         <TableRow>
           <TableCell colSpan={2}>
-            <ModuleSearchInput
+            <SearchInput
               searchValue="userModule"
               placeholder="search modules"
             />

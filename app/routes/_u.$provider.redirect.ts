@@ -18,11 +18,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
   try {
     switch (provider) {
       case "magic-link":
-        return handleMagiclinkRedirect(request);
+        return await handleMagiclinkRedirect(request);
       case "google":
-        return handleGoogleRedirect();
+        return await handleGoogleRedirect();
       case "github":
-        return handleGithubRedirect();
+        return await handleGithubRedirect();
       default:
         throw new Error("Invalid provider.");
     }

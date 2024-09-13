@@ -18,7 +18,7 @@ export async function getContentFromGithub({
 }: GCFProps): Promise<Record<string, string>> {
   try {
     const { data } = await octokit.rest.repos.getContent({
-      owner: process.env.GITHUB_OWNER!,
+      owner: process.env.GITHUB_OWNER,
       repo,
       path,
     });

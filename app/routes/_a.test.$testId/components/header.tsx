@@ -20,7 +20,7 @@ export function TestHeader({
   currentQuestionIndex,
 }: TestHeaderProps) {
   const TIME_KEY = "testTime";
-  const timePerQuestion = 60; // 6 secs0 = 1 min.
+  const timePerQuestion = 60; // 6 secs = 1 min.
   const INTERVAL = 1000; // 1sec.
   const SUBMIT_TIME = 0;
   const WARNING_TIME = 180; // 3 minutes (3 * 60 = 180 seconds)

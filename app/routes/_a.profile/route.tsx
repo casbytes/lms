@@ -4,7 +4,6 @@ import { Container } from "~/components/container";
 import { DiscordCard } from "~/components/discord-card";
 import { MembershipCard } from "~/components/membership-card";
 import { PageTitle } from "~/components/page-title";
-import { Separator } from "~/components/ui/separator";
 import { AccountDetails } from "./components/account-details";
 import { UserOverview } from "./components/user-overview";
 import { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";

@@ -1,19 +1,22 @@
-import { cache } from "~/utils/node-cache.server";
+import { Cache } from "~/utils/cache.server";
 import { loadQuery } from "./loader.server";
 import {
+  ARTICLE_QUERY,
+  ARTICLES_QUERY,
   COURSE_BY_ID_QUERY,
   COURSES_QUERY,
   MODULE_BY_ID_QUERY,
   MODULES_QUERY,
 } from "./queries.server";
-import { MetaCourse, MetaModule, ReviewWithUser } from "./types";
+import { Article, MetaCourse, MetaModule, ReviewWithUser } from "./types";
 import { checkCatalog } from "~/utils/helpers.server";
 import { prisma } from "~/utils/db.server";
 
 export async function getMetaCourses(userId?: string): Promise<MetaCourse[]> {
   const cacheKey = "meta-courses";
-  if (cache.has(cacheKey)) {
-    return cache.get(cacheKey) as MetaCourse[];
+  const cachedMetaCourses = (await Cache.get(cacheKey)) as MetaCourse[] | null;
+  if (cachedMetaCourses) {
+    return cachedMetaCourses;
   }
 
   const { data: coursesData } = await loadQuery<MetaCourse[]>(COURSES_QUERY);
@@ -52,20 +55,21 @@ export async function getMetaCourses(userId?: string): Promise<MetaCourse[]> {
     })
   );
 
-  cache.set<MetaCourse[]>(cacheKey, courses);
+  await Cache.set<MetaCourse[]>(cacheKey, courses);
   return courses;
 }
 
 export async function getMetaCourseById(id: string) {
   const cacheKey = `meta-course-${id}`;
-  if (cache.has(cacheKey)) {
-    return cache.get(cacheKey) as MetaCourse;
+  const cachedMetaCourse = (await Cache.get(cacheKey)) as MetaCourse | null;
+  if (cachedMetaCourse) {
+    return cachedMetaCourse;
   }
   const { data: course } = await loadQuery<MetaCourse>(COURSE_BY_ID_QUERY, {
     id,
   });
 
-  cache.set<MetaCourse>(cacheKey, course);
+  await Cache.set<MetaCourse>(cacheKey, course);
   return course;
 }
 
@@ -81,8 +85,9 @@ export async function getMetaModules({
     ? `some-meta-modules-${sanitizedSearchTerm}`
     : "all-meta-modules";
 
-  if (cache.has(cacheKey)) {
-    return cache.get(cacheKey) as MetaModule[];
+  const cachedMetaModules = (await Cache.get(cacheKey)) as MetaModule[] | null;
+  if (cachedMetaModules) {
+    return cachedMetaModules;
   }
 
   const { data: modulesData } = await loadQuery<MetaModule[]>(MODULES_QUERY);
@@ -121,26 +126,127 @@ export async function getMetaModules({
     })
   );
 
-  cache.set<MetaModule[]>(cacheKey, modules);
-
+  await Cache.set<MetaModule[]>(cacheKey, modules, { EX: 3600 });
   if (sanitizedSearchTerm) {
-    return modules.filter((module) =>
-      module.title.toLowerCase().includes(sanitizedSearchTerm.toLowerCase())
+    return modules.filter(
+      (module) =>
+        module.title
+          .toLowerCase()
+          .includes(sanitizedSearchTerm.toLowerCase()) ||
+        module.tags.includes(sanitizedSearchTerm.toLowerCase())
     );
   }
-
   return modules;
 }
 
 export async function getMetaModuleById(id: string) {
   const cacheKey = `meta-module-${id}`;
-  if (cache.has(cacheKey)) {
-    return cache.get(cacheKey) as MetaModule;
-  }
-  const { data: module } = await loadQuery<MetaModule>(MODULE_BY_ID_QUERY, {
-    id,
-  });
+  try {
+    const cachedMetaModule = (await Cache.get(cacheKey)) as MetaModule | null;
+    if (cachedMetaModule) {
+      return cachedMetaModule;
+    }
+    const { data: module } = await loadQuery<MetaModule>(MODULE_BY_ID_QUERY, {
+      id,
+    });
 
-  cache.set<MetaModule>(cacheKey, module);
-  return module;
+    await Cache.set<MetaModule>(cacheKey, module);
+    return module;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function getArticles(
+  searchTerm?: string,
+  articleCount?: number
+): Promise<Article[]> {
+  const cacheKey = searchTerm
+    ? `articles:${searchTerm}`
+    : `articles:${articleCount}`;
+
+  try {
+    const cachedArticles = (await Cache.get(cacheKey)) as Article[] | null;
+    if (cachedArticles) {
+      return cachedArticles;
+    }
+
+    const { data } = await loadQuery<Article[]>(ARTICLES_QUERY);
+    const articles = articleCount ? data.slice(0, articleCount) : data;
+
+    if (!searchTerm) {
+      await Cache.set(cacheKey, articles, { EX: 3600 });
+      return articles;
+    }
+
+    const filteredArticles = articles.filter(
+      (article) =>
+        article.title.includes(searchTerm) ||
+        article.content.includes(searchTerm) ||
+        article.tags.includes(searchTerm)
+    );
+    await Cache.set(cacheKey, filteredArticles, { EX: 3600 });
+    return filteredArticles;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function getArticle(slug: string): Promise<Article> {
+  try {
+    const cacheKey = `article:${slug}`;
+    const cachedArticle = (await Cache.get(cacheKey)) as Article | null;
+    if (cachedArticle) {
+      return cachedArticle;
+    }
+    const { data } = await loadQuery<Article>(ARTICLE_QUERY, { slug });
+    await Cache.set<Article>(cacheKey, data, { EX: 3600 });
+    return { ...data, realtedArticles: await getRelatedArticles(data) };
+  } catch (error) {
+    throw error;
+  }
+}
+
+async function getRelatedArticles(article: Article) {
+  const cacheKey = `related-articles:${article.slug}`;
+  try {
+    const cachedArticles = (await Cache.get(cacheKey)) as Article[] | null;
+    if (cachedArticles) {
+      return cachedArticles;
+    }
+    const tags = article.tags.split(",");
+    const { data } = await loadQuery<Article[]>(ARTICLES_QUERY);
+    const relatedArticles = data
+      .filter((a) => {
+        const aTags = a.tags.split(",");
+        return (
+          aTags.some((tag) => tags.includes(tag)) && a.slug !== article.slug
+        );
+      })
+      .slice(0, 4);
+    await Cache.set(cacheKey, relatedArticles, { EX: 3600 });
+    return relatedArticles;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function getArticleAllArticleTags() {
+  const cacheKey = "article-tags";
+  try {
+    const cachedTags = (await Cache.get(cacheKey)) as string[] | null;
+    if (cachedTags) {
+      return cachedTags;
+    }
+    const { data } = await loadQuery<Article[]>(ARTICLES_QUERY);
+    const tags = data.reduce((acc, article) => {
+      const articleTags = article.tags.split(",");
+      return [...acc, ...articleTags];
+    }, [] as string[]);
+    return await Cache.set<string[]>(cacheKey, Array.from(new Set(tags)), {
+      EX: 3600,
+    });
+  } catch (error) {
+    throw error;
+  }
 }

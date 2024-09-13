@@ -39,8 +39,8 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function TestRoute() {
-  const { test, testQuestions } = useLoaderData<typeof loader>();
   const submit = useSubmit();
+  const { test, testQuestions } = useLoaderData<typeof loader>();
   const [isServer, setIsServer] = React.useState(true);
   const [isSubmitted, setIsSubmitted] = React.useState(false);
   const [score, setScore] = useLocalStorageState("testScore", 0);
@@ -53,15 +53,19 @@ export default function TestRoute() {
     Array(testQuestions.length).fill([])
   );
 
+  const moduleWithCourseId = test?.module?.courseId;
   const moduleId = test?.moduleId ?? null;
   const subModuleId = test?.subModuleId ?? null;
-  const moduleTest = Boolean(moduleId);
+  const moduleWithCourseTest = !!moduleWithCourseId;
+  const moduleTest = !!moduleId;
 
   const testTitle = test.title;
   const moduleOrSubModuleTitle = test?.module?.title ?? test?.subModule?.title;
 
-  const moduleOrSubModuleUrl = moduleTest
+  const moduleOrSubModuleUrl = moduleWithCourseTest
     ? `/courses/${test?.module?.courseId}?moduleId=${test?.moduleId}`
+    : moduleTest
+    ? `/modules/${test?.moduleId}`
     : `/sub-modules/${test?.subModuleId}`;
 
   const currentQuestion = testQuestions[currentQuestionIndex];

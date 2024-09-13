@@ -11,31 +11,31 @@ datasource db {
 //                   USER                   //
 //||||||||||||||||##########||||||||||||||||//
 model User {
-  id                  String         @id @default(uuid())
-  name                String?
-  email               String         @unique
-  role                String         @default("USER") //USER, ADMIN,
-  avatarUrl           String?
-  stripeCustomerId    String?        @unique
-  githubUsername      String?
-  subscribed          Boolean        @default(false)
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
-  verified            Boolean        @default(false)
-  completedOnboarding Boolean        @default(false)
-  authState           String?
-  verificationToken   String?
-  currentUrl          String?
-  course              Course[]
-  module              Module[]
-  subModule           SubModule[]
-  lesson              Lesson[]
-  tests               Test[]
-  checkpoints         Checkpoint[]
-  projects            Project[]
-  badges              Badge[]
-  learningHours       LearningTime[]
-  reviews             Reviews[]
+  id                   String         @id @default(uuid())
+  name                 String?
+  email                String         @unique
+  role                 String         @default("USER") //USER, ADMIN,
+  avatarUrl            String?
+  paystackCustomerCode String?        @unique
+  githubUsername       String?
+  subscribed           Boolean        @default(false)
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  verified             Boolean        @default(false)
+  completedOnboarding  Boolean        @default(false)
+  authState            String?
+  verificationToken    String?
+  currentUrl           String?
+  course               Course[]
+  module               Module[]
+  subModule            SubModule[]
+  lesson               Lesson[]
+  tests                Test[]
+  checkpoints          Checkpoint[]
+  projects             Project[]
+  badges               Badge[]
+  learningHours        LearningTime[]
+  reviews              Reviews[]
 }
 
 model LearningTime {
