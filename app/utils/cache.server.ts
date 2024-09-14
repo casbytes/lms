@@ -2,7 +2,7 @@ import { createClient, SetOptions } from "redis";
 const { REDIS_CLIENT_URL } = process.env;
 
 const cache = createClient({
-  url: REDIS_CLIENT_URL,
+  url: process.env.NODE_ENV === "production" ? REDIS_CLIENT_URL : undefined,
 });
 
 cache.on("error", (error) => {
