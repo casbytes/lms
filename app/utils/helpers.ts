@@ -24,7 +24,7 @@ export function safeParseDate(dateString: Date | string): Date {
 export function getInitials(username: string) {
   return username
     .split(" ")
-    .map((n) => n[0])
+    ?.map((n) => n[0])
     .join("");
 }
 
@@ -66,4 +66,10 @@ export enum BADGE_LEVEL {
 export enum BADGE_STATUS {
   LOCKED = "LOCKED",
   UNLOCKED = "UNLOCKED",
+}
+
+export enum TEST_ENV {
+  PYTHON = "python",
+  NODE = "node",
+  BROWSER = "browser",
 }

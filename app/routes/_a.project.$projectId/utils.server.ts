@@ -7,14 +7,16 @@ import { getUserId } from "~/utils/session.server";
 import { Cache } from "~/utils/cache.server";
 import {
   computeScore,
-  formatCheckerResponse,
-  getRequestUrl,
-  gradeFetch,
   LINT_CUTOFF_SCORE,
   TEST_CUTOFF_SCORE,
   TOTAL_CUTOFF_SCORE,
 } from "~/utils/helpers.server";
 import { STATUS } from "~/utils/helpers";
+import {
+  formatCheckerResponse,
+  getRequestUrl,
+  gradeFetch,
+} from "~/utils/checker.server";
 
 /**
  * Fetch the project and its content from GitHub or cache.
@@ -97,7 +99,7 @@ async function autoGradeProject(
   const repo = `${username}/${project.slug}`;
   const path = project.slug;
 
-  const url = getRequestUrl({ username, path, repo });
+  const url = getRequestUrl({ username, path, repo, testEnvironment });
   const response = await gradeFetch({ url, testEnvironment, request });
   const computedScore = await computeScore(response);
   const updatedProject = await updateProjectStatus({

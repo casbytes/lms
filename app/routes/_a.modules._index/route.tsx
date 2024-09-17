@@ -8,13 +8,11 @@ import { PageTitle } from "~/components/page-title";
 import { getMetaModules } from "~/services/sanity/index.server";
 import { MetaModules } from "~/components/catalog/meta-modules";
 import { getUserId } from "~/utils/session.server";
-import {
-  addModuleToCatalog,
-  getCurrentCourseOrModule,
-} from "~/utils/helpers.server";
 import { prisma } from "~/utils/db.server";
 import { toast } from "~/components/ui/use-toast";
 import { metaFn } from "~/utils/meta";
+import { getCurrentCourseOrModule } from "~/utils/helpers.server";
+import { addModuleToCatalog } from "~/utils/module.server";
 
 export const meta = metaFn;
 

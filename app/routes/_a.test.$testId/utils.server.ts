@@ -10,7 +10,7 @@ import { Cache } from "~/utils/cache.server";
 import {
   updateModuleStatusAndFindNextModule,
   updateSubmoduleStatusAndFindNextSubmodule,
-} from "~/utils/helpers.server";
+} from "~/utils/module.server";
 
 export interface Option {
   id: number;

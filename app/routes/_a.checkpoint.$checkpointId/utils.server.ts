@@ -8,15 +8,19 @@ import { Cache } from "~/utils/cache.server";
 import { CHECKPOINT_STATUS, STATUS } from "~/utils/helpers";
 import {
   computeScore,
-  formatCheckerResponse,
-  getRequestUrl,
-  gradeFetch,
   LINT_CUTOFF_SCORE,
   TEST_CUTOFF_SCORE,
   TOTAL_CUTOFF_SCORE,
+} from "~/utils/helpers.server";
+import {
+  formatCheckerResponse,
+  getRequestUrl,
+  gradeFetch,
+} from "~/utils/checker.server";
+import {
   updateModuleStatusAndFindNextModule,
   updateSubmoduleStatusAndFindNextSubmodule,
-} from "~/utils/helpers.server";
+} from "~/utils/module.server";
 
 //################
 // Server uitls
@@ -46,9 +50,11 @@ export async function getCheckpoint(request: Request, params: Params<string>) {
       },
     });
 
+    const fileName = "checkpoint.mdx";
+
     const path = checkpoint?.module
-      ? "checkpoint.mdx"
-      : `${checkpoint?.subModule?.slug}/checkpoint.mdx`;
+      ? fileName
+      : `${checkpoint?.subModule?.slug}/${fileName}`;
 
     const repo =
       checkpoint?.module?.slug ??
@@ -129,13 +135,16 @@ async function autoGradeCheckpoint(
         error: "Please, update your Github username.",
       });
     }
-    const testEnvironment = checkpoint?.testEnvironment;
+    const testEnvironment = checkpoint?.testEnvironment as
+      | "python"
+      | "node"
+      | "browser";
     const repo =
       checkpoint?.module?.slug ??
       (checkpoint?.subModule?.module.slug as string);
 
     const path = getCheckpointPath(checkpoint as CheckpointWithCourse);
-    const url = getRequestUrl({ username, path, repo });
+    const url = getRequestUrl({ username, path, repo, testEnvironment });
     const response = await gradeFetch({ url, testEnvironment, request });
     const computedScores = await computeScore(response);
     const checkpointStatus = await updateCheckpointStatus({

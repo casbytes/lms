@@ -5,7 +5,8 @@ import {
   handleGithubCallback,
   handleGoogleCallback,
   handleMagiclinkCallback,
-} from "~/utils/session.server";
+} from "~/utils/providers.server";
+
 const { NODE_ENV } = process.env;
 
 export async function loader({ request, params }: LoaderFunctionArgs) {

@@ -7,14 +7,12 @@ import { MetaCourses } from "~/components/catalog/meta-courses";
 import { Container } from "~/components/container";
 import { PageTitle } from "~/components/page-title";
 import { getMetaCourses } from "~/services/sanity/index.server";
-import {
-  addCourseToCatalog,
-  getCurrentCourseOrModule,
-} from "~/utils/helpers.server";
 import { getUserId } from "~/utils/session.server";
 import { prisma } from "~/utils/db.server";
 import { toast } from "~/components/ui/use-toast";
 import { metaFn } from "~/utils/meta";
+import { getCurrentCourseOrModule } from "~/utils/helpers.server";
+import { addCourseToCatalog } from "~/utils/module.server";
 
 export const meta = metaFn;
 

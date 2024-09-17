@@ -8,7 +8,7 @@ import { Button } from "../ui/button";
 export function Footer() {
   const year = new Date().getFullYear();
   return (
-    <Container className="bg-slate-200/80 border-t-2">
+    <Container className="bg-slate-200/80 border-t-2" id="footer">
       <div className="max-w-5xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mx-auto py-8 md:py-20 text-zinc-500">
         <div className="flex flex-col gap-6">
           <img

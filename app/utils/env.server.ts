@@ -8,6 +8,7 @@ export const schema = z.object({
   BASE_URL: z.string(),
   CDN_URL: z.string(),
   JAVASCRIPT_CHECKER_URL: z.string(),
+  PYTHON_CHECKER_URL: z.string(),
   GOOGLE_CLIENT_ID: z.string(),
   GOOGLE_CLIENT_SECRET: z.string(),
   GITHUB_CLIENT_ID: z.string(),

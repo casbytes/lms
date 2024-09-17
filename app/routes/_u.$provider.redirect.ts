@@ -5,7 +5,7 @@ import {
   handleGithubRedirect,
   handleGoogleRedirect,
   handleMagiclinkRedirect,
-} from "~/utils/session.server";
+} from "~/utils/providers.server";
 
 export function loader() {
   return redirect("/");

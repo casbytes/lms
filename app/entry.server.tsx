@@ -8,16 +8,16 @@ import { isbot } from "isbot";
 import { renderToPipeableStream } from "react-dom/server";
 import { getInstanceInfo } from "~/utils/litefs.server";
 import { getEnv, init } from "./utils/env.server";
-import { server } from "./mocks/node";
+import { server } from "../tests/mocks/node";
 
 const ABORT_DELAY = 5_000;
 
 init();
 global.ENV = getEnv();
 
-// if (process.env.NODE_ENV === "development") {
-//   server.listen();
-// }
+if (process.env.NODE_ENV === "test") {
+  server.listen();
+}
 
 type DocRequestArgs = Parameters<HandleDocumentRequestFunction>;
 async function setHeaders(responseHeaders: Headers) {
