@@ -3,7 +3,7 @@ import path from "node:path";
 import matter from "gray-matter";
 import { STATUS } from "./helpers";
 import { Course, Module, prisma } from "./db.server";
-import { ApiResponse } from "./checker.server";
+import { ApiResponse } from "./rtr.server";
 
 export const LINT_CUTOFF_SCORE = 30;
 export const TEST_CUTOFF_SCORE = 50;

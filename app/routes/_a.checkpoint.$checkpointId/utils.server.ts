@@ -7,20 +7,20 @@ import { getUserId } from "~/utils/session.server";
 import { Cache } from "~/utils/cache.server";
 import { CHECKPOINT_STATUS, STATUS } from "~/utils/helpers";
 import {
-  computeScore,
   LINT_CUTOFF_SCORE,
   TEST_CUTOFF_SCORE,
   TOTAL_CUTOFF_SCORE,
 } from "~/utils/helpers.server";
 import {
+  CombinedResponse,
   formatCheckerResponse,
-  getRequestUrl,
-  gradeFetch,
-} from "~/utils/checker.server";
+  waitForMessageAndComputeScore,
+} from "~/utils/rtr.server";
 import {
   updateModuleStatusAndFindNextModule,
   updateSubmoduleStatusAndFindNextSubmodule,
 } from "~/utils/module.server";
+import { QStash } from "~/services/qstash.server";
 
 //################
 // Server uitls
@@ -100,12 +100,7 @@ export async function gradeCheckpoint(request: Request) {
     await getFormData(request);
   invariant(intent, "Intent is required to update Checkpoint");
   invariant(checkpointId, "Checkpoint ID is required to update Checkpoint");
-  return await autoGradeCheckpoint(
-    userId,
-    checkpointId,
-    moduleOrSubmoduleId,
-    request
-  );
+  return await autoGradeCheckpoint(userId, checkpointId, moduleOrSubmoduleId);
 }
 
 /**
@@ -117,8 +112,7 @@ export async function gradeCheckpoint(request: Request) {
 async function autoGradeCheckpoint(
   userId: string,
   checkpointId: string,
-  moduleOrSubmoduleId: string,
-  request: Request
+  moduleOrSubmoduleId: string
 ) {
   try {
     const [user, checkpoint] = await Promise.all([
@@ -144,9 +138,30 @@ async function autoGradeCheckpoint(
       (checkpoint?.subModule?.module.slug as string);
 
     const path = getCheckpointPath(checkpoint as CheckpointWithCourse);
-    const url = getRequestUrl({ username, path, repo, testEnvironment });
-    const response = await gradeFetch({ url, testEnvironment, request });
-    const computedScores = await computeScore(response);
+    const data = { path, username, repo, testEnvironment };
+    const qstashRes = await QStash.publish(data);
+
+    const messageId = qstashRes.messageId;
+    if (!messageId) {
+      return formatCheckerResponse({
+        error: "Failed to check your work, please try again.",
+      });
+    }
+    const result = await waitForMessageAndComputeScore(messageId);
+    if (!result) {
+      return formatCheckerResponse({
+        error: "Failed to check your work, please try again.",
+      });
+    }
+
+    const { computedScores, response } = result as CombinedResponse;
+
+    if (!computedScores) {
+      return formatCheckerResponse({
+        error: "Failed to check your work, please try again.",
+      });
+    }
+
     const checkpointStatus = await updateCheckpointStatus({
       userId,
       checkpointId,
@@ -204,7 +219,7 @@ async function updateCheckpointStatus({
         status: completed
           ? CHECKPOINT_STATUS.COMPLETED
           : CHECKPOINT_STATUS.IN_PROGRESS,
-        score: Number(checkpointScore.toFixed(0)),
+        score: Math.round(checkpointScore),
       },
     });
   } catch (error) {

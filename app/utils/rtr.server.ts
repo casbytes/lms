@@ -1,34 +1,5 @@
-import { TEST_ENV } from "./helpers";
-import { customFetch } from "./helpers.server";
-
-const { PYTHON_CHECKER_URL, JAVASCRIPT_CHECKER_URL } = process.env;
-
-/**
- * Get the request URL
- * @param userGithubUsername - user's github username
- * @param checkpointPath - checkpoint path
- * @param checkpointRepo - checkpoint repo
- * @returns {string} - request URL
- */
-export function getRequestUrl({
-  path,
-  repo,
-  username,
-  testEnvironment,
-}: {
-  username: string;
-  path: string;
-  repo: string;
-  testEnvironment: string;
-}) {
-  let baseUrl: string;
-  if (testEnvironment === TEST_ENV.PYTHON) {
-    baseUrl = PYTHON_CHECKER_URL;
-  } else {
-    baseUrl = JAVASCRIPT_CHECKER_URL;
-  }
-  return `${baseUrl}/${username}?path=${path}&repo=${repo}`;
-}
+import { computeScore } from "./helpers.server";
+import { Cache as Redis } from "./cache.server";
 
 /**
  * Format the response
@@ -51,46 +22,38 @@ export function formatCheckerResponse({
 }
 
 /**
- * Fetch the checkpoint and grade it
- * @param url - URL to send the POST request to
- * @param testEnvironment - Test environment identifier
- * @param request - The original Request object containing the host and body
- * @returns {Promise<ApiResponse>} - The API response, formatted as needed
+ * Waits for a message from Redis with a timeout and computes the score.
+ * @param messageId - The message ID to subscribe to.
+ * @param timeoutDuration - Duration in milliseconds to wait before timing out.
+ * @returns {Promise<ComputeScores| ApiResponse>}
  */
-export async function gradeFetch({
-  url,
-  testEnvironment,
-  request,
-}: {
-  url: string;
-  testEnvironment: string;
-  request: Request;
-}) {
-  try {
-    const host = request.headers.get("X-Forwarded-For") as string;
+export async function waitForMessageAndComputeScore(
+  messageId: string,
+  timeoutDuration: number = 30000
+): Promise<CombinedResponse | null> {
+  return new Promise((resolve) => {
+    let computedScores: ComputeScores | null = null;
 
-    const headers = {
-      "Content-Type": "application/json",
-      "X-Forwarded-For": host,
-      "X-Test-Env": testEnvironment,
-    };
+    const timeout = setTimeout(() => {
+      resolve(null);
+    }, timeoutDuration);
 
-    const { data, error } = await customFetch<ApiResponse>(url, {
-      method: "POST",
-      headers,
+    Redis.subscribe(messageId, async (message) => {
+      try {
+        const response = formatCheckerResponse(JSON.parse(atob(message)));
+        computedScores = await computeScore(response);
+
+        clearTimeout(timeout);
+        resolve({
+          computedScores,
+          response,
+        });
+      } catch (error) {
+        clearTimeout(timeout);
+        resolve(null);
+      }
     });
-
-    if (error) {
-      throw new Error(error);
-    }
-
-    return formatCheckerResponse(data!);
-  } catch (error) {
-    const errorMessage = `Failed to grade checkpoint. Error: ${
-      error instanceof Error ? error.message : "Unknown error"
-    }`;
-    return formatCheckerResponse({ error: errorMessage });
-  }
+  });
 }
 
 interface Message {
@@ -174,4 +137,15 @@ export interface ApiResponse {
   lintResults: LintResult[] | null;
   testResults: TestResults | null;
   error: string | null;
+}
+
+interface ComputeScores {
+  totalScore: number;
+  totalLintsScore: number;
+  totalTestsScore: number;
+}
+
+export interface CombinedResponse {
+  computedScores: ComputeScores | null;
+  response: ApiResponse;
 }

@@ -5,14 +5,7 @@ FROM node:20-bookworm-slim AS base
 LABEL fly_launch_runtime="Node.js"
 ENV NODE_ENV production
 
-RUN apt-get update && apt-get install -y \
-    # curl \
-    openssl \
-    sqlite3 \
-    fuse3 \
-    ca-certificates 
-    # && rm -rf /var/lib/apt/lists/*
-
+RUN apt-get update && apt-get install -y openssl sqlite3 fuse3 ca-certificates 
 
 FROM base AS deps
 

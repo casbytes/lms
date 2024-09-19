@@ -14,6 +14,11 @@ cache.on("error", (error) => {
   await cache.connect();
 })();
 
+// cache.publish("test", "test");
+// cache.subscribe("test", (message) => {
+//   console.log(message);
+// });
+
 /**
  * Set cache value
  * @param key - cache key
@@ -47,7 +52,40 @@ async function get<T>(key: string): Promise<T | null> {
   }
 }
 
+/**
+ * Publish message to a channel
+ * @param channel - channel name
+ * @param message - message
+ * @returns {Promise<number>} - Number of subscribers who received the message
+ */
+async function publish(channel: string, message: string): Promise<number> {
+  try {
+    return await cache.publish(channel, message);
+  } catch (error) {
+    throw error;
+  }
+}
+
+/**
+ * Subscribe to a channel
+ * @param channel - channel name
+ * @param callback - callback function to handle incoming messages
+ * @returns {Promise<void>}
+ */
+async function subscribe(
+  channel: string,
+  callback: (message: string) => void
+): Promise<void> {
+  try {
+    await cache.subscribe(channel, callback);
+  } catch (error) {
+    throw error;
+  }
+}
+
 export class Cache {
   static set = set;
   static get = get;
+  static publish = publish;
+  static subscribe = subscribe;
 }

@@ -7,8 +7,7 @@ export const schema = z.object({
   SECRET: z.string(),
   BASE_URL: z.string(),
   CDN_URL: z.string(),
-  JAVASCRIPT_CHECKER_URL: z.string(),
-  PYTHON_CHECKER_URL: z.string(),
+  RTR_URL: z.string(),
   GOOGLE_CLIENT_ID: z.string(),
   GOOGLE_CLIENT_SECRET: z.string(),
   GITHUB_CLIENT_ID: z.string(),
@@ -22,6 +21,7 @@ export const schema = z.object({
   SANITY_STUDIO_PROJECT_ID: z.string(),
   SANITY_STUDIO_DATASET: z.string(),
   REDIS_CLIENT_URL: z.string(),
+  QSTASH_TOKEN: z.string(),
 });
 
 declare global {
