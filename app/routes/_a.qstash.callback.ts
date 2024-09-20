@@ -1,22 +1,24 @@
 import { ActionFunctionArgs, redirect } from "@remix-run/node";
 import { Cache as Redis } from "~/utils/cache.server";
 
+type Response = {
+  status: number;
+  body: string;
+  sourceBody: string;
+  sourceMessageId: string;
+};
+
 export function loader() {
   return redirect("/");
 }
 
 export async function action({ request }: ActionFunctionArgs) {
   try {
-    const response = (await request.json()) as {
-      status: number;
-      body: string;
-      sourceBody: string;
-      sourceMessageId: string;
-    };
+    const response = (await request.json()) as Response;
 
     if (response.status < 200 || response.status > 299) {
       return new Response("Failed to publish message to channel", {
-        status: 500,
+        status: response.status,
       });
     }
 
@@ -38,7 +40,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     if (numberOfReceivers === 0) {
       return new Response("No subscribers for this message", {
-        status: 500,
+        status: 400,
       });
     }
 

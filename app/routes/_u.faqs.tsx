@@ -13,16 +13,18 @@ import { readContent } from "~/utils/helpers.server";
 import { metaFn } from "~/utils/meta";
 import { Cache } from "~/utils/cache.server";
 
+type EMDX = MDX & { id: number };
+
 export const meta = metaFn;
 
 export async function loader() {
   const cacheKey = "faqs";
-  const cachedFaqs = await Cache.get<MDX[]>(cacheKey);
+  const cachedFaqs = await Cache.get<EMDX[]>(cacheKey);
   if (cachedFaqs) {
     return json(cachedFaqs);
   }
-  const faqs = readContent(cacheKey);
-  await Cache.set<MDX[]>(cacheKey, faqs);
+  const faqs = readContent(cacheKey) as EMDX[];
+  await Cache.set<EMDX[]>(cacheKey, faqs);
   return json(faqs);
 }
 
@@ -31,22 +33,24 @@ export default function FAQS() {
 
   return (
     <Container className="max-w-3xl">
-      <PageTitle title="FAQs" />
+      <PageTitle title="Frequently asked questions" />
       <Accordion type="single" collapsible className="w-full mt-8">
-        {faqs.map((faq, index) => (
-          <AccordionItem
-            value={faq.data.question}
-            key={faq.data.question}
-            className="mb-2"
-          >
-            <AccordionTrigger className="text-lg font-bold">
-              {index + 1}. {faq.data.question}
-            </AccordionTrigger>
-            <AccordionContent className="mt-2 px-4">
-              <Markdown source={faq.content} />
-            </AccordionContent>
-          </AccordionItem>
-        ))}
+        {faqs
+          .sort((a, b) => a.data.id - b.data.id)
+          .map((faq, index) => (
+            <AccordionItem
+              value={faq.data.question}
+              key={faq.data.question}
+              className="mb-2"
+            >
+              <AccordionTrigger className="text-lg font-bold">
+                {index + 1}. {faq.data.question}
+              </AccordionTrigger>
+              <AccordionContent className="mt-2 px-4">
+                <Markdown source={faq.content} />
+              </AccordionContent>
+            </AccordionItem>
+          ))}
       </Accordion>
     </Container>
   );

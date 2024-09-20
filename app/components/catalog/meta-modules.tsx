@@ -31,11 +31,11 @@ export function MetaModules({
         <Await resolve={modules}>
           {(modules) => (
             <>
-              {!modules?.length ? (
+              {/* {!modules?.length ? (
                 <p className="text-center col-span-4 w-full text-lg font-mono">
                   No modules match your search, try again.
                 </p>
-              ) : null}
+              ) : null} */}
               <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 items-end">
                 <Fade cascade damping={0.1} duration={200}>
                   {modules?.length ? (

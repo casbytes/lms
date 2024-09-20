@@ -1,8 +1,9 @@
 import { createClient, SetOptions } from "redis";
-const { REDIS_CLIENT_URL } = process.env;
+const { REDIS_CLIENT_URL, NODE_ENV } = process.env;
+const PROD = NODE_ENV === "production";
 
 const cache = createClient({
-  url: process.env.NODE_ENV === "production" ? REDIS_CLIENT_URL : undefined,
+  url: PROD ? REDIS_CLIENT_URL : undefined,
 });
 
 cache.on("error", (error) => {
@@ -13,11 +14,6 @@ cache.on("error", (error) => {
 (async () => {
   await cache.connect();
 })();
-
-// cache.publish("test", "test");
-// cache.subscribe("test", (message) => {
-//   console.log(message);
-// });
 
 /**
  * Set cache value

@@ -79,9 +79,9 @@ export default function Articles() {
               <Badge
                 onClick={() => setSearchTerm(tag.trim())}
                 key={tag}
-                className={cn("mr-2 text-lg cursor-pointer rounded-3xl", {
+                className={cn("mr-2 mb-2 text-lg cursor-pointer rounded-3xl", {
                   "bg-white border-sky-600 hover:bg-white text-sky-600":
-                    currentSearch && tag.includes(currentSearch),
+                    currentSearch && tag.split(",").includes(currentSearch),
                 })}
               >
                 {tag}

@@ -10,7 +10,7 @@ import {
   sessionKey,
 } from "./session.server";
 import { google } from "googleapis";
-import { constructUsername, customFetch } from "./helpers.server";
+import { constructUsername, client } from "./helpers.server";
 import { Paystack } from "~/services/paystack.server";
 import { ROLE } from "./helpers";
 
@@ -243,7 +243,7 @@ export async function handleGoogleCallback(request: Request) {
     });
 
     if (paystackCustomer.status !== true) {
-      session.flash("error", "Failed to create paystack customer, try again.");
+      session.flash("error", "Authentication failed, try again.");
       throw redirect("/", await commitAuthSession(session));
     }
 
@@ -302,27 +302,21 @@ async function getGithubAccessToken(
     GITHUB_AUTH_REDIRECT_URL
   )}`;
 
-  type ResponseData = {
+  type Response = {
     access_token: string;
     token_type: string;
     scope: string;
   };
 
-  const { data: tokenData } = await customFetch<ResponseData>(
-    ACCESS_TOKEN_URL,
-    {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-      },
-    }
-  );
+  const tokenData = await client<Response>(ACCESS_TOKEN_URL, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+    },
+  });
 
   if (!tokenData?.access_token || error) {
-    session.flash(
-      "error",
-      error ?? "Failed to authenticate user, please try again."
-    );
+    session.flash("error", error ?? "Authentication failed, please try again.");
     throw redirect("/", await commitAuthSession(session));
   }
 
@@ -348,7 +342,7 @@ async function getGithubUser(
 ): Promise<UserData> {
   const session = await getUserSession(request);
   const AUTH_URL = "https://api.github.com/user";
-  const { data: userRes } = await customFetch<UserData>(AUTH_URL, {
+  const userRes = await client<UserData>(AUTH_URL, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -356,7 +350,7 @@ async function getGithubUser(
   });
 
   if (!userRes) {
-    session.flash("error", "Failed to fetch user data from GitHub.");
+    session.flash("error", "Authentication failed, please try again.");
     throw redirect("/", await commitAuthSession(session));
   }
 
@@ -393,8 +387,8 @@ export async function handleGithubCallback(request: Request) {
       last_name: lastName,
     });
 
-    if (paystackCustomer.status !== true) {
-      session.flash("error", "Failed to create paystack customer, try again.");
+    if (!paystackCustomer.status) {
+      session.flash("error", "Authentication failed, please try again.");
       throw redirect("/", await commitAuthSession(session));
     }
 

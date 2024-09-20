@@ -17,6 +17,7 @@ import { DeleteConfirmationDialog } from "./delete-confirmation-dialog";
 import { Separator } from "~/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { SearchInput } from "~/components/search-input";
+import { cn } from "~/libs/shadcn";
 
 type ModuleWithCourse = IModule & {
   course?: Course;
@@ -44,7 +45,7 @@ function Modules({ userModules }: ModulesProps) {
   return (
     <Dialog>
       <Card className="shadow-lg">
-        <CardHeader className="py-4">
+        <CardHeader className={cn("py-4", { "py-2": userModules.length })}>
           <div className="flex justify-between items-center">
             <CardTitle className="font-mono">My modules</CardTitle>
             {userModules?.length ? (

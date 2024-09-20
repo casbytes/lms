@@ -4,6 +4,7 @@ import { IoCheckmarkDoneCircle } from "react-icons/io5";
 import { Container } from "../container";
 import { Button } from "../ui/button";
 import { DialogTrigger } from "../ui/dialog";
+import { Image } from "../image";
 
 export function Header() {
   return (
@@ -49,8 +50,8 @@ export function Header() {
 
         <div className="mt-8 md:mt-0">
           <Fade direction="up" triggerOnce>
-            <img
-              src="https://cdn.casbytes.com/assets/elearning.png"
+            <Image
+              src="assets/elearning.png"
               alt="elearning"
               width={550}
               height={550}

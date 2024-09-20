@@ -3,7 +3,7 @@ import { Container } from "../container";
 import { cn } from "~/libs/shadcn";
 import { Image } from "../image";
 
-export function ContentOverview() {
+export function Overview() {
   return (
     <Container className="bg-2 bg-no-repeat bg-cover mb-8" id="overview">
       <div className="flex flex-col md:flex-row justify-evenly max-w-6xl mx-auto">

@@ -16,12 +16,12 @@ export function UserCard({ user }: UserCardProps) {
         </CardTitle>
       </CardHeader>
       <CardContent className="flex items-center justify-between gap-4">
-        <div>
-          <p className="mt-4 text-zin-600 font-serif">
+        <div className="text-xs">
+          <p className="mt-4 text-zinc-600">
             😊 It&apos;s good to see you again.
           </p>
-          <p className="mt-4 text-stone-700 font-black text-sm">
-            🗓️ {format(new Date(), "do MMMM, yyyy - p")}
+          <p className="mt-4 text-stone-700 font-black">
+            🗓️ {format(new Date(), "do MMM, yyyy - p")}
           </p>
         </div>
         <Image

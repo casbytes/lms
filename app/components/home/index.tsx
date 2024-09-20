@@ -1,7 +1,7 @@
 import { Header } from "./header";
 import { Courses } from "./courses";
 import { Modules } from "./modules";
-import { ContentOverview } from "./content-overview";
+import { Overview } from "./overview";
 import { Features } from "./features";
 import { Testimonial } from "./testimonial";
 import { Partnerships } from "./partnerships";
@@ -24,7 +24,7 @@ export function Home({
       <Features />
       <Courses courses={courses} />
       <Modules modules={modules} />
-      <ContentOverview />
+      <Overview />
       <Testimonial />
       <Partnerships />
       <Subscription plans={plans} />

@@ -234,17 +234,12 @@ export async function checkCatalog({
   return existingItem;
 }
 
-type FetchOptions = {
+type ClientOptions = {
   method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
   headers?: Record<string, string>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   body?: any;
   signal?: AbortSignal;
-};
-
-type FetchResponse<T> = {
-  data: T | null;
-  error: string | null;
 };
 
 /**
@@ -253,10 +248,10 @@ type FetchResponse<T> = {
  * @param {FetchOptions} options - The fetch options
  * @returns {Promise<FetchResponse>}
  */
-export async function customFetch<T>(
+export async function client<T>(
   url: string,
-  options: FetchOptions = {}
-): Promise<FetchResponse<T>> {
+  options: ClientOptions = {}
+): Promise<T> {
   const { method = "GET", headers = {}, body, signal } = options;
 
   try {
@@ -272,20 +267,15 @@ export async function customFetch<T>(
 
     if (!response.ok) {
       const errorMessage = `Error: ${response.status} ${response.statusText}`;
-      return {
-        data: null,
-        error: errorMessage,
-      };
+      throw new Error(errorMessage);
     }
 
     const data: T = await response.json();
-    return { data, error: null };
+    return data;
   } catch (error) {
-    return {
-      data: null,
-      error:
-        error instanceof Error ? error.message : "An unknown error occurred",
-    };
+    const message =
+      error instanceof Error ? error.message : "An unknown error occurred";
+    throw new Error(message);
   }
 }
 

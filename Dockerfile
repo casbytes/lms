@@ -1,5 +1,3 @@
-
-
 FROM node:20-bookworm-slim AS base
 
 LABEL fly_launch_runtime="Node.js"
@@ -64,7 +62,6 @@ COPY --from=build /app/prisma /app/prisma
 
 COPY --from=flyio/litefs:0.5.11 /usr/local/bin/litefs /usr/local/bin/litefs
 COPY --from=litestream/litestream:latest /usr/local/bin/litestream /usr/local/bin/litestream
-# RUN curl -L https://github.com/benbjohnson/litestream/releases/download/v0.3.8/litestream-v0.3.8-linux-amd64.tar.gz | tar -xz -C /usr/local/bin
 
 ADD /etc/litefs.yml /etc/litefs.yml
 ADD /etc/litestream.yml /etc/litestream.yml

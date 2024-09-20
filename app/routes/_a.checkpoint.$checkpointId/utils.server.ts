@@ -137,8 +137,10 @@ async function autoGradeCheckpoint(
       checkpoint?.module?.slug ??
       (checkpoint?.subModule?.module.slug as string);
 
-    const path = getCheckpointPath(checkpoint as CheckpointWithCourse);
-    const data = { path, username, repo, testEnvironment };
+    const checkpointPath = getCheckpointPath(
+      checkpoint as CheckpointWithCourse
+    );
+    const data = { checkpointPath, username, repo, testEnvironment };
     const qstashRes = await QStash.publish(data);
 
     const messageId = qstashRes.messageId;
