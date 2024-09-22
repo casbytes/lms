@@ -14,6 +14,7 @@ async function publish(body: object) {
     body,
     url: RTR_URL,
     callback: `${BASE_URL}/qstash/callback`,
+    failureCallback: `${BASE_URL}/qstash/failure/callback`,
   });
 }
 

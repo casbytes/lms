@@ -242,7 +242,7 @@ export async function handleGoogleCallback(request: Request) {
       last_name: lastName,
     });
 
-    if (paystackCustomer.status !== true) {
+    if (!paystackCustomer.status) {
       session.flash("error", "Authentication failed, try again.");
       throw redirect("/", await commitAuthSession(session));
     }

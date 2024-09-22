@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { getVideoSource } from "./helpers.server";
 
 export const schema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"] as const),
@@ -46,10 +45,11 @@ export function init() {
 }
 
 export function getEnv() {
+  const { NODE_ENV, CDN_URL, IFRAME_URL, VIDEO_LIBRARY_ID } = process.env;
   return {
-    MODE: process.env.NODE_ENV,
-    CDN_URL: process.env.CDN_URL,
-    VIDEO_SOURCE_URL: getVideoSource(),
+    CDN_URL,
+    MODE: NODE_ENV,
+    VIDEO_SOURCE_URL: `${IFRAME_URL}/embed/${Number(VIDEO_LIBRARY_ID)}`,
   };
 }
 

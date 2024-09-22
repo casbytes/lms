@@ -45,17 +45,6 @@ export function readContent(folder: string) {
 }
 
 /**
- * Get video source
- * @returns {string} - video source
- */
-
-export function getVideoSource() {
-  const { IFRAME_URL: iframeUrl, VIDEO_LIBRARY_ID: libraryId } =
-    process.env as Record<string, string>;
-  return `${iframeUrl}/embed/${Number(libraryId)}`;
-}
-
-/**
  * Construct the user's full name
  * @param name - user's name
  * @returns {Record<string, string>} - user's first and last name

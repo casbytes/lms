@@ -16,26 +16,9 @@ export async function action({ request }: ActionFunctionArgs) {
   try {
     const response = (await request.json()) as Response;
 
-    if (response.status < 200 || response.status > 299) {
-      return new Response("Failed to publish message to channel", {
-        status: response.status,
-      });
-    }
-
     const numberOfReceivers = await Redis.publish(
       response.sourceMessageId,
       response.body
-    );
-
-    console.log(
-      "Atob body:",
-      atob(response.body),
-      "Atob body source:",
-      atob(response.sourceBody),
-      "JSON body:",
-      JSON.parse(atob(response.body)),
-      "JSON source body:",
-      JSON.parse(atob(response.sourceBody))
     );
 
     if (numberOfReceivers === 0) {

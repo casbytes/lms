@@ -22,37 +22,31 @@ export function formatCheckerResponse({
 }
 
 /**
- * Waits for a message from Redis with a timeout and computes the score.
+ * Subscribe to qstash queue
  * @param messageId - The message ID to subscribe to.
- * @param timeoutDuration - Duration in milliseconds to wait before timing out.
- * @returns {Promise<ComputeScores| ApiResponse>}
+ * @returns {Promise<CombinedResponse>}
  */
-export async function waitForMessageAndComputeScore(
-  messageId: string,
-  timeoutDuration: number = 30000
-): Promise<CombinedResponse | null> {
-  return new Promise((resolve) => {
-    let computedScores: ComputeScores | null = null;
-
-    const timeout = setTimeout(() => {
-      resolve(null);
-    }, timeoutDuration);
-
-    Redis.subscribe(messageId, async (message) => {
-      try {
-        const response = formatCheckerResponse(JSON.parse(atob(message)));
-        computedScores = await computeScore(response);
-
-        clearTimeout(timeout);
-        resolve({
-          computedScores,
-          response,
-        });
-      } catch (error) {
-        clearTimeout(timeout);
-        resolve(null);
-      }
-    });
+export async function subscribeToQueue(
+  messageId: string
+): Promise<CombinedResponse> {
+  let computedScores: ComputeScores | null = null;
+  return new Promise((resolve, reject) => {
+    try {
+      Redis.subscribe(messageId, async (message) => {
+        try {
+          const response = formatCheckerResponse(JSON.parse(atob(message)));
+          computedScores = await computeScore(response);
+          resolve({
+            computedScores,
+            response,
+          });
+        } catch (error) {
+          reject(error);
+        }
+      });
+    } catch (error) {
+      reject(error);
+    }
   });
 }
 

@@ -14,7 +14,7 @@ import {
 import {
   CombinedResponse,
   formatCheckerResponse,
-  waitForMessageAndComputeScore,
+  subscribeToQueue,
 } from "~/utils/rtr.server";
 import {
   updateModuleStatusAndFindNextModule,
@@ -144,24 +144,14 @@ async function autoGradeCheckpoint(
     const qstashRes = await QStash.publish(data);
 
     const messageId = qstashRes.messageId;
-    if (!messageId) {
-      return formatCheckerResponse({
-        error: "Failed to check your work, please try again.",
-      });
-    }
-    const result = await waitForMessageAndComputeScore(messageId);
-    if (!result) {
-      return formatCheckerResponse({
-        error: "Failed to check your work, please try again.",
-      });
-    }
+    const error = "Failed to check your work, please try again.";
+
+    const result = await subscribeToQueue(messageId);
 
     const { computedScores, response } = result as CombinedResponse;
 
     if (!computedScores) {
-      return formatCheckerResponse({
-        error: "Failed to check your work, please try again.",
-      });
+      return formatCheckerResponse({ error });
     }
 
     const checkpointStatus = await updateCheckpointStatus({

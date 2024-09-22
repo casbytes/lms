@@ -14,7 +14,7 @@ import { STATUS } from "~/utils/helpers";
 import {
   type CombinedResponse,
   formatCheckerResponse,
-  waitForMessageAndComputeScore,
+  subscribeToQueue,
 } from "~/utils/rtr.server";
 import { QStash } from "~/services/qstash.server";
 
@@ -101,19 +101,13 @@ async function autoGradeProject(
   const data = { path, username, repo, testEnvironment };
   const qstashRes = await QStash.publish(data);
 
+  const messageId = qstashRes.messageId;
   const error = "Failed to check your work, please try again.";
 
-  const messageId = qstashRes.messageId;
-  if (!messageId) {
-    return formatCheckerResponse({ error });
-  }
-  const timeout = 60000;
-  const result = await waitForMessageAndComputeScore(messageId, timeout);
-  if (!result) {
-    return formatCheckerResponse({ error });
-  }
+  const result = await subscribeToQueue(messageId);
 
   const { computedScores, response } = result as CombinedResponse;
+
   if (!computedScores) {
     return formatCheckerResponse({ error });
   }
