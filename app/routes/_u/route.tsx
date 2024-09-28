@@ -16,6 +16,7 @@ export async function loader({ request }: ActionFunctionArgs) {
   const success = url.get("success") === "true";
   const error = url.get("error") as string | null;
   const response = { email, error, success };
+
   return { response };
 }
 

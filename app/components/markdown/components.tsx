@@ -1,5 +1,6 @@
 import React from "react";
 import highlightjs from "highlight.js";
+import DOMPurify from "isomorphic-dompurify";
 import { Link } from "@remix-run/react";
 import { MdOutlineContentCopy } from "react-icons/md";
 import { IoCheckmarkDone, IoWarning } from "react-icons/io5";
@@ -357,7 +358,7 @@ export function CodeBlock(
           dangerouslySetInnerHTML={{
             __html:
               typeof children === "string"
-                ? highlightjs.highlight(children.trim(), {
+                ? highlightjs.highlight(DOMPurify.sanitize(children.trim()), {
                     language,
                   }).value
                 : "",

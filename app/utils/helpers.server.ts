@@ -109,16 +109,16 @@ export async function computeScore(response: ApiResponse) {
 
 /**
  * Update user subscription status
- * @param paystackCustomerCode - Paystack customer code
+ * @param stripeCustomerId - Stripe customer id
  * @param subscribed - Subscription status
  */
 export async function updateUserSubscription(
-  paystackCustomerCode: string,
+  stripeCustomerId: string,
   subscribed: boolean
 ) {
   try {
     return await prisma.user.update({
-      where: { paystackCustomerCode },
+      where: { stripeCustomerId },
       data: { subscribed },
     });
   } catch (error) {
@@ -128,12 +128,12 @@ export async function updateUserSubscription(
 
 /**
  * Update user progress based on the subscription status
- * @param paystackCustomerCode - Paystack customer code
+ * @param stripeCustomerId - Stripe customer id
  */
-export async function updateUserProgress(paystackCustomerCode: string) {
+export async function updateUserProgress(stripeCustomerId: string) {
   try {
     const { id: userId } = await prisma.user.findUniqueOrThrow({
-      where: { paystackCustomerCode },
+      where: { stripeCustomerId },
       select: { id: true },
     });
 
@@ -255,7 +255,7 @@ export async function client<T>(
     });
 
     if (!response.ok) {
-      const errorMessage = `Error: ${response.status} ${response.statusText}`;
+      const errorMessage = `Error fetching resource: ${response.status} ${response.statusText}`;
       throw new Error(errorMessage);
     }
 

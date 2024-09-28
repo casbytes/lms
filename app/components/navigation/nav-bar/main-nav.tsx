@@ -4,8 +4,8 @@ import { RiMenuFoldFill } from "react-icons/ri";
 import { cn } from "~/libs/shadcn";
 import { Button } from "~/components/ui/button";
 import { SheetTrigger } from "~/components/ui/sheet";
-import { DialogTrigger } from "~/components/ui/dialog";
 import { Image } from "~/components/image";
+import { useAuthDialog } from "~/contexts/auth-dialog-context";
 
 type MainNavProps = {
   menuItems?: { label: string; href: string }[];
@@ -28,6 +28,7 @@ export function MainNav({
 }: MainNavProps) {
   const matches = useMatches();
   const location = useLocation();
+  const { openAuthDialog } = useAuthDialog();
 
   const contentRoutes = matches.some(
     (match) =>
@@ -123,14 +124,13 @@ export function MainNav({
           )}
 
           <div className="lg:flex gap-4 hidden items-center">
-            <DialogTrigger asChild>
-              <Button
-                aria-label="sign in"
-                className="capitalize text-lg font-mono"
-              >
-                sign in
-              </Button>
-            </DialogTrigger>
+            <Button
+              aria-label="sign in"
+              className="capitalize text-lg font-mono"
+              onClick={openAuthDialog}
+            >
+              sign in
+            </Button>
           </div>
         </div>
       </div>

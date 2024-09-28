@@ -50,11 +50,6 @@ export function ActiveSubCard({
       </CardHeader>
       <CardFooter className="flex flex-col gap-4 mt-4">
         <Form method="post" className="flex flex-col gap-4">
-          <input
-            type="hidden"
-            name="code"
-            value={activeSubscription.subscription_code}
-          />
           <Button
             name="intent"
             value="update"

@@ -6,14 +6,14 @@ const resend = remember("resend", () => new Resend(process.env.RESEND_API_KEY));
 interface ISendEmail {
   to: string;
   subject: string;
-  html: string;
+  react: React.ReactNode;
 }
-export async function sendEmail({ to, subject, html }: ISendEmail) {
+export async function sendEmail({ to, subject, react }: ISendEmail) {
   return resend.emails.send({
     from: "CASBytes Team <team@casbytes.com>",
     to,
     subject,
     text: "Please enable HTML to view this email.",
-    html,
+    react,
   });
 }

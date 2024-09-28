@@ -33,6 +33,12 @@ export enum ROLE {
   ADMIN = "ADMIN",
 }
 
+export enum PROVIDER {
+  MagicLink = "magic-link",
+  Google = "google",
+  Github = "github",
+}
+
 export enum COURSE_STATUS {
   IN_PROGRESS = "IN_PROGRESS",
   COMPLETED = "COMPLETED",

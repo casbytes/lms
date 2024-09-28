@@ -16,11 +16,14 @@ export const schema = z.object({
   GITHUB_OWNER: z.string(),
   GITHUB_TOKEN: z.string(),
   RESEND_API_KEY: z.string(),
-  PAYSTACK_SECRET_KEY: z.string(),
+  STRIPE_SECRET_KEY: z.string(),
+  STRIPE_WEBHOOK_SECRET: z.string(),
   SANITY_STUDIO_PROJECT_ID: z.string(),
   SANITY_STUDIO_DATASET: z.string(),
   REDIS_CLIENT_URL: z.string(),
   QSTASH_TOKEN: z.string(),
+  MANY_APIS_API_KEY: z.string(),
+  IPDATA_API_KEY: z.string(),
 });
 
 declare global {
@@ -46,10 +49,11 @@ export function init() {
 
 export function getEnv() {
   const { NODE_ENV, CDN_URL, IFRAME_URL, VIDEO_LIBRARY_ID } = process.env;
+  const VIDEO_SOURCE_URL = `${IFRAME_URL}/embed/${Number(VIDEO_LIBRARY_ID)}`;
   return {
     CDN_URL,
     MODE: NODE_ENV,
-    VIDEO_SOURCE_URL: `${IFRAME_URL}/embed/${Number(VIDEO_LIBRARY_ID)}`,
+    VIDEO_SOURCE_URL,
   };
 }
 

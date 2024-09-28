@@ -1,5 +1,5 @@
 import { sendEmail } from "./index.server";
-import { magicLinkTemplate, Welcome } from "./templates/index.server";
+import { MagicLinkTemplate, Welcome } from "./templates/index.server";
 
 interface ISendVerificationEmail {
   email: string;
@@ -16,7 +16,7 @@ export class Emails {
     return sendEmail({
       to: email,
       subject: "Here is your ✨ magic sign in link for casbytes.com",
-      html: magicLinkTemplate({ link }),
+      react: MagicLinkTemplate({ link }),
     });
   }
 

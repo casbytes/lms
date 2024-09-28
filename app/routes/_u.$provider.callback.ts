@@ -6,23 +6,24 @@ import {
   handleGoogleCallback,
   handleMagiclinkCallback,
 } from "~/utils/providers.server";
+import { PROVIDER } from "~/utils/helpers";
 
 const { NODE_ENV } = process.env;
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  invariant(params.provider, "Invalid provider.");
+  const provider = params.provider as PROVIDER;
+  invariant(provider, "Invalid provider.");
 
   try {
-    const provider = params.provider as "magic-link" | "google" | "github";
     if (NODE_ENV === "production") {
       await ensurePrimary();
     }
     switch (provider) {
-      case "magic-link":
+      case PROVIDER.MagicLink:
         return await handleMagiclinkCallback(request);
-      case "google":
+      case PROVIDER.Google:
         return await handleGoogleCallback(request);
-      case "github":
+      case PROVIDER.Github:
         return await handleGithubCallback(request);
       default:
         throw new Error("Invalid provider.");

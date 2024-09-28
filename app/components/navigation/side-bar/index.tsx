@@ -1,58 +1,33 @@
-import { SideBarContainer } from "./side-bar-container";
-import { SideBarProvider, type SideBarProps } from "./side-bar-context";
-import { SideBarContent } from "./side-bar-content";
-import { Link } from "@remix-run/react";
-import { Tooltip } from "@radix-ui/react-tooltip";
-import { Button } from "~/components/ui/button";
-import {
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "~/components/ui/tooltip";
+import React from "react";
+import { cn } from "~/libs/shadcn";
+import { SideBarContent } from "./content";
 
-export function SideBar({
-  menuItems,
-  isOpen,
-  setIsOpen,
-  ...props
-}: SideBarProps) {
+export interface MenuItem {
+  icon?: React.ReactNode;
+  label: string;
+  href: string;
+  target?: string;
+}
+
+type SideBarProps = {
+  menuItems: MenuItem[];
+  isOpen: boolean;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+export function SideBar({ menuItems, isOpen, setIsOpen }: SideBarProps) {
   return (
-    <SideBarProvider
-      isOpen={isOpen}
-      setIsOpen={setIsOpen}
-      menuItems={menuItems}
-      {...props}
+    <nav
+      className={cn(
+        "fixed top-0 left-0 hidden lg:block z-50  h-screen bg-slate-800 text-slate-100  duration-300 ease-in-out",
+        isOpen ? "w-56" : "w-16"
+      )}
     >
-      <SideBarContainer>
-        <TooltipProvider>
-          <SideBarContent>
-            {menuItems.map((item, index) => (
-              <Tooltip key={`item-${index}`}>
-                <TooltipContent className="text-lg">
-                  {item.label}
-                </TooltipContent>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="link"
-                    className="text-slate-200 hover:text-white"
-                    asChild
-                  >
-                    <Link
-                      prefetch="intent"
-                      to={item.href}
-                      target={item.target ?? "_self"}
-                      className="flex gap-4 capitalize text-xl items-center"
-                    >
-                      {item.icon}
-                      {isOpen && item.label}
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-              </Tooltip>
-            ))}
-          </SideBarContent>
-        </TooltipProvider>
-      </SideBarContainer>
-    </SideBarProvider>
+      <SideBarContent
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        menuItems={menuItems}
+      />
+    </nav>
   );
 }

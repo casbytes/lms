@@ -11,8 +11,8 @@ import {
 } from "./session.server";
 import { google } from "googleapis";
 import { constructUsername, client } from "./helpers.server";
-import { Paystack } from "~/services/paystack.server";
 import { ROLE } from "./helpers";
+import { STRIPE } from "~/services/stripe.server";
 
 const {
   SECRET,
@@ -235,24 +235,17 @@ export async function handleGoogleCallback(request: Request) {
   });
 
   if (!user) {
-    const { firstName, lastName } = constructUsername(userInfo.name);
-    const paystackCustomer = await Paystack.createCustomer({
+    const stripeCustomer = await STRIPE.createCustomer({
       email: userInfo.email,
-      first_name: firstName,
-      last_name: lastName,
+      name: userInfo.name,
     });
-
-    if (!paystackCustomer.status) {
-      session.flash("error", "Authentication failed, try again.");
-      throw redirect("/", await commitAuthSession(session));
-    }
 
     const avatar_url = getAvatarUrl(userInfo.given_name);
     const data = {
       name: userInfo.name,
       email: userInfo.email,
       avatarUrl: userInfo?.picture?.trim() || avatar_url,
-      paystackCustomerCode: paystackCustomer.data!.customer_code,
+      stripeCustomerId: stripeCustomer.id,
       verified: true,
     };
 
@@ -380,17 +373,11 @@ export async function handleGithubCallback(request: Request) {
   });
 
   if (!user) {
-    const { firstName, lastName } = constructUsername(githubUser.name);
-    const paystackCustomer = await Paystack.createCustomer({
+    const { firstName } = constructUsername(githubUser.name);
+    const stripeCustomer = await STRIPE.createCustomer({
       email: githubUser.email,
-      first_name: firstName,
-      last_name: lastName,
+      name: githubUser.name,
     });
-
-    if (!paystackCustomer.status) {
-      session.flash("error", "Authentication failed, please try again.");
-      throw redirect("/", await commitAuthSession(session));
-    }
 
     const avatar_url = getAvatarUrl(firstName);
     const data = {
@@ -398,7 +385,7 @@ export async function handleGithubCallback(request: Request) {
       email: githubUser.email,
       githubUsername: githubUser.login,
       avatarUrl: githubUser.avatar_url.trim() || avatar_url,
-      paystackCustomerCode: paystackCustomer.data!.customer_code,
+      stripeCustomerId: stripeCustomer.id,
       verified: true,
     };
 

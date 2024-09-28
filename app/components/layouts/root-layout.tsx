@@ -7,7 +7,6 @@ import {
 } from "@remix-run/react";
 import { useInterval } from "use-interval";
 import { Toaster } from "../ui/toaster";
-import { Dialog } from "../ui/dialog";
 import { Sheet } from "../ui/sheet";
 import { cn } from "~/libs/shadcn";
 import { NavBar, SideBar } from "../navigation";
@@ -16,10 +15,11 @@ import { OfflineUI } from "../offline-ui";
 import { FullPagePendingUI } from "../full-page-pending-ui";
 import { useLearningTimer } from "~/utils/hooks";
 import { BackToTopButton } from "../back-to-top-button";
+import { AuthDialogProvider } from "~/contexts/auth-dialog-context";
 
 export function RootLayout() {
   const [isOnline, setIsOnline] = React.useState(true);
-  const [isNavOpen, setIsNavOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = React.useState(false);
   const [isNavigating, setIsNavigating] = React.useState(false);
   const { startTimer, elapsedTime, stopTimer, isRunning } = useLearningTimer();
 
@@ -45,7 +45,7 @@ export function RootLayout() {
       match.id.includes("healthcheck")
   );
 
-  const addMargin = (user || admin) && !resourceRoutes;
+  const isAuth = (user || admin) && !resourceRoutes;
   const menuItems = admin
     ? adminMenuItems
     : user
@@ -117,43 +117,37 @@ export function RootLayout() {
     };
   }, []);
 
+  const sideBarClassnames = cn(
+    "duration-300 bg-slate-100 min-h-screen",
+    isOpen ? (isAuth ? "lg:ml-56" : "") : isAuth ? "lg:ml-16" : "",
+    {
+      "cursor-wait": isLoading,
+    }
+  );
+
   return isOnline ? (
-    <Dialog>
+    <AuthDialogProvider>
       <Sheet>
         <NavBar
           menuItems={menuItems}
-          isNavOpen={isNavOpen}
-          setIsNavOpen={setIsNavOpen}
+          isNavOpen={isOpen}
+          setIsNavOpen={setIsOpen}
         />
-        {addMargin ? (
+        {isAuth ? (
           <SideBar
+            isOpen={isOpen}
+            setIsOpen={setIsOpen}
             menuItems={menuItems}
-            isOpen={isNavOpen}
-            setIsOpen={setIsNavOpen}
           />
         ) : null}
-        <div
-          className={cn(
-            "duration-300 bg-slate-100 min-h-screen",
-            {
-              "cursor-wait": isLoading,
-            },
-            isNavOpen
-              ? addMargin
-                ? "ml-0 lg:ml-56"
-                : ""
-              : addMargin
-              ? "ml-0 lg:ml-16"
-              : ""
-          )}
-        >
+        <div className={sideBarClassnames}>
           <Toaster />
           {isNavigating ? <FullPagePendingUI /> : null}
           <Outlet />
           <BackToTopButton />
         </div>
       </Sheet>
-    </Dialog>
+    </AuthDialogProvider>
   ) : (
     <OfflineUI />
   );
