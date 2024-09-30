@@ -11,14 +11,12 @@ import { Sheet } from "../ui/sheet";
 import { cn } from "~/libs/shadcn";
 import { NavBar, SideBar } from "../navigation";
 import { adminMenuItems, userMenuItems, unAuthMenuItems } from ".";
-import { OfflineUI } from "../offline-ui";
 import { FullPagePendingUI } from "../full-page-pending-ui";
 import { useLearningTimer } from "~/utils/hooks";
 import { BackToTopButton } from "../back-to-top-button";
 import { AuthDialogProvider } from "~/contexts/auth-dialog-context";
 
 export function RootLayout() {
-  const [isOnline, setIsOnline] = React.useState(true);
   const [isOpen, setIsOpen] = React.useState(false);
   const [isNavigating, setIsNavigating] = React.useState(false);
   const { startTimer, elapsedTime, stopTimer, isRunning } = useLearningTimer();
@@ -61,19 +59,6 @@ export function RootLayout() {
     }
   }, [elapsedTime, f]);
 
-  // React.useEffect(() => {
-  //   if (user && !isRunning) {
-  //     startTimer();
-  //   }
-  //   return () => {
-  //     stopTimer();
-  //     if (isRunning) {
-  //       logLearningTime();
-  //     }
-  //   };
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [user, isRunning, stopTimer, logLearningTime]);
-
   // const LOG_INTERVAL = 60000; // 1 minute
   // useInterval(() => {
   //   if (user) {
@@ -81,6 +66,11 @@ export function RootLayout() {
   //   }
   // }, LOG_INTERVAL);
 
+
+  /**
+   * If the navigation is taking too long (> 1 second), we show a full page pending UI
+   * to the user.
+   */
   const START_NAVIGATION_TIME = 1000;
   React.useEffect(() => {
     let timeout: number | undefined;
@@ -102,20 +92,7 @@ export function RootLayout() {
     };
   }, [isLoading]);
 
-  React.useEffect(() => {
-    setIsOnline(window.navigator.onLine);
-    const handleOnlineChange = () => {
-      setIsOnline(window.navigator.onLine);
-    };
-
-    window.addEventListener("online", handleOnlineChange);
-    window.addEventListener("offline", handleOnlineChange);
-
-    return () => {
-      window.removeEventListener("online", handleOnlineChange);
-      window.removeEventListener("offline", handleOnlineChange);
-    };
-  }, []);
+  
 
   const sideBarClassnames = cn(
     "duration-300 bg-slate-100 min-h-screen",
@@ -125,7 +102,7 @@ export function RootLayout() {
     }
   );
 
-  return isOnline ? (
+  return (
     <AuthDialogProvider>
       <Sheet>
         <NavBar
@@ -148,7 +125,5 @@ export function RootLayout() {
         </div>
       </Sheet>
     </AuthDialogProvider>
-  ) : (
-    <OfflineUI />
-  );
+  ) 
 }

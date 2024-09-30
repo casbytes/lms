@@ -57,12 +57,13 @@ export default function SubscriptionRoute() {
   const { user, plans, error, activeSubscription } =
     useLoaderData<typeof loader>();
   const [isError, setIsError] = React.useState(error);
+  const isActive = activeSubscription?.status === "active";
 
   return (
     <Container className="max-w-6xl">
       <PageTitle title="subscription" />
       <ErrorDialog isError={isError} setIsError={setIsError} />
-      {activeSubscription ? (
+      {isActive ? (
         <ActiveSubCard activeSubscription={activeSubscription} />
       ) : (
         <SubscriptionTabs plans={plans} user={user} className="mt-8" />

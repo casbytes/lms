@@ -1,62 +1,11 @@
 import invariant from "tiny-invariant";
 import { prisma, type Course, type Module } from "~/utils/db.server";
 import { getUserId } from "~/utils/session.server";
-import { Cache } from "~/utils/cache.server";
-import {
-  endOfMonth,
-  endOfWeek,
-  format,
-  startOfDay,
-  startOfMonth,
-  startOfWeek,
-  subDays,
-  subMonths,
-  subWeeks,
-} from "date-fns";
 import { formatResponse } from "~/utils/helpers.server";
 
-const today = startOfDay(new Date());
-
-type TimeUnit = "days" | "weeks" | "months";
-interface TimeRange {
-  start: Date;
-  end: Date;
-}
 export interface TimeData {
   date: string;
   hours: number;
-}
-
-/**
- * Generate date ranges for a given time unit and length
- * @param {TimeUnit} unit - The time unit
- * @param {number} length - The length
- * @returns {TimeRange[]} - The date ranges
- */
-function generateDateRanges(unit: TimeUnit, length: number): TimeRange[] {
-  const ranges: TimeRange[] = [];
-
-  for (let i = 0; i < length; i++) {
-    let start: Date;
-    let end: Date;
-
-    switch (unit) {
-      case "days":
-        start = subDays(startOfDay(today), i);
-        end = startOfDay(start);
-        break;
-      case "weeks":
-        start = subWeeks(startOfWeek(today), i);
-        end = endOfWeek(start);
-        break;
-      case "months":
-        start = subMonths(startOfMonth(today), i);
-        end = endOfMonth(start);
-        break;
-    }
-    ranges.push({ start, end });
-  }
-  return ranges.reverse();
 }
 
 /**
@@ -66,61 +15,24 @@ function generateDateRanges(unit: TimeUnit, length: number): TimeRange[] {
  * @param {number} length - The length
  * @returns {Promise<TimeData[]>} - The learning data
  */
-async function getLearningData(
-  request: Request,
-  unit: TimeUnit,
-  length: number
-): Promise<TimeData[]> {
-  const userId = await getUserId(request);
-  const ranges = generateDateRanges(unit, length);
-  const dateCondition = {
-    days: subDays(today, 7),
-    weeks: subWeeks(startOfWeek(today), 7),
-    months: subMonths(startOfMonth(today), 6),
-  }[unit];
 
+export async function getLearningTime(
+  request: Request,
+): Promise<TimeData[]> {
+
+  const userId = await getUserId(request);
   const learningTimes = await prisma.learningTime.findMany({
-    where: { userId, date: { gte: dateCondition } },
+    where: { userId },
     orderBy: { date: "asc" },
   });
 
-  return ranges.map(({ start, end }) => {
-    const totalHours = learningTimes
-      .filter((lh) => lh.date >= start && lh.date <= end)
-      .reduce((sum, { hours }) => sum + hours, 0);
-
-    const formattedDate = {
-      days: format(start, "MMM d"),
-      weeks: `${format(start, "MMM d")}-${format(end, "MMM d")}`,
-      months: format(start, "MMM yyyy"),
-    }[unit];
-
-    return { date: formattedDate, hours: totalHours };
+  return learningTimes.map((learningTime) => {
+    return {
+      date: learningTime.date.toISOString(),
+      hours: learningTime.hours,
+    };
   });
-}
-
-/**
- * Get user learning time from the cache or database
- * @param {Request} request - The incoming request
- * @returns {Promise<TimeData[]>} - The learning time
- */
-export async function getLearningTime(request: Request): Promise<TimeData[]> {
-  const url = new URL(request.url);
-  const filter = (url.searchParams.get("filter") as TimeUnit) ?? "days";
-  const cacheKey = `learningTime-${filter}`;
-  const cachedLearningTime = (await Cache.get(cacheKey)) as TimeData[];
-
-  if (cachedLearningTime) {
-    return cachedLearningTime;
-  }
-
-  const result = await getLearningData(
-    request,
-    filter,
-    { days: 7, weeks: 8, months: 6 }[filter]
-  );
-  await Cache.set<TimeData[]>(cacheKey, result, { EX: 5000 });
-  return result;
+ 
 }
 
 /**

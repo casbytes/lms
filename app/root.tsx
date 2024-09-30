@@ -2,6 +2,7 @@ import React from "react";
 import {
   Links,
   Meta,
+  Outlet,
   Scripts,
   ScrollRestoration,
   useLoaderData,
@@ -12,6 +13,7 @@ import dark from "highlight.js/styles/night-owl.css?url";
 import stylesheet from "./tailwind.css?url";
 import { RootErrorUI } from "./components/root-error-ui";
 import { getEnv } from "./utils/env.server";
+import { OfflineUI } from "./components/offline-ui";
 
 export const links = () => {
   return [
@@ -43,7 +45,7 @@ export function loader() {
   }
 }
 
-export function Layout({ children }: { children: React.ReactNode }) {
+export function Layout() {
   const data = useLoaderData<typeof loader>();
   return (
     <html lang="en">
@@ -54,7 +56,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        {children}
+        <RootLayout />
         <ScrollRestoration />
         <script
           dangerouslySetInnerHTML={{
@@ -67,8 +69,30 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+
+
 export default function App() {
-  return <RootLayout />;
+  const [isOnline, setIsOnline] = React.useState(true);
+
+  React.useEffect(() => {
+    setIsOnline(window.navigator.onLine);
+    const handleNetworkChange = () => {
+      setIsOnline(window.navigator.onLine);
+    };
+
+    window.addEventListener("online", handleNetworkChange);
+    window.addEventListener("offline", handleNetworkChange);
+
+    return () => {
+      window.removeEventListener("online", handleNetworkChange);
+      window.removeEventListener("offline", handleNetworkChange);
+    };
+  }, []);
+  return isOnline ? (
+    <Outlet />
+  ) : (
+    <OfflineUI />
+  );
 }
 
 export function ErrorBoundary() {
