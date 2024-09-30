@@ -20,7 +20,7 @@ export default defineConfig({
     },
   },
   plugins: [
-    process.env.NODE_ENV === "test"
+    MODE === "test"
       ? null
       : remix({
           ignoredRouteFiles: ["**/*.css"],
