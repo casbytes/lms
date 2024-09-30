@@ -5,14 +5,24 @@ import { STATUS } from "./helpers";
 import { Course, Module, prisma } from "./db.server";
 import { ApiResponse } from "./rtr.server";
 
+
 export const LINT_CUTOFF_SCORE = 30;
 export const TEST_CUTOFF_SCORE = 50;
 export const TOTAL_CUTOFF_SCORE = LINT_CUTOFF_SCORE + TEST_CUTOFF_SCORE;
 
 /**
- * Reads the content of file from the path
- * @param path - string
- * @returns {Promise<string>}
+ * Reads the content of a page file
+ * @param {string} pagePath - The path to the page file within the 'content/pages' directory
+ * @returns {Promise<string>} - A promise that resolves to the content of the page file
+ * @throws {Error} - If there's an issue reading the file
+ * 
+ * @example
+ * const content = await readPage("home");
+ * content will be the content of the home page
+ * 
+ * @example
+ * const content = await readPage("about");
+ * content will be the content of the about page
  */
 export function readPage(pagePath: string): Promise<string> {
   const filePath = path.join(process.cwd(), "content/pages", pagePath);
@@ -28,9 +38,19 @@ export function readPage(pagePath: string): Promise<string> {
 }
 
 /**
- * Reads the content of folder
- * @param folder - string
- * @returns {Array<{data: Record<string, string>, content: string}>}
+ * Reads the content of files in a specified folder
+ * @param {string} folder - The name of the folder within the 'content' directory
+ * @returns {Array<{data: Record<string, any>, content: string}>} An array of objects, each containing:
+ *   - data: An object with the front matter data from the file
+ *   - content: The main content of the file as a string
+ * 
+ * @example
+ * const content = readContent("pages");
+ * content will be an array of objects with a data property and a content property
+ * 
+ * @example
+ * const content = readContent("faqs");
+ * content will be an array of objects with a data property and a content property
  */
 export function readContent(folder: string) {
   const dir = path.join(process.cwd(), `content/${folder}`);
@@ -45,19 +65,39 @@ export function readContent(folder: string) {
 }
 
 /**
- * Construct the user's full name
- * @param name - user's name
- * @returns {Record<string, string>} - user's first and last name
+ * Construct a username from a full name
+ * @param {string} name - The full name of the user
+ * @returns {{firstName: string, lastName: string}} - The constructed username
+ * 
+ * @example
+ * const username = constructUsername("John Doe");
+ * username will be an object with a firstName property and a lastName property
+ * 
+ * @example
+ * const username = constructUsername("John");
+ * username will be an object with a firstName property and a lastName property of an empty string
  */
 export function constructUsername(name: string) {
   const nameParts = name.split(" ");
-  const firstName = nameParts[0] || name;
-  const lastName = nameParts.slice(1).join(" ") || name;
+  const firstName = nameParts[0];
+  const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
   return { firstName, lastName };
 }
 
+
 /**
- * Format response
+ * Format a response object
+ * @param {boolean} success - Indicates if the operation was successful
+ * @param {string} message - The message to be returned
+ * @returns {success: boolean, message: string} - The formatted response object
+ * 
+ * @example
+ * const response = formatResponse(true, "Operation successful");
+ * response will be an object with a success property and a message property
+ * 
+ * @example
+ * const response = formatResponse(false, "Operation failed");
+ * response will be an object with a success property and a message property
  */
 export function formatResponse(success: boolean, message: string) {
   return { success, message };
@@ -66,9 +106,11 @@ export function formatResponse(success: boolean, message: string) {
 /**
  * Compute the score of a checkpoint
  * @param response - response from the auto grading
- * @param checkpointId - checkpoint id
- * @param userId - user id
- * @returns {Promise<Checkpoint>}
+ * @returns {Promise<{totalLintsScore: number, totalTestsScore: number, totalScore: number}>}
+ * 
+ * @example
+ * const score = await computeScore(response);
+ * score will be an object with a totalLintsScore property, a totalTestsScore property, and a totalScore property
  */
 export async function computeScore(response: ApiResponse) {
   // Lints
@@ -108,18 +150,33 @@ export async function computeScore(response: ApiResponse) {
 }
 
 /**
- * Update user subscription status
- * @param stripeCustomerId - Stripe customer id
- * @param subscribed - Subscription status
+ * Update user subscription status in the database
+ * @param stripeCustomerId - The Stripe customer ID of the user
+ * @param subscribed - Boolean indicating whether the user is subscribed or not
+ * @returns {Promise<User>} - A promise that resolves to the updated User object
+ * @throws {Error} - If there's an error updating the user subscription
+ * 
+ * @example
+ * await updateUserSubscription(stripeCustomerId, true);
+ * The user subscription status will be updated to true
+ * 
+ * @example
+ * await updateUserSubscription(stripeCustomerId, false);
+ * The user subscription status will be updated to false
+ * and the subscriptionId will be set to null
  */
 export async function updateUserSubscription(
   stripeCustomerId: string,
   subscribed: boolean
 ) {
   try {
+    const data = subscribed
+      ? { subscribed }
+      : { subscribed, subscriptionId: null };
+
     return await prisma.user.update({
       where: { stripeCustomerId },
-      data: { subscribed },
+      data,
     });
   } catch (error) {
     throw error;
@@ -127,8 +184,14 @@ export async function updateUserSubscription(
 }
 
 /**
- * Update user progress based on the subscription status
- * @param stripeCustomerId - Stripe customer id
+ * Update the progress of a user
+ * @param {string} stripeCustomerId - The Stripe customer ID of the user
+ * @returns {Promise<void>} - A promise that resolves when the user progress is updated
+ * @throws {Error} - If there's an error updating the user progress
+ * 
+ * @example
+ * await updateUserProgress(stripeCustomerId);
+ * The user progress will be updated to the next available submodule, module, or project
  */
 export async function updateUserProgress(stripeCustomerId: string) {
   try {
@@ -182,9 +245,18 @@ export async function updateUserProgress(stripeCustomerId: string) {
 }
 
 /**
- * Check if a user has a course or module in progress
- * @param {String} userId
- * @returns {Promise<Boolean>}
+ * Get the current course or module in progress for a user
+ * @param {string} userId - The ID of the user
+ * @returns {Promise<{ title: string } | null>} - A promise that resolves to the current course or module, or null if not found
+ * @throws {Error} - If there's an error getting the current course or module
+ * 
+ * @example
+ * const course = await getCurrentCourseOrModule(userId);
+ * course will be an object with a title property
+ * 
+ * @example
+ * const module = await getCurrentCourseOrModule(userId);
+ * module will be an object with a title property
  */
 export async function getCurrentCourseOrModule(
   userId: string
@@ -203,6 +275,21 @@ export async function getCurrentCourseOrModule(
   return currentModule;
 }
 
+/**
+ * Check if a course or module exists in the database
+ * @param {string} courseTitle - The title of the course (optional)
+ * @param {string} moduleTitle - The title of the module (optional)
+ * @returns {Promise<Course | Module | null>} - A promise that resolves to the existing course or module, or null if not found
+ * @throws {Error} - If there's an error checking the catalog
+ * 
+ * @example
+ * const course = await checkCatalog({ courseTitle: "Data Structures and Algorithms" });
+ * course will be an object with a title property
+ * 
+ * @example
+ * const module = await checkCatalog({ moduleTitle: "CSS" });
+ * module will be an object with a title property
+ */
 export async function checkCatalog({
   courseTitle,
   moduleTitle,
@@ -232,10 +319,15 @@ type ClientOptions = {
 };
 
 /**
- * Custom fetch function
- * @param {string} url - The URL to fetch
- * @param {FetchOptions} options - The fetch options
- * @returns {Promise<FetchResponse>}
+ * Fetch data from a given URL
+ * @param {string} url - The URL to fetch data from
+ * @param {ClientOptions} options - Options for the fetch request
+ * @returns {Promise<T>} - A promise that resolves to the fetched data
+ * @throws {Error} - If there's an error fetching the data
+ * 
+ * @example
+ * const data = await client<{name: string, age: number}>(url, { method: "POST", body: { name: "John", age: 20 } });
+ * data will be an object with a name property and an age property
  */
 export async function client<T>(
   url: string,
@@ -268,6 +360,22 @@ export async function client<T>(
   }
 }
 
+/**
+ * Check if a course or module has been reviewed by the user
+ * @param {string} userId - The ID of the user
+ * @param {string} courseId - The ID of the course (optional)
+ * @param {string} moduleId - The ID of the module (optional)
+ * @returns {Promise<boolean>} - A promise that resolves to true if the course or module has been reviewed, false otherwise
+ * @throws {Error} - If there's an error checking the review status
+ * 
+ * @example
+ * const isReviewed = await isCourseOrModuleReviewed(userId, courseId);
+ * isReviewed will be a boolean
+ * 
+ * @example
+ * const isReviewed = await isCourseOrModuleReviewed(userId, moduleId);
+ * isReviewed will be a boolean
+ */
 export async function isCourseOrModuleReviewed({
   userId,
   courseId,
@@ -337,9 +445,15 @@ export async function isCourseOrModuleReviewed({
 }
 
 /**
- * Add a user's review to a course or module
- * @param request - Request object
- * @returns {Promise<void>}
+ * Add a review to a course or module
+ * @param {FormData} formData - The form data containing review details
+ * @param {string} userId - The ID of the user adding the review
+ * @returns {Promise<{success: boolean, message: string}>} - A promise that resolves to the review status
+ * @throws {Error} - If there's an error adding the review
+ *  
+ * @example
+ * const review = await addReview(formData, userId);
+ * review will be an object with a success property and a message property
  */
 export async function addReview(formData: FormData, userId: string) {
   const itemTitle = formData.get("itemTitle") as string;

@@ -24,8 +24,12 @@ const {
 } = process.env;
 
 /**
- * Generate state
+ * Generate a random state string
  * @returns {string} - State
+ * 
+ * @example
+ * const state = generateState();
+ * state will be a random string of 64 characters
  */
 function generateState() {
   return crypto.randomBytes(32).toString("hex");
@@ -33,8 +37,12 @@ function generateState() {
 
 /**
  * Get avatar url
- * @param {string} name - Name
- * @returns {string} - Avatar url
+ * @param name - Name
+ * @returns Avatar url
+ * 
+ * @example
+ * const avatarUrl = getAvatarUrl("John");
+ * avatarUrl will be "https://api.dicebear.com/9.x/avataaars/svg?seed=John"
  */
 function getAvatarUrl(name: string) {
   return `https://api.dicebear.com/9.x/avataaars/svg?seed=${name}`;
@@ -46,8 +54,13 @@ function getAvatarUrl(name: string) {
 
 /**
  * Handle magic link redirect
- * @param request - Request
- * @returns {TypedResponse<never>}
+ * @param {Request} request - Request
+ * @returns {Promise<TypedResponse<never>>}
+ * @throws {Error}
+ * 
+ * @example
+ * return await handleMagiclinkRedirect(request);
+ * response will be a redirect to the magic link callback
  */
 export async function handleMagiclinkRedirect(request: Request) {
   const formData = await request.formData();
@@ -101,10 +114,14 @@ export async function handleMagiclinkRedirect(request: Request) {
 }
 
 /**
- * Handle magic link authentication
+ * Handle magic link callback
  * @param {Request} request - Request
- * @param {Params<string>} params - Params
- * @returns {null | TypedResponse<never>}
+ * @returns {Promise<TypedResponse<never>>}
+ * @throws {Error}
+ * 
+ * @example
+ * return await handleMagiclinkCallback(request);
+ * response will be a redirect to the dashboard, onboarding page, admin page based on user role and onboarding status
  */
 export async function handleMagiclinkCallback(request: Request) {
   const session = await getUserSession(request);
@@ -162,8 +179,12 @@ export async function handleMagiclinkCallback(request: Request) {
 const GOOGLE_REDIRECT_URL = `${BASE_URL}/google/callback`;
 
 /**
- * Generate google oauth2 client
- * @returns {Promise<OAuth2Client>} - OAuth2Client
+ * Generate oauth2 client
+ * @returns {Promise<google.auth.OAuth2>} - Oauth2 client
+ * 
+ * @example
+ * const oauth2Client = await generateOauth2Client();
+ * oauth2Client will be an instance of google.auth.OAuth2
  */
 async function generateOauth2Client() {
   return new google.auth.OAuth2(
@@ -175,9 +196,12 @@ async function generateOauth2Client() {
 
 /**
  * Handle google redirect
- * @param {Request} request - Request
- * @returns {TypedResponse<never>}
+ * @returns {Promise<TypedResponse<never>>}
  * @throws {Error}
+ * 
+ * @example
+ * return await handleGoogleRedirect();
+ * response will be a redirect to the google callback
  */
 export async function handleGoogleRedirect() {
   const SCOPES = [
@@ -198,7 +222,12 @@ export async function handleGoogleRedirect() {
 /**
  * Handle google callback
  * @param {Request} request - Request
- * @returns {null | TypedResponse<never>}
+ * @returns {Promise<TypedResponse<never>>}
+ * @throws {Error}
+ * 
+ * @example
+ * return await handleGoogleCallback(request);
+ * response will be a redirect to the dashboard, onboarding page, admin page based on user role and onboarding status
  */
 export async function handleGoogleCallback(request: Request) {
   const session = await getUserSession(request);
@@ -264,10 +293,15 @@ export async function handleGoogleCallback(request: Request) {
 //######################
 
 const GITHUB_AUTH_REDIRECT_URL = `${BASE_URL}/github/callback`;
+
 /**
  * Handle github redirect
- * @param {Request} request - Request
- * @returns {TypedResponse<never>}
+ * @returns {Promise<TypedResponse<never>>}
+ * @throws {Error}
+ * 
+ * @example
+ * return await handleGithubRedirect();
+ * response will be a redirect to the github callback
  */
 export async function handleGithubRedirect() {
   const state = generateState();
@@ -283,7 +317,12 @@ export async function handleGithubRedirect() {
  * @param {string} code - Code
  * @param {string | null} error - Error
  * @param {Request} request - Request
- * @returns {Promise<string>} - Github access token
+ * @returns {Promise<string>} - Access token
+ * @throws {Error}
+ * 
+ * @example
+ * const accessToken = await getGithubAccessToken(code, error, request);
+ * accessToken will be a string
  */
 async function getGithubAccessToken(
   code: string,
@@ -327,7 +366,12 @@ type UserData = {
  * Get github user data
  * @param {string} accessToken - Access token
  * @param {Request} request - Request
- * @returns {Promise<UserData>} - Github user data
+ * @returns {Promise<UserData>} - User data
+ * @throws {Error}
+ * 
+ * @example
+ * const userData = await getGithubUser(accessToken, request);
+ * userData will be an object containing the user's name, email, login, and avatar_url
  */
 async function getGithubUser(
   accessToken: string,
@@ -353,7 +397,12 @@ async function getGithubUser(
 /**
  * Handle github callback
  * @param {Request} request - Request
- * @returns {null | TypedResponse<never>}
+ * @returns {Promise<TypedResponse<never>>}
+ * @throws {Error}
+ * 
+ * @example
+ * return await handleGithubCallback(request);
+ * response will be a redirect to the dashboard, onboarding page, admin page based on user role and onboarding status
  */
 export async function handleGithubCallback(request: Request) {
   const session = await getUserSession(request);
@@ -399,11 +448,17 @@ export async function handleGithubCallback(request: Request) {
   return determineRedirectUrl(user, session);
 }
 
+
 /**
  * Determine redirect url based on user role and onboarding status
  * @param {User} user - User
  * @param {Session} session - Session
- * @returns {TypedResponse<never>}
+ * @returns {Promise<TypedResponse<never>>}
+ * @throws {Error}
+ * 
+ * @example
+ * return await determineRedirectUrl(user, session);
+ * response will be a redirect to the dashboard, onboarding page, admin page based on user role and onboarding status
  */
 async function determineRedirectUrl(user: User, session: Session) {
   const redirectUrl =

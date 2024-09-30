@@ -150,7 +150,17 @@ async function constructWebhookEvent(request: Request) {
 }
 
 /**
- * Export the STRIPE service.
+ * Stripe service
+ * @class
+ * @static
+ * @property {Function} listPlans - List active plans in Stripe
+ * @property {Function} createCustomer - Create a new customer in Stripe
+ * @property {Function} updateCustomer - Update an existing customer in Stripe
+ * @property {Function} deleteCustomer - Delete a customer in Stripe
+ * @property {Function} getActiveSubscription - Get an active subscription in Stripe
+ * @property {Function} createCheckoutSession - Create a new checkout session in Stripe
+ * @property {Function} constructWebhookEvent - Construct a webhook event from a request
+ * @property {Function} createBillingPortalSession - Create a new billing portal session for a customer in Stripe
  */
 export class STRIPE {
   static listPlans = listPlans;

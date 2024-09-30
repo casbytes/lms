@@ -157,15 +157,19 @@ export async function getUserModules(request: Request): Promise<Module[]> {
 //##########
 //ACTIONS
 //##########
+enum Actions {
+  DELETE_MODULE = "deleteModule",
+  DELETE_COURSE = "deleteCourse",
+}
 export async function handleActions(request: Request) {
   const { userId, itemId, intent } = await getFormData(request);
   invariant(intent, "Invalid form data.");
 
-  switch (intent) {
-    case "deleteCourse":
+  switch (intent as Actions) {
+    case Actions.DELETE_COURSE:
       return await deleteCourse(itemId, userId);
 
-    case "deleteModule":
+    case Actions.DELETE_MODULE:
       return await deleteModule(itemId, userId);
 
     default:
@@ -178,7 +182,7 @@ async function getFormData(request: Request) {
   return {
     userId: await getUserId(request),
     itemId: formData.get("itemId") as string,
-    intent: formData.get("intent") as "deleteCourse" | "deleteModule",
+    intent: formData.get("intent") as Actions
   };
 }
 

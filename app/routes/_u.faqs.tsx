@@ -30,7 +30,6 @@ export async function loader() {
 
 export default function FAQS() {
   const faqs = useLoaderData<typeof loader>();
-
   return (
     <Container className="max-w-3xl">
       <PageTitle title="Frequently asked questions" />

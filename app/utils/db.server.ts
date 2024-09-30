@@ -17,6 +17,7 @@ import {
   Reviews,
 } from "@prisma/client";
 
+
 type User = Omit<PUser, "createdAt" | "updatedAt"> & {
   createdAt: Date | string;
   updatedAt: Date | string;
@@ -48,6 +49,27 @@ export type {
   MDX,
 };
 
+/**
+ * Create Prisma client
+ * @returns {PrismaClient} - Prisma client
+ * @throws {Error} If there's an error during the database operation
+ * 
+ * @example
+ *  const user = await prisma.user.findUnique({
+ *   where: {
+ *     id: 1,
+ *   },
+ * });
+ * 
+ * const users = await prisma.user.findMany();
+ * 
+ * const newUser = await prisma.user.create({
+ *   data: {
+ *     name: "John Doe",
+ *     email: "john.doe@example.com",
+ *   },
+ * });
+ */
 export const prisma = remember("prisma", () => {
   const logThreshold = 20;
 

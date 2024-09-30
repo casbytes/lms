@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+/**
+ * Define environment variables schema
+ * @returns {z.ZodObject<Record<string, z.ZodType<any>>>} - Environment variables schema
+ * @throws {Error} If there's an error during the environment variables validation
+ */
 export const schema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"] as const),
   COOKIE_DOMAIN: z.string(),
@@ -33,6 +38,14 @@ declare global {
   }
 }
 
+/**
+ * Initialize environment variables
+ * @returns {void}
+ * @throws {Error} If there's an error during the environment variables validation
+ * 
+ * @example
+ * init();
+ */
 export function init() {
   const parsed = schema.safeParse(process.env);
 
@@ -47,6 +60,14 @@ export function init() {
   }
 }
 
+/**
+ * Get environment variables
+ * @returns {Record<string, string>} - Environment variables
+ * 
+ * @example
+ * const env = getEnv();
+ * console.log(env.MODE);
+ */
 export function getEnv() {
   const { NODE_ENV, CDN_URL, IFRAME_URL, VIDEO_LIBRARY_ID } = process.env;
   const VIDEO_SOURCE_URL = `${IFRAME_URL}/embed/${Number(VIDEO_LIBRARY_ID)}`;
@@ -58,6 +79,7 @@ export function getEnv() {
 }
 
 type ENV = ReturnType<typeof getEnv>;
+
 
 declare global {
   // eslint-disable-next-line no-var

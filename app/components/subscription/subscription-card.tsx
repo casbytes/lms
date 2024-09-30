@@ -24,7 +24,7 @@ export function SubscriptionCard({
   user: User | null;
 }) {
   const n = useNavigation();
-  const planId = n.formData?.get("plan");
+  const planId = n.formData?.get("planId");
   const isSubmiting = n.formData?.get("intent") === "subscribe";
   const disabled = user?.subscribed || isSubmiting;
   const subscriptionFeatures = [
@@ -108,7 +108,7 @@ export function SubscriptionCard({
               action={`/subscription/session/checkout`}
               className="block mt-auto"
             >
-              <input type="hidden" name="plan" value={plan.id} />
+              <input type="hidden" name="planId" value={plan.id} />
               <Button
                 name="intent"
                 value="subscribe"

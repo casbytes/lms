@@ -37,10 +37,12 @@ export async function action({ request }: ActionFunctionArgs) {
           subscription.status === "incomplete" ||
           subscription.status === "unpaid"
         ) {
+         
           await updateUserSubscription(customerId, false);
           return new Response("Subscription updated, marked as inactive.", {
             status: 200,
           });
+         
         } else if (invoice) {
           await updateUserSubscription(customerId, false);
           return new Response("Subscription updated, marked as active.", {

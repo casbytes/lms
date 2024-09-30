@@ -8,10 +8,14 @@ import {
 } from "~/services/sanity/index.server";
 
 /**
- * Add a course to a user's catalog
- * @param {String} userId - The user ID
+ * Add a course to the user's catalog
  * @param {String} courseId - The course ID
- * @returns {Promise<void>}
+ * @param {String} userId - The user ID
+ * @returns {Promise<{success: boolean, message: string}>}
+ * 
+ * @example
+ * const response = await addCourseToCatalog("course_123", "user_456");
+ * console.log(response);
  */
 export async function addCourseToCatalog(courseId: string, userId: string) {
   try {
@@ -45,10 +49,14 @@ export async function addCourseToCatalog(courseId: string, userId: string) {
 }
 
 /**
- * Add a module to a user's catalog
+ * Add a module to the user's catalog
  * @param {String} moduleId - The module ID
  * @param {String} userId - The user ID
- * @returns {Promise<void>}
+ * @returns {Promise<{success: boolean, message: string}>}
+ * 
+ * @example
+ * const response = await addModuleToCatalog("module_123", "user_456");
+ * console.log(response);
  */
 export async function addModuleToCatalog(moduleId: string, userId: string) {
   const metaModule = await getMetaModuleById(moduleId);
@@ -92,9 +100,14 @@ export async function addModuleToCatalog(moduleId: string, userId: string) {
 }
 
 /**
- * Update the submodule score
- * @param subModuleId - Submodule ID
- * @param userId - User ID
+ * Update the module score
+ * @param {String} moduleId - The module ID
+ * @param {String} userId - The user ID
+ * @returns {Promise<void>}
+ * @throws {Error} If an error occurs while updating the module score
+ * 
+ * @example
+ *  await updateModuleScore("module_123", "user_456");
  */
 async function updateModule(moduleId: string, userId: string) {
   try {
@@ -141,6 +154,16 @@ async function updateModule(moduleId: string, userId: string) {
   }
 }
 
+/**
+ * Update the module status and find the next module
+ * @param {String} moduleId - The module ID
+ * @param {String} userId - The user ID
+ * @returns {Promise<void>}
+ * @throws {Error} If an error occurs while updating the module status
+ * 
+ * @example
+ * await updateModuleStatusAndFindNextModule("module_123", "user_456");
+ */
 export async function updateModuleStatusAndFindNextModule({
   moduleId,
   userId,
@@ -195,12 +218,16 @@ export async function updateModuleStatusAndFindNextModule({
 }
 
 /**
- * Create module progresses
+ * Create module progress
  * @param {Prisma.TransactionClient} txn - The transaction client
  * @param {MetaModule[]} metaModules - The modules
- * @param {Course} course - The course progress
+ * @param {Course} course - The course
  * @param {String} userId - The user ID
  * @returns {Promise<void>}
+ * @throws {Error} If an error occurs while creating the module progress
+ * 
+ * @example
+ * await createModule(txn, metaModules, course, "user_123");
  */
 async function createModule(
   txn: Prisma.TransactionClient,
@@ -226,13 +253,18 @@ async function createModule(
 }
 
 /**
- * Upsert module progress
+ * Upsert  module 
  * @param {Prisma.TransactionClient} txn - The transaction client
  * @param {MetaModule} metaModule - The module
  * @param {number} moduleIndex - The module index
- * @param {string} courseId - The course progress ID
+ * @param {string} courseId - The course ID
  * @param {string} userId - The user ID
- * @returns {Promise}
+ * @returns {Promise<Module>}
+ * @throws {Error} If an error occurs while upserting the module
+ * 
+ * @example
+ * const module = await upsertModule(txn, metaModule, moduleIndex, courseId, "user_123");
+ * console.log(module);
  */
 async function upsertModule(
   txn: Prisma.TransactionClient,
@@ -288,11 +320,15 @@ async function upsertModule(
 }
 
 /**
- * Create badges
+ * Create module badges
  * @param {Prisma.TransactionClient} txn - The transaction client
  * @param {Module} module - The module
  * @param {String} userId - The user ID
  * @returns {Promise<void>}
+ * @throws {Error} If an error occurs while creating the badges
+ * 
+ * @example
+ * await createBadges(txn, module, "user_123");
  */
 async function createBadges(
   txn: Prisma.TransactionClient,
@@ -334,6 +370,16 @@ async function createBadges(
   });
 }
 
+/**
+ * Update the submodule status and find the next submodule
+ * @param {String} subModuleId - The submodule ID
+ * @param {String} userId - The user ID
+ * @returns {Promise<void>}
+ * @throws {Error} If an error occurs while updating the submodule status
+ * 
+ * @example
+ * await updateSubmoduleStatusAndFindNextSubmodule("submodule_123", "user_456");
+ */
 export async function updateSubmoduleStatusAndFindNextSubmodule({
   subModuleId,
   userId,
@@ -398,6 +444,16 @@ export async function updateSubmoduleStatusAndFindNextSubmodule({
   }
 }
 
+/**
+ * Update the course score
+ * @param {String} courseId - The course ID
+ * @param {String} userId - The user ID
+ * @returns {Promise<void>}
+ * @throws {Error} If an error occurs while updating the course score
+ * 
+ * @example
+ * await updateCourse("course_123", "user_456");
+ */
 async function updateCourse(courseId: string, userId: string) {
   try {
     const [moduleScores, totalModules] = await Promise.all([
@@ -423,9 +479,14 @@ async function updateCourse(courseId: string, userId: string) {
 }
 
 /**
- * Update project status based on the computed scores.
- * @param moduleId -  Module ID
- * @param userId - User ID
+ * Update the course project status
+ * @param {String} moduleId - The module ID
+ * @param {String} userId - The user ID
+ * @returns {Promise<void>}
+ * @throws {Error} If an error occurs while updating the course project status
+ * 
+ * @example
+ * await updateCourseProject("module_123", "user_456");
  */
 async function updateCourseProject(moduleId: string, userId: string) {
   try {
@@ -448,12 +509,17 @@ async function updateCourseProject(moduleId: string, userId: string) {
 }
 
 /**
- * Create sub module progresses
+ * Create  sub modules
  * @param {Prisma.TransactionClient} txn - The transaction client
- * @param {MetaModule[]} metaSubModules - The sub modules
- * @param {Module} module - The module progress
+ * @param {MetaSubModule[]} metaSubModules - The sub modules
+ * @param {Module} module - The module
  * @param {String} userId - The user ID
- * @returns {Promise<void>}
+ * @returns {Promise<SubModule[]>}
+ * @throws {Error} If an error occurs while creating the sub modules
+ * 
+ * @example
+ * const subModules = await createSubModules(txn, metaSubModules, module, "user_123");
+ * console.log(subModules);
  */
 async function createSubModules(
   txn: Prisma.TransactionClient,
@@ -481,13 +547,18 @@ async function createSubModules(
 }
 
 /**
- * Upsert sub module progress
+ * Upsert sub module 
  * @param {Prisma.TransactionClient} txn - The transaction client
  * @param {MetaSubModule} metaSubModule - The sub module
  * @param {number} subModuleIndex - The sub module index
- * @param {string} moduleId - The module progress ID
+ * @param {string} moduleId - The module ID
  * @param {string} userId - The user ID
  * @returns {Promise<SubModule>}
+ * @throws {Error} If an error occurs while upserting the sub module
+ * 
+ * @example
+ * const subModule = await upsertSubModule(txn, metaSubModule, subModuleIndex, moduleId, "user_123");
+ * console.log(subModule);
  */
 async function upsertSubModule(
   txn: Prisma.TransactionClient,
@@ -536,12 +607,16 @@ async function upsertSubModule(
 }
 
 /**
- * Create lesson progresses
+ * Create lessons
  * @param {Prisma.TransactionClient} txn - The transaction client
  * @param {MetaLesson[]} metaLessons - The lessons
- * @param {SubModule} subModule - The sub module progress
+ * @param {SubModule} subModule - The sub module 
  * @param {String} userId - The user ID
  * @returns {Promise<void>}
+ * @throws {Error} If an error occurs while creating the lessons
+ * 
+ * @example
+ * await createLessons(txn, metaLessons, subModule, "user_123");
  */
 async function createLessons(
   txn: Prisma.TransactionClient,

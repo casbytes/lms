@@ -15,6 +15,10 @@ const MODE = NODE_ENV;
 
 export const sessionKey = "userId";
 
+/**
+ * Create cookie session storage
+ * @returns {CookieSessionStorage} - Cookie session storage
+ */
 const { getSession, commitSession, destroySession } =
   createCookieSessionStorage<SessionData, SessionError>({
     cookie: {
@@ -30,8 +34,8 @@ const { getSession, commitSession, destroySession } =
 
 /**
  * Get user session
- * @param request - Request
- * @returns {Session<SessionData SessionError>} - User session
+ * @param {Request} request - Request
+ * @returns {Promise<Session<SessionData, SessionError>>} - User session
  */
 export async function getUserSession(
   request: Request
@@ -40,9 +44,9 @@ export async function getUserSession(
 }
 
 /**
- * Destroy session
- * @param {Session} session - Session
- * @returns {Promise<{headers}>} - Destroy session
+ * Destroy auth session
+ * @param {Session<SessionData, SessionError>} session - Session
+ * @returns {Promise<{headers}>} - Destroy auth session
  */
 export async function destroyAuthSession(
   session: Session<SessionData, SessionError>
@@ -55,9 +59,9 @@ export async function destroyAuthSession(
 }
 
 /**
- * Commit session
- * @param {Session} session - Session
- * @returns {Promise<{headers}>} - Commit session
+ * Commit auth session
+ * @param {Session<SessionData, SessionError>} session - Session
+ * @returns {Promise<{headers}>} - Commit auth session
  */
 export async function commitAuthSession(
   session: Session<SessionData, SessionError>
@@ -70,9 +74,9 @@ export async function commitAuthSession(
 }
 
 /**
- *  Sign out user
+ * Sign out user
  * @param {Request} request - Request
- * @returns {TypedResponse<never>} - Redirect to home page
+ * @returns {Promise<TypedResponse<never>>} - Redirect to home page
  */
 export async function signOut(request: Request) {
   try {
@@ -86,9 +90,13 @@ export async function signOut(request: Request) {
 }
 
 /**
- *  Get session user
- * @param request - Request
- * @returns {ISessionUser} - Session user
+ * Get session user id
+ * @param {Request} request - Request
+ * @returns {Promise<string>} - Session user id
+ * @throws {Error} If the user is not found
+ * 
+ * @example
+ * const userId = await getUserId(request);
  */
 export async function getUserId(request: Request): Promise<string> {
   try {
@@ -105,9 +113,13 @@ export async function getUserId(request: Request): Promise<string> {
 }
 
 /**
- *  Get db user
+ * Get user
  * @param {Request} request - Request
- * @returns {DBUser} - DB user
+ * @returns {Promise<User>} - User
+ * @throws {Error} If the user is not found
+ * 
+ * @example
+ * const user = await getUser(request);
  */
 export async function getUser(request: Request): Promise<User> {
   try {
@@ -129,6 +141,15 @@ export async function getUser(request: Request): Promise<User> {
   }
 }
 
+/**
+ * Check if the user is an admin
+ * @param {Request} request - Request
+ * @returns {Promise<void>} - Redirect to home page
+ * @throws {Error} If the user is not an admin
+ * 
+ * @example
+ * await checkAdmin(request);
+ */
 export async function checkAdmin(request: Request) {
   try {
     const user = await getUser(request);

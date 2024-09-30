@@ -8,6 +8,14 @@ interface MatchData {
   tags?: string;
 }
 
+/**
+ * Meta function for the application
+ * @param {Matches} matches - The matches object
+ * @returns {MetaFunction} - The meta function
+ * @see https://remix.run/docs/en/2.12.1/route/meta
+ * @example
+ * export const meta = metaFn;
+ */
 export const metaFn: MetaFunction = ({ matches }) => {
   let pageTitle = "CASBytes";
   let pageDescription =

@@ -2,12 +2,20 @@ import { computeScore } from "./helpers.server";
 import { Cache as Redis } from "./cache.server";
 
 /**
- * Format the response
- * @param error - error message
- * @param message - message
- * @param lintReulsts - lint results
- * @param testResults - test results
- * @returns {ApiResponse}
+ * Format the checker response
+ * @param {Object} props - Properties
+ * @param {string | null} props.error - Error
+ * @param {LintResult[] | null} props.lintResults - Lint results
+ * @param {TestResults | null} props.testResults - Test results
+ * @returns {ApiResponse} - API response
+ * 
+ * @example
+ * const response = formatCheckerResponse({
+ *   error: null,
+ *   lintResults: null,
+ *   testResults: null,
+ * });
+ * response will be an object containing the error, lintResults, and testResults
  */
 export function formatCheckerResponse({
   error = null,
@@ -22,9 +30,14 @@ export function formatCheckerResponse({
 }
 
 /**
- * Subscribe to qstash queue
- * @param messageId - The message ID to subscribe to.
- * @returns {Promise<CombinedResponse>}
+ * Subscribe to the queue
+ * @param {string} messageId - Message ID
+ * @returns {Promise<CombinedResponse>} - Combined response
+ * 
+ * @example
+ * const { computedScores, response } = await subscribeToQueue("message_123");
+ * computedScores will be an object containing the totalScore, totalLintsScore, and totalTestsScore
+ * response will be an object containing the error, lintResults, and testResults
  */
 export async function subscribeToQueue(
   messageId: string
