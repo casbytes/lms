@@ -5,7 +5,7 @@ import { STATUS } from "./helpers";
 import { Course, Module, prisma } from "./db.server";
 import { ApiResponse } from "./rtr.server";
 
-
+export type CurrentItem = { title: string, id: string } | null;
 export const LINT_CUTOFF_SCORE = 30;
 export const TEST_CUTOFF_SCORE = 50;
 export const TOTAL_CUTOFF_SCORE = LINT_CUTOFF_SCORE + TEST_CUTOFF_SCORE;
@@ -263,14 +263,14 @@ export async function getCurrentCourseOrModule(
 ): Promise<{ title: string } | null> {
   const currentCourse = await prisma.course.findFirst({
     where: { users: { some: { id: userId } }, status: STATUS.IN_PROGRESS },
-    select: { title: true },
+    select: { title: true, id: true },
   });
   if (currentCourse) {
     return currentCourse;
   }
   const currentModule = await prisma.module.findFirst({
     where: { users: { some: { id: userId } }, status: STATUS.IN_PROGRESS },
-    select: { title: true },
+    select: { title: true, id: true },
   });
   return currentModule;
 }

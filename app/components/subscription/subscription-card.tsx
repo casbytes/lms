@@ -13,8 +13,8 @@ import { Button } from "../ui/button";
 import { User } from "~/utils/db.server";
 import { Form, useNavigation } from "@remix-run/react";
 import { CgSpinnerTwo } from "react-icons/cg";
-import { IoCheckmarkDone } from "react-icons/io5";
 import { Stripe } from "~/services/stripe.server";
+import { IoMdCheckmarkCircleOutline } from "react-icons/io";
 
 export function SubscriptionCard({
   plan,
@@ -80,7 +80,7 @@ export function SubscriptionCard({
         <div className="flex flex-col gap-4">
           {subscriptionFeatures.map((feature, index) => (
             <div key={index} className="flex items-center gap-2">
-              <IoCheckmarkDone className="" />
+              <IoMdCheckmarkCircleOutline  className="text-green-600"/>
               <span className="text-sky-800">{feature}</span>
             </div>
           ))}
@@ -116,7 +116,7 @@ export function SubscriptionCard({
                 disabled={disabled}
               >
                 {isSubmiting && planId === plan.id ? (
-                  <CgSpinnerTwo className="animate-spin mr-2" />
+                  <CgSpinnerTwo size={20} className="animate-spin mr-2" />
                 ) : null}
                 SUBSCRIBE
               </Button>

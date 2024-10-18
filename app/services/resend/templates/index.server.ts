@@ -1,2 +1,2 @@
-export { Welcome } from "./welcome.server";
-export { MagicLinkTemplate } from "./magic-link.server";
+export { Welcome } from './welcome'
+export { MagicLinkTemplate } from './magic-link'

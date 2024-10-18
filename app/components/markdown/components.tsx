@@ -269,7 +269,7 @@ export function Img(
   props: React.ImgHTMLAttributes<HTMLImageElement>
 ): JSX.Element {
   // eslint-disable-next-line react/prop-types
-  return <img className="my-6 rounded-sm mx-auto" {...props} alt={props.alt} />;
+  return <img loading="lazy" className="my-6 rounded-sm mx-auto" {...props} alt={props.alt} />;
 }
 
 /**
@@ -285,7 +285,7 @@ export function MdLink(props: any): JSX.Element {
       target="_blank"
       rel="noreferrer"
       prefetch="intent"
-      className="text-blue-700"
+      className="text-blue-700 hover:underline hover:text-blue-500"
       {...props}
     >
       {props.children}

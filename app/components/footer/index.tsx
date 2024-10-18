@@ -17,7 +17,7 @@ export function Footer() {
           <Image
             src="assets/icon.png"
             alt="CASBytes"
-            className="w-14 h-14"
+            className="!w-14 !h-14"
             width={56}
             height={56}
           />

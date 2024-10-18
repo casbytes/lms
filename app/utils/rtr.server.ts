@@ -1,5 +1,5 @@
 import { computeScore } from "./helpers.server";
-import { Cache as Redis } from "./cache.server";
+import {  Redis } from "./redis.server";
 
 /**
  * Format the checker response
@@ -63,6 +63,27 @@ export async function subscribeToQueue(
   });
 }
 
+export interface ApiResponse {
+  lintResults: LintResult[] | null;
+  testResults: TestResults | null;
+  error: string | null;
+}
+
+interface ComputeScores {
+  totalScore: number;
+  totalLintsScore: number;
+  totalTestsScore: number;
+}
+
+export interface CombinedResponse {
+  computedScores: ComputeScores | null;
+  response: ApiResponse;
+}
+
+
+/**
+ * Node Lint Types
+ */
 interface Message {
   ruleId: string;
   severity: number;
@@ -88,6 +109,9 @@ export interface LintResult {
   usedDeprecatedRules: unknown[];
 }
 
+/**
+ * Node Test Types
+ */
 interface AssertionResult {
   ancestorTitles: string[];
   fullName: string;
@@ -124,7 +148,7 @@ interface Snapshot {
   didUpdate: boolean;
 }
 
-export interface TestResults {
+export interface JavaScriptTestResults {
   numTotalTestSuites: number;
   numPassedTestSuites: number;
   numFailedTestSuites: number;
@@ -140,19 +164,71 @@ export interface TestResults {
   testResults: TestResultDetail[];
 }
 
-export interface ApiResponse {
-  lintResults: LintResult[] | null;
-  testResults: TestResults | null;
-  error: string | null;
+/**
+ * Python Lint Types
+ */
+
+/**
+ * Python Test Types
+ */
+interface PythonTestResults {
+  created: string;
+  duration: number;
+  exitcode: number;
+  environment: Environment;
+  summary: Summary;
+  collectors: Collector[];
+  tests: TestResult[];
 }
 
-interface ComputeScores {
-  totalScore: number;
-  totalLintsScore: number;
-  totalTestsScore: number;
+interface Environment {
+  Python: string;
+  Platform: string;
+  "pytest-version": string;
+  "pytest-json-report": string;
 }
 
-export interface CombinedResponse {
-  computedScores: ComputeScores | null;
-  response: ApiResponse;
+interface Summary {
+  passed: number;
+  failed: number;
+  errors: number;
+  skipped: number;
+  xfailed: number;
+  xpassed: number;
+  total: number;
+}
+
+interface Collector {
+  nodeid: string;
+  outcome: string;
+  result: TestNode[];
+}
+
+interface TestNode {
+  nodeid: string;
+  type: string;
+}
+
+interface TestResult {
+  nodeid: string;
+  outcome: TestOutcome;
+  keywords: string[];
+  setup: TestPhase;
+  call: TestPhaseWithCrash;
+  teardown: TestPhase;
+}
+
+type TestOutcome = "passed" | "failed" | "skipped" | "xfailed" | "xpassed";
+
+interface TestPhase {
+  duration: number;
+}
+
+interface TestPhaseWithCrash extends TestPhase {
+  crash?: TestCrash;
+}
+
+interface TestCrash {
+  message: string;
+  traceback: string[];
 }

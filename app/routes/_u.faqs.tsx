@@ -11,7 +11,7 @@ import {
 import { MDX } from "~/utils/db.server";
 import { readContent } from "~/utils/helpers.server";
 import { metaFn } from "~/utils/meta";
-import { Cache } from "~/utils/cache.server";
+import { Redis as Cache } from "~/utils/redis.server";
 
 type EMDX = MDX & { id: number };
 

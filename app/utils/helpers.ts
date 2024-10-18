@@ -144,6 +144,26 @@ export enum TEST_STATUS {
   COMPLETED = "COMPLETED",
 }
 
+/** 
+ * Enum for checkpoint status
+ * @enum {string}
+ * @property {string} LOCKED - The checkpoint is locked
+ * @property {string} IN_PROGRESS - The checkpoint is in progress
+ * @property {string} COMPLETED - The checkpoint is completed
+ * 
+ * This enum is used to represent the different statuses that a checkpoint can have.
+ * 
+ * @example
+ * const checkpointStatus = CHECKPOINT_STATUS.LOCKED;
+ * const inProgressCheckpointStatus = CHECKPOINT_STATUS.IN_PROGRESS;
+ * const completedCheckpointStatus = CHECKPOINT_STATUS.COMPLETED;
+ */
+export enum CHECKPOINT_STATUS {
+  LOCKED = "LOCKED",
+  IN_PROGRESS = "IN_PROGRESS",
+  COMPLETED = "COMPLETED",
+}
+
 /**
  * Enum for badge level
  * @enum {string}

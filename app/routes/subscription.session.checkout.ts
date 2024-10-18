@@ -15,7 +15,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const intent = formData.get("intent") as "subscribe";
   const planId = formData.get("planId") as string;
   invariant(intent === "subscribe", "Invalid intent.");
-  invariant(planId, "Plan is required.");
+  invariant(planId, "Plan ID is required.");
 
   try {
     const session = await STRIPE.createCheckoutSession({

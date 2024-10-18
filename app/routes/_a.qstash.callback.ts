@@ -1,5 +1,5 @@
 import { ActionFunctionArgs, redirect } from "@remix-run/node";
-import { Cache as Redis } from "~/utils/cache.server";
+import {  Redis } from "~/utils/redis.server";
 
 type Response = {
   status: number;

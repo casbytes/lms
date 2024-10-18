@@ -5,6 +5,8 @@ import { Fade } from "react-awesome-reveal";
 import { DialogTrigger } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { CatalogDialog } from "./catalog-dialog";
+import type { CurrentItem } from "~/utils/helpers.server";
+
 
 export function MetaCourses({
   courses,
@@ -12,8 +14,8 @@ export function MetaCourses({
   currentItem,
 }: {
   courses: Promise<MetaCourse[]>;
-  user: { subscribed: boolean };
-  currentItem: { title: string } | null;
+  user: { subscribed: boolean } | null;
+  currentItem: CurrentItem;
 }) {
   return (
     <React.Suspense fallback={<p>Loading...</p>}>

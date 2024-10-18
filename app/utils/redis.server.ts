@@ -13,11 +13,11 @@ const PROD = NODE_ENV === "production";
  *   url: PROD ? REDIS_CLIENT_URL : undefined,
  * });
  */
-const cache = createClient({
+const redisClient = createClient({
   url: PROD ? REDIS_CLIENT_URL : undefined,
 });
 
-cache.on("error", (error) => {
+redisClient.on("error", (error) => {
   throw error;
 });
 
@@ -26,7 +26,7 @@ cache.on("error", (error) => {
  * @returns {Promise<void>}
  */
 (async () => {
-  await cache.connect();
+  await redisClient.connect();
 })();
 
 /**
@@ -45,7 +45,7 @@ async function set<T>(key: string, value: T, opts?: SetOptions): Promise<void> {
   const cacheEx = 18600;
   const cacheOpts = { EX: cacheEx, ...opts } as SetOptions;
   try {
-    await cache.set(key, JSON.stringify(value), cacheOpts);
+    await redisClient.set(key, JSON.stringify(value), cacheOpts);
   } catch (error) {
     throw error;
   }
@@ -63,7 +63,7 @@ async function set<T>(key: string, value: T, opts?: SetOptions): Promise<void> {
  */
 async function get<T>(key: string): Promise<T | null> {
   try {
-    const value = (await cache.get(key)) as string;
+    const value = (await redisClient.get(key)) as string;
     if (value) {
       return JSON.parse(value) as T;
     }
@@ -86,7 +86,7 @@ async function get<T>(key: string): Promise<T | null> {
  */
 async function publish(channel: string, message: string): Promise<number> {
   try {
-    return await cache.publish(channel, message);
+    return await redisClient.publish(channel, message);
   } catch (error) {
     throw error;
   }
@@ -109,7 +109,7 @@ async function subscribe(
   callback: (message: string) => void
 ): Promise<void> {
   try {
-    await cache.subscribe(channel, callback);
+    await redisClient.subscribe(channel, callback);
   } catch (error) {
     throw error;
   }
@@ -128,7 +128,7 @@ async function subscribe(
  * const value = await Cache.get("myKey");
  * console.log(value); // Output: "myValue"
  */
-export class Cache {
+export class Redis {
   static set = set;
   static get = get;
   static publish = publish;

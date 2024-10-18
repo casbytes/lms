@@ -8,9 +8,9 @@ import {
   useLoaderData,
   useRouteError,
 } from "@remix-run/react";
-import { RootLayout } from "./components/layouts";
 import dark from "highlight.js/styles/night-owl.css?url";
-import stylesheet from "./tailwind.css?url";
+import tailwindStylesheetUrl from "./tailwind.css?url";
+import { RootLayout } from "./components/layouts";
 import { RootErrorUI } from "./components/root-error-ui";
 import { getEnv } from "./utils/env.server";
 import { OfflineUI } from "./components/offline-ui";
@@ -32,17 +32,13 @@ export const links = () => {
       rel: "stylesheet",
       href: "https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Mulish&display=swap",
     },
-    { rel: "stylesheet", href: stylesheet },
+    { rel: "stylesheet", href: tailwindStylesheetUrl },
     { rel: "stylesheet", href: dark },
   ].filter(Boolean);
 };
 
 export function loader() {
-  try {
-    return { ENV: getEnv() };
-  } catch (error) {
-    throw error;
-  }
+  return { ENV: getEnv() };
 }
 
 export function Layout() {
@@ -60,8 +56,8 @@ export function Layout() {
         <ScrollRestoration />
         <script
           dangerouslySetInnerHTML={{
-            __html: `window.ENV = ${JSON.stringify(data.ENV)}`,
-          }}
+              __html: `window.ENV = ${JSON.stringify(data.ENV)}`,
+            }}
         />
         <Scripts />
       </body>

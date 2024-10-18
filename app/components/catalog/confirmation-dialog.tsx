@@ -1,6 +1,6 @@
 import { Link, useNavigation, useSubmit } from "@remix-run/react";
 import { CgSpinnerTwo } from "react-icons/cg";
-import { FaBook, FaPlus } from "react-icons/fa6";
+import { FaArrowRight, FaPlus } from "react-icons/fa6";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -14,6 +14,7 @@ import {
 } from "~/components/ui/dialog";
 import { capitalizeFirstLetter } from "~/utils/helpers";
 import { MetaCourse, MetaModule } from "~/services/sanity/types";
+import { CurrentItem } from "~/utils/helpers.server";
 
 export function ConfirmationDialog({
   user,
@@ -21,23 +22,24 @@ export function ConfirmationDialog({
   course,
   currentItem,
 }: {
-  user: { subscribed: boolean };
+  user: { subscribed: boolean } | null;
   module?: MetaModule;
   course?: MetaCourse;
-  currentItem: { title: string } | null;
+  currentItem: CurrentItem;
 }) {
   const n = useNavigation();
   const item = module ?? (course as MetaCourse);
-  const isSubscribed = user.subscribed;
+  const isSubscribed = user?.subscribed;
   const notSubscribed = !currentItem && !isSubscribed && item.premium;
   const isSubmitting = n.formData?.get("intent") === "addGithubCourseToCatalog";
 
   return (
     <Dialog>
       <Trigger
-        isSubmitting={isSubmitting}
+      course={course}
+      module={module}
         currentItem={currentItem}
-        item={item}
+        isSubmitting={isSubmitting}
       />
       <DialogContent>
         {currentItem ? (
@@ -58,38 +60,40 @@ export function ConfirmationDialog({
 }
 
 function Trigger({
-  item,
+  course,
+  module,
   isSubmitting,
   currentItem,
 }: {
-  item: MetaCourse | MetaModule;
+  course?: MetaCourse;
+  module?: MetaModule;
   isSubmitting: boolean;
-  currentItem: { title: string } | null;
+  currentItem: CurrentItem;
 }) {
-  const isCurrent = currentItem?.title === item.title;
+  const item = course ?? module;
+  const isCurrent = currentItem?.title === item?.title;
   return (
     <Button asChild>
-      <DialogTrigger
-        disabled={isSubmitting || isCurrent}
-        className="disabled:cursor-not-allowed"
+      {isCurrent?(
+        <Link
+        prefetch="intent"
+          to={course ? `/courses/${currentItem?.id}` : `/modules/${currentItem?.id}`}
+          className="uppercase font-mono flex items-center"
+        >
+          {item?.title} <FaArrowRight size={18} className="ml-4" />
+        </Link>
+      ) : (
+        <DialogTrigger
       >
-        {" "}
         {isSubmitting ? (
           <CgSpinnerTwo className="animate-spin" />
         ) : (
           <>
-            {isCurrent ? (
-              <>
-                <FaBook size={15} className="mr-2" /> IN CATALOG
-              </>
-            ) : (
-              <>
-                <FaPlus size={15} className="mr-2" /> ADD TO CATALOG
-              </>
-            )}
+            <FaPlus size={15} className="mr-2" /> ADD TO CATALOG
           </>
         )}
-      </DialogTrigger>
+        </DialogTrigger>
+      )}
     </Button>
   );
 }

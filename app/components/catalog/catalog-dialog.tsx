@@ -20,6 +20,7 @@ import { ConfirmationDialog } from "./confirmation-dialog";
 import { ReviewsDialog } from "./reviews-dialog";
 import { Markdown } from "../markdown";
 import { ItemList } from "./item-list";
+import type{ CurrentItem } from "~/utils/helpers.server";
 
 export function CatalogDialog({
   module,
@@ -30,8 +31,8 @@ export function CatalogDialog({
 }: {
   module?: MetaModule;
   course?: MetaCourse;
-  user: { subscribed: boolean };
-  currentItem: { title: string } | null;
+  user: { subscribed: boolean } | null;
+  currentItem: CurrentItem;
   dialogActionButton?: React.ReactNode;
   cardActionButton?: React.ReactNode;
 }) {

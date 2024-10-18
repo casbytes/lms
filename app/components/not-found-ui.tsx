@@ -4,13 +4,14 @@ import { Button } from "./ui/button";
 import { Link } from "@remix-run/react";
 import { FaArrowLeft } from "react-icons/fa6";
 import { FiHelpCircle } from "react-icons/fi";
+import { Image } from "./image";
 
 export function NotFoundUI() {
   return (
     <Container className="bg-2 bg-no-repeat bg-cover h-screen">
       <div className="flex flex-col p-10 gap-6 bg-sky-200/30 max-w-5xl mx-auto bg-no-repeat bg-center rounded-lg drop-shadow-md">
-        <img
-          src="https://cdn.casbytes.com/assets/logo.png"
+        <Image
+          src="assets/logo.png"
           className="w-40 h-8 mx-auto mb-4"
           alt="CASBytes"
         />
@@ -29,7 +30,7 @@ export function NotFoundUI() {
             </Link>
           </Button>
           <Button variant="outline" size="lg" asChild>
-            <Link to="/courses">
+            <Link to="/#courses">
               Courses
               <VscLibrary className="ml-2 h-6 w-6" />
             </Link>

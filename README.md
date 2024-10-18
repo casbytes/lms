@@ -11,6 +11,14 @@
 - To provide a comprehensive and user-friendly learning management system for software engineers .
 
 ## Services
+
+- LMS
+- CMS
+- Docker daemon
+- Test runner
+- Upstash Redis
+
+
 - ### Learning Management System (LMS)
 
   - Tech Stack
@@ -35,6 +43,9 @@
 - [Upstash Redis (Cache, queues, and message broker)](https://upstash.com/docs/redis/)
 
     some explanation and reasons
+- CMS
+  - [Sanity](https://www.sanity.io/)
+  - [GitHub](https://github.com/)
 
 ## Architecture
 

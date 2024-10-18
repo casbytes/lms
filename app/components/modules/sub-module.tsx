@@ -36,8 +36,8 @@ export function SubModule({
 
   return (
     <Button
-      // disabled={LOCKED}
-      className="rounded-md text-black bg-stone-200 hover:bg-stone-300 py-4 relative border-b-2 border-zinc-600"
+      disabled={LOCKED}
+      className="rounded-md text-black bg-stone-200 py-4 relative border-b-2 border-zinc-600 hover:bg-stone-300 disabled:cursor-not-allowed"
     >
       <Link
         prefetch="intent"

@@ -5,6 +5,7 @@ import { Button } from "../ui/button";
 import { useAuthDialog } from "~/contexts/auth-dialog-context";
 import { SubscriptionTabs } from "../subscription";
 import { Stripe } from "~/services/stripe.server";
+import { FaArrowRightLong } from "react-icons/fa6";
 
 export function Subscription({
   plans,
@@ -31,8 +32,8 @@ export function Subscription({
                 </Await>
               </React.Suspense>
             </div>
-            <Button className="mt-12 mx-auto w-full" onClick={openAuthDialog}>
-              Get started
+            <Button className="mt-12 text-lg mx-auto w-full flex items-center justify-center gap-4" onClick={openAuthDialog}>
+              Get started <FaArrowRightLong size={20} />
             </Button>
           </div>
         </div>

@@ -16,7 +16,7 @@ export function SearchInput({
   const [, setSearchParams] = useSearchParams();
 
   const [searchTerm, setSearchTerm] = React.useState("");
-  const [debouncedValue] = useDebounce(searchTerm, 400);
+  const [debouncedValue] = useDebounce(searchTerm, 300);
 
   React.useEffect(() => {
     if (debouncedValue) {
