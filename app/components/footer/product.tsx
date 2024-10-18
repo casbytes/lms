@@ -10,7 +10,11 @@ export function Product() {
         {items.map((item) => (
           <li key={item.title}>
             <Button variant="link" className="-my-1 capitalize p-0" asChild>
-              <Link to={item.href} target={item.target ? item.target : "_self"}>
+              <Link
+                to={item.href}
+                prefetch="intent"
+                // target={item.target ? item.target : "_self"}
+              >
                 {item.title}
               </Link>
             </Button>
@@ -22,11 +26,8 @@ export function Product() {
 }
 
 const items = [
-  { title: "courses", href: "/courses" },
+  { title: "courses", href: "/#courses" },
+  { title: "modules", href: "/#modules" },
   { title: "subscription", href: "/#subscription" },
-  {
-    title: "articles",
-    href: "https://articles.casbytes.com",
-    target: "_blank",
-  },
+  { title: "articles", href: "/articles" },
 ];

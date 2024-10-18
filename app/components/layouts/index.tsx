@@ -61,15 +61,15 @@ export const userMenuItems = [
 ];
 
 export const adminMenuItems = [
-  {
-    icon: <LuLayoutDashboard size={30} />,
-    label: "dashboard",
-    href: "a",
-  },
+  // {
+  //   icon: <LuLayoutDashboard size={30} />,
+  //   label: "dashboard",
+  //   href: "a",
+  // },
   {
     icon: <FaUsers size={30} />,
     label: "users",
-    href: "a/users",
+    href: "a",
   },
   {
     icon: <FaSignal size={30} />,

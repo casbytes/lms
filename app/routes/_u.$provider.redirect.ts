@@ -5,23 +5,24 @@ import {
   handleGithubRedirect,
   handleGoogleRedirect,
   handleMagiclinkRedirect,
-} from "~/utils/session.server";
+} from "~/utils/providers.server";
+import { PROVIDER } from "~/utils/helpers";
 
 export function loader() {
   return redirect("/");
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  invariant(params.provider, "Invalid form data.");
-  const provider = params.provider as "magic-link" | "google" | "github";
+  const provider = params.provider as PROVIDER;
+  invariant(provider, "Invalid form data.");
 
   try {
     switch (provider) {
-      case "magic-link":
+      case PROVIDER.MagicLink:
         return await handleMagiclinkRedirect(request);
-      case "google":
+      case PROVIDER.Google:
         return await handleGoogleRedirect();
-      case "github":
+      case PROVIDER.Github:
         return await handleGithubRedirect();
       default:
         throw new Error("Invalid provider.");

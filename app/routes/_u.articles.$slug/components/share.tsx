@@ -1,4 +1,5 @@
 import {
+  FaClipboardCheck,
   FaFacebookF,
   FaLinkedinIn,
   FaRedditAlien,
@@ -15,11 +16,17 @@ import {
 } from "react-share";
 import { Button } from "~/components/ui/button";
 import { toast } from "~/components/ui/use-toast";
+import React from "react";
 
 export function Share({ title, url }: { title: string; url: string }) {
+  const [copied, setCopied] = React.useState(false);
   function handleCopy() {
     navigator.clipboard.writeText(url);
+    setCopied(true);
     toast({ title: "Article link copied." });
+    setTimeout(() => {
+      setCopied(false);
+    }, 3000);
   }
 
   return (
@@ -47,7 +54,7 @@ export function Share({ title, url }: { title: string; url: string }) {
           className="p-0 m-0 hover:bg-inherit hover:text-black"
           onClick={handleCopy}
         >
-          <FaRegCopy size={25} />
+          {copied ? <FaClipboardCheck size={25} /> : <FaRegCopy size={25} />}
         </Button>
       </div>
     </div>

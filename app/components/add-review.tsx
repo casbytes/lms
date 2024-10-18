@@ -59,7 +59,9 @@ export function AddReview({
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="mb-4">Please review this module</DialogTitle>
+          <DialogTitle className="mb-4">
+            Please review this {course ? "course" : "module"}
+          </DialogTitle>
           <div className="flex flex-col gap-4 mt-4">
             <div>
               <div>
@@ -88,7 +90,7 @@ export function AddReview({
                   required
                   minLength={10}
                   rows={5}
-                  placeholder="Your review here..."
+                  placeholder="Tell us what you think..."
                 />
               </div>
             </div>
@@ -121,7 +123,7 @@ export function AddReview({
               }
             }}
           >
-            Submit
+            Submit review
           </Button>
         </DialogFooter>
       </DialogContent>

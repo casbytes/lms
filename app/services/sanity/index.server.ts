@@ -1,4 +1,4 @@
-import { Cache } from "~/utils/cache.server";
+import { Redis as Cache } from "~/utils/redis.server";
 import { loadQuery } from "./loader.server";
 import {
   ARTICLE_QUERY,
@@ -85,9 +85,18 @@ export async function getMetaModules({
     ? `some-meta-modules-${sanitizedSearchTerm}`
     : "all-meta-modules";
 
+  function filterModules(modules: MetaModule[], searchTerm: string) {
+    return modules.filter(
+      (module) =>
+        module.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        module.tags.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        module.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }
+
   const cachedMetaModules = (await Cache.get(cacheKey)) as MetaModule[] | null;
   if (cachedMetaModules) {
-    return cachedMetaModules;
+    return filterModules(cachedMetaModules, sanitizedSearchTerm);
   }
 
   const { data: modulesData } = await loadQuery<MetaModule[]>(MODULES_QUERY);
@@ -128,13 +137,7 @@ export async function getMetaModules({
 
   await Cache.set<MetaModule[]>(cacheKey, modules, { EX: 3600 });
   if (sanitizedSearchTerm) {
-    return modules.filter(
-      (module) =>
-        module.title
-          .toLowerCase()
-          .includes(sanitizedSearchTerm.toLowerCase()) ||
-        module.tags.includes(sanitizedSearchTerm.toLowerCase())
-    );
+    return filterModules(modules, sanitizedSearchTerm);
   }
   return modules;
 }

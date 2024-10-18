@@ -10,6 +10,7 @@ export interface MetaCourse {
   title: string;
   image: string;
   slug: string;
+  premium: boolean;
   inCatalog: boolean;
   reviews?: ReviewWithUser[];
   testEnvironment?: TestEnv;

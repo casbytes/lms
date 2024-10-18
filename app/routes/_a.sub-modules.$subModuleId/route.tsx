@@ -99,7 +99,7 @@ export default function ModulesRoute() {
         <div className="col-span-4 flex flex-col gap-6 overflow-y-auto h-auto max-h-screen">
           <div className="col-span-3 min-h-full">
             <Assessment item={item} />
-            <Separator className="bg-sky-700 h-2 my-4 rounded-tl-md rounded-br-md" />
+            <Separator className="bg-sky-700 h-1 my-4 rounded-tl-md rounded-br-md" />
             <React.Suspense fallback={<ContentPendingUI />}>
               <Await resolve={currentLesson}>
                 {(currentLesson) => (
@@ -112,7 +112,7 @@ export default function ModulesRoute() {
                 )}
               </Await>
             </React.Suspense>
-            <Separator className="bg-sky-700 h-2 my-4 rounded-tl-md rounded-br-md" />
+            <Separator className="bg-sky-700 h-1 my-4 rounded-tl-md rounded-br-md" />
 
             <React.Suspense
               fallback={

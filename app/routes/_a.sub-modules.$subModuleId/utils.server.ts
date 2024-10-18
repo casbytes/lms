@@ -5,7 +5,7 @@ import { Params } from "@remix-run/react";
 import { getContentFromGithub } from "~/utils/octokit.server";
 import { getUserId } from "~/utils/session.server";
 import { prisma } from "~/utils/db.server";
-import { Cache } from "~/utils/cache.server";
+import { Redis as Cache } from "~/utils/redis.server";
 import { STATUS, TEST_STATUS } from "~/utils/helpers";
 import { ensurePrimary } from "litefs-js/remix";
 import { addReview } from "~/utils/helpers.server";

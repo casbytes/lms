@@ -1,6 +1,6 @@
 import { redirect } from "@remix-run/node";
 import invariant from "tiny-invariant";
-import { Paystack } from "~/services/paystack.server";
+import { STRIPE } from "~/services/stripe.server";
 import { prisma } from "~/utils/db.server";
 import { ROLE } from "~/utils/helpers";
 import { constructUsername } from "~/utils/helpers.server";
@@ -37,16 +37,9 @@ export async function updateUser(request: Request) {
     invariant(name, "Name is required.");
     invariant(intent === "submit", "Invalid intent.");
 
-    const { firstName, lastName } = constructUsername(name);
-    const paystackCustomer = await Paystack.createCustomer({
-      email,
-      first_name: firstName,
-      last_name: lastName,
-    });
-    if (paystackCustomer.status !== true) {
-      session.flash("error", "Failed to create paystack customer, try again.");
-      throw redirect("/", await commitAuthSession(session));
-    }
+    const { firstName } = constructUsername(name);
+    const stripeCustomer = await STRIPE.createCustomer({ email, name });
+
     const avatar_url = `https://api.dicebear.com/9.x/avataaars/svg?seed=${firstName}`;
 
     const user = await prisma.user.update({
@@ -58,7 +51,7 @@ export async function updateUser(request: Request) {
         verified: true,
         verificationToken: null,
         authState: null,
-        paystackCustomerCode: paystackCustomer.data!.customer_code,
+        stripeCustomerId: stripeCustomer.id,
       },
       select: { id: true, name: true, verified: true, role: true },
     });

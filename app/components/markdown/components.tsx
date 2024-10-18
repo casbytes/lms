@@ -1,5 +1,6 @@
 import React from "react";
 import highlightjs from "highlight.js";
+import DOMPurify from "isomorphic-dompurify";
 import { Link } from "@remix-run/react";
 import { MdOutlineContentCopy } from "react-icons/md";
 import { IoCheckmarkDone, IoWarning } from "react-icons/io5";
@@ -268,7 +269,7 @@ export function Img(
   props: React.ImgHTMLAttributes<HTMLImageElement>
 ): JSX.Element {
   // eslint-disable-next-line react/prop-types
-  return <img className="my-6 rounded-sm mx-auto" {...props} alt={props.alt} />;
+  return <img loading="lazy" className="my-6 rounded-sm mx-auto" {...props} alt={props.alt} />;
 }
 
 /**
@@ -284,7 +285,7 @@ export function MdLink(props: any): JSX.Element {
       target="_blank"
       rel="noreferrer"
       prefetch="intent"
-      className="text-blue-700"
+      className="text-blue-700 hover:underline hover:text-blue-500"
       {...props}
     >
       {props.children}
@@ -357,7 +358,7 @@ export function CodeBlock(
           dangerouslySetInnerHTML={{
             __html:
               typeof children === "string"
-                ? highlightjs.highlight(children.trim(), {
+                ? highlightjs.highlight(DOMPurify.sanitize(children.trim()), {
                     language,
                   }).value
                 : "",

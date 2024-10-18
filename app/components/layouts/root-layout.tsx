@@ -7,19 +7,17 @@ import {
 } from "@remix-run/react";
 import { useInterval } from "use-interval";
 import { Toaster } from "../ui/toaster";
-import { Dialog } from "../ui/dialog";
 import { Sheet } from "../ui/sheet";
 import { cn } from "~/libs/shadcn";
 import { NavBar, SideBar } from "../navigation";
 import { adminMenuItems, userMenuItems, unAuthMenuItems } from ".";
-import { OfflineUI } from "../offline-ui";
 import { FullPagePendingUI } from "../full-page-pending-ui";
 import { useLearningTimer } from "~/utils/hooks";
 import { BackToTopButton } from "../back-to-top-button";
+import { AuthDialogProvider } from "~/contexts/auth-dialog-context";
 
 export function RootLayout() {
-  const [isOnline, setIsOnline] = React.useState(true);
-  const [isNavOpen, setIsNavOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = React.useState(false);
   const [isNavigating, setIsNavigating] = React.useState(false);
   const { startTimer, elapsedTime, stopTimer, isRunning } = useLearningTimer();
 
@@ -45,7 +43,7 @@ export function RootLayout() {
       match.id.includes("healthcheck")
   );
 
-  const addMargin = (user || admin) && !resourceRoutes;
+  const isAuth = (user || admin) && !resourceRoutes;
   const menuItems = admin
     ? adminMenuItems
     : user
@@ -61,19 +59,6 @@ export function RootLayout() {
     }
   }, [elapsedTime, f]);
 
-  // React.useEffect(() => {
-  //   if (user && !isRunning) {
-  //     startTimer();
-  //   }
-  //   return () => {
-  //     stopTimer();
-  //     if (isRunning) {
-  //       logLearningTime();
-  //     }
-  //   };
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [user, isRunning, stopTimer, logLearningTime]);
-
   // const LOG_INTERVAL = 60000; // 1 minute
   // useInterval(() => {
   //   if (user) {
@@ -81,6 +66,11 @@ export function RootLayout() {
   //   }
   // }, LOG_INTERVAL);
 
+
+  /**
+   * If the navigation is taking too long (> 1 second), we show a full page pending UI
+   * to the user.
+   */
   const START_NAVIGATION_TIME = 1000;
   React.useEffect(() => {
     let timeout: number | undefined;
@@ -102,59 +92,38 @@ export function RootLayout() {
     };
   }, [isLoading]);
 
-  React.useEffect(() => {
-    setIsOnline(window.navigator.onLine);
-    const handleOnlineChange = () => {
-      setIsOnline(window.navigator.onLine);
-    };
+  
 
-    window.addEventListener("online", handleOnlineChange);
-    window.addEventListener("offline", handleOnlineChange);
+  const sideBarClassnames = cn(
+    "duration-300 bg-slate-100 min-h-screen",
+    isOpen ? (isAuth ? "lg:ml-56" : "") : isAuth ? "lg:ml-16" : "",
+    {
+      "cursor-wait": isLoading,
+    }
+  );
 
-    return () => {
-      window.removeEventListener("online", handleOnlineChange);
-      window.removeEventListener("offline", handleOnlineChange);
-    };
-  }, []);
-
-  return isOnline ? (
-    <Dialog defaultOpen>
+  return (
+    <AuthDialogProvider>
       <Sheet>
         <NavBar
           menuItems={menuItems}
-          isNavOpen={isNavOpen}
-          setIsNavOpen={setIsNavOpen}
+          isNavOpen={isOpen}
+          setIsNavOpen={setIsOpen}
         />
-        {addMargin ? (
+        {isAuth ? (
           <SideBar
+            isOpen={isOpen}
+            setIsOpen={setIsOpen}
             menuItems={menuItems}
-            isOpen={isNavOpen}
-            setIsOpen={setIsNavOpen}
           />
         ) : null}
-        <div
-          className={cn(
-            "duration-300 bg-slate-100 min-h-screen",
-            {
-              "cursor-wait": isLoading,
-            },
-            isNavOpen
-              ? addMargin
-                ? "ml-0 lg:ml-56"
-                : ""
-              : addMargin
-              ? "ml-0 lg:ml-16"
-              : ""
-          )}
-        >
+        <div className={sideBarClassnames}>
           <Toaster />
           {isNavigating ? <FullPagePendingUI /> : null}
           <Outlet />
           <BackToTopButton />
         </div>
       </Sheet>
-    </Dialog>
-  ) : (
-    <OfflineUI />
-  );
+    </AuthDialogProvider>
+  ) 
 }

@@ -7,11 +7,26 @@ interface GCFProps {
 }
 
 /**
- * Fetch lesson content from Github using Octokit.
- * @param {String} repo - Github repository name
- * @param {String} path - Path to the file in the repository
- * @returns {String} - content
+ * Fetches content from a specified GitHub repository and path.
+ * 
+ * @param {GCFProps} props - The properties object.
+ * @param {string} props.repo - The name of the GitHub repository.
+ * @param {string} props.path - The file path within the repository.
+ * @returns {Promise<Record<string, string>>} A promise that resolves to an object containing the file content.
+ * @throws {Error} If the content is empty or invalid, or if there's an error during the fetch operation.
+ * 
+ * @example
+ * try {
+ *   const { content } = await getContentFromGithub({
+ *     repo: 'my-repo',
+ *     path: 'path/to/file.md'
+ *   });
+ *   console.log(content);
+ * } catch (error) {
+ *   console.error('Error fetching content:', error);
+ * }
  */
+
 export async function getContentFromGithub({
   repo,
   path,

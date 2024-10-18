@@ -4,17 +4,19 @@ import { Params } from "@remix-run/react";
 import { MDX, prisma, Project } from "~/utils/db.server";
 import { getContentFromGithub } from "~/utils/octokit.server";
 import { getUserId } from "~/utils/session.server";
-import { Cache } from "~/utils/cache.server";
+import { Redis as Cache } from "~/utils/redis.server";
 import {
-  computeScore,
-  formatCheckerResponse,
-  getRequestUrl,
-  gradeFetch,
   LINT_CUTOFF_SCORE,
   TEST_CUTOFF_SCORE,
   TOTAL_CUTOFF_SCORE,
 } from "~/utils/helpers.server";
 import { STATUS } from "~/utils/helpers";
+import {
+  type CombinedResponse,
+  formatCheckerResponse,
+  subscribeToQueue,
+} from "~/utils/rtr.server";
+import { QStash } from "~/services/qstash.server";
 
 /**
  * Fetch the project and its content from GitHub or cache.
@@ -43,8 +45,8 @@ export async function getProject(request: Request, params: Params<string>) {
     return { project, projectContent: cachedContent };
   }
 
-  const repo = "meta";
-  const path = `course-projects/${project.course.slug}.mdx`;
+  const repo = "projects";
+  const path = `${project.course.slug}.mdx`;
   const { content: mdx } = await getContentFromGithub({ repo, path });
 
   const { data, content } = matter(mdx);
@@ -62,7 +64,7 @@ export async function updateProject(request: Request) {
   invariant(intent, "Intent is required to update Project");
   invariant(projectId, "Project ID is required to update Project");
   invariant(courseId, "Course ID is required to update Project");
-  return await autoGradeProject(projectId, courseId, userId, request);
+  return await autoGradeProject(projectId, courseId, userId);
 }
 
 /**
@@ -75,8 +77,7 @@ export async function updateProject(request: Request) {
 async function autoGradeProject(
   projectId: string,
   courseId: string,
-  userId: string,
-  request: Request
+  userId: string
 ) {
   const [user, project] = await Promise.all([
     prisma.user.findUniqueOrThrow({
@@ -97,13 +98,23 @@ async function autoGradeProject(
   const repo = `${username}/${project.slug}`;
   const path = project.slug;
 
-  const url = getRequestUrl({ username, path, repo });
-  const response = await gradeFetch({ url, testEnvironment, request });
-  const computedScore = await computeScore(response);
+  const data = { path, username, repo, testEnvironment };
+  const qstashRes = await QStash.publish(data);
+
+  const messageId = qstashRes.messageId;
+  const error = "Failed to check your work, please try again.";
+
+  const result = await subscribeToQueue(messageId);
+
+  const { computedScores, response } = result as CombinedResponse;
+
+  if (!computedScores) {
+    return formatCheckerResponse({ error });
+  }
   const updatedProject = await updateProjectStatus({
     userId,
     projectId,
-    ...computedScore,
+    ...computedScores,
   });
   if (updatedProject.status === STATUS.COMPLETED) {
     await updateCourseStatus(project);

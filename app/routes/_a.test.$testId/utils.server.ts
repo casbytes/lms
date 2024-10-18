@@ -6,11 +6,11 @@ import { getUserId } from "~/utils/session.server";
 import { prisma, Test } from "~/utils/db.server";
 import { STATUS, TEST_STATUS } from "~/utils/helpers";
 import { getContentFromGithub } from "~/utils/octokit.server";
-import { Cache } from "~/utils/cache.server";
+import { Redis as Cache } from "~/utils/redis.server";
 import {
   updateModuleStatusAndFindNextModule,
   updateSubmoduleStatusAndFindNextSubmodule,
-} from "~/utils/helpers.server";
+} from "~/utils/module.server";
 
 export interface Option {
   id: number;

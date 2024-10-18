@@ -1,105 +1,28 @@
 import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
-import { STATUS, TEST_STATUS } from "./helpers";
-import { Course, Module, Prisma, prisma, SubModule } from "./db.server";
-import { MetaLesson, MetaModule, MetaSubModule } from "~/services/sanity/types";
-import {
-  getMetaCourseById,
-  getMetaModuleById,
-} from "~/services/sanity/index.server";
+import { STATUS } from "./helpers";
+import { Course, Module, prisma } from "./db.server";
+import { ApiResponse } from "./rtr.server";
 
-interface Message {
-  ruleId: string;
-  severity: number;
-  message: string;
-  line: number;
-  column: number;
-  nodeType: string;
-  messageId: string;
-  endLine: number;
-  endColumn: number;
-}
-
-export interface LintResult {
-  filePath: string;
-  messages: Message[] | [];
-  suppressedMessages: unknown[];
-  errorCount: number;
-  fatalErrorCount: number;
-  warningCount: number;
-  fixableErrorCount: number;
-  fixableWarningCount: number;
-  source: string;
-  usedDeprecatedRules: unknown[];
-}
-
-interface AssertionResult {
-  ancestorTitles: string[];
-  fullName: string;
-  status: string;
-  title: string;
-  duration: number;
-  failureMessages: string[];
-  meta: Record<string, unknown>;
-}
-
-interface TestResultDetail {
-  assertionResults: AssertionResult[];
-  startTime: number;
-  endTime: number;
-  status: string;
-  message: string;
-  name: string;
-}
-
-interface Snapshot {
-  added: number;
-  failure: boolean;
-  filesAdded: number;
-  filesRemoved: number;
-  filesRemovedList: unknown[];
-  filesUnmatched: number;
-  filesUpdated: number;
-  matched: number;
-  total: number;
-  unchecked: number;
-  uncheckedKeysByFile: unknown[];
-  unmatched: number;
-  updated: number;
-  didUpdate: boolean;
-}
-
-export interface TestResults {
-  numTotalTestSuites: number;
-  numPassedTestSuites: number;
-  numFailedTestSuites: number;
-  numPendingTestSuites: number;
-  numTotalTests: number;
-  numPassedTests: number;
-  numFailedTests: number;
-  numPendingTests: number;
-  numTodoTests: number;
-  snapshot: Snapshot;
-  startTime: number;
-  success: boolean;
-  testResults: TestResultDetail[];
-}
-
-export interface ApiResponse {
-  lintResults: LintResult[] | null;
-  testResults: TestResults | null;
-  error: string | null;
-}
-
+export type CurrentItem = { title: string, id: string } | null;
 export const LINT_CUTOFF_SCORE = 30;
 export const TEST_CUTOFF_SCORE = 50;
 export const TOTAL_CUTOFF_SCORE = LINT_CUTOFF_SCORE + TEST_CUTOFF_SCORE;
 
 /**
- * Reads the content of file from the path
- * @param path - string
- * @returns {Promise<string>}
+ * Reads the content of a page file
+ * @param {string} pagePath - The path to the page file within the 'content/pages' directory
+ * @returns {Promise<string>} - A promise that resolves to the content of the page file
+ * @throws {Error} - If there's an issue reading the file
+ * 
+ * @example
+ * const content = await readPage("home");
+ * content will be the content of the home page
+ * 
+ * @example
+ * const content = await readPage("about");
+ * content will be the content of the about page
  */
 export function readPage(pagePath: string): Promise<string> {
   const filePath = path.join(process.cwd(), "content/pages", pagePath);
@@ -115,9 +38,19 @@ export function readPage(pagePath: string): Promise<string> {
 }
 
 /**
- * Reads the content of folder
- * @param folder - string
- * @returns {Array<{data: Record<string, string>, content: string}>}
+ * Reads the content of files in a specified folder
+ * @param {string} folder - The name of the folder within the 'content' directory
+ * @returns {Array<{data: Record<string, any>, content: string}>} An array of objects, each containing:
+ *   - data: An object with the front matter data from the file
+ *   - content: The main content of the file as a string
+ * 
+ * @example
+ * const content = readContent("pages");
+ * content will be an array of objects with a data property and a content property
+ * 
+ * @example
+ * const content = readContent("faqs");
+ * content will be an array of objects with a data property and a content property
  */
 export function readContent(folder: string) {
   const dir = path.join(process.cwd(), `content/${folder}`);
@@ -132,77 +65,52 @@ export function readContent(folder: string) {
 }
 
 /**
- * Get video source
- * @returns {string} - video source
- */
-
-export function getVideoSource() {
-  const { IFRAME_URL: iframeUrl, VIDEO_LIBRARY_ID: libraryId } =
-    process.env as Record<string, string>;
-  return `${iframeUrl}/embed/${Number(libraryId)}`;
-}
-
-/**
- * Construct the user's full name
- * @param name - user's name
- * @returns {Record<string, string>} - user's first and last name
+ * Construct a username from a full name
+ * @param {string} name - The full name of the user
+ * @returns {{firstName: string, lastName: string}} - The constructed username
+ * 
+ * @example
+ * const username = constructUsername("John Doe");
+ * username will be an object with a firstName property and a lastName property
+ * 
+ * @example
+ * const username = constructUsername("John");
+ * username will be an object with a firstName property and a lastName property of an empty string
  */
 export function constructUsername(name: string) {
   const nameParts = name.split(" ");
-  const firstName = nameParts[0] || name;
-  const lastName = nameParts.slice(1).join(" ") || name;
+  const firstName = nameParts[0];
+  const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
   return { firstName, lastName };
 }
 
+
 /**
- * Fetch the checkpoint and grade it
- * @param url - URL to send the POST request to
- * @param testEnvironment - Test environment identifier
- * @param request - The original Request object containing the host and body
- * @returns {Promise<ApiResponse>} - The API response, formatted as needed
+ * Format a response object
+ * @param {boolean} success - Indicates if the operation was successful
+ * @param {string} message - The message to be returned
+ * @returns {success: boolean, message: string} - The formatted response object
+ * 
+ * @example
+ * const response = formatResponse(true, "Operation successful");
+ * response will be an object with a success property and a message property
+ * 
+ * @example
+ * const response = formatResponse(false, "Operation failed");
+ * response will be an object with a success property and a message property
  */
-export async function gradeFetch({
-  url,
-  testEnvironment,
-  request,
-}: {
-  url: string;
-  testEnvironment: string;
-  request: Request;
-}) {
-  try {
-    const host = request.headers.get("X-Forwarded-For") as string;
-
-    const headers = {
-      "Content-Type": "application/json",
-      "X-Forwarded-For": host,
-      "X-Test-Env": testEnvironment,
-    };
-
-    const { data, error } = await customFetch<ApiResponse>(url, {
-      method: "POST",
-      headers,
-    });
-
-    if (error) {
-      throw new Error(error);
-    }
-
-    return formatCheckerResponse(data!);
-  } catch (error) {
-    const errorMessage = `Failed to grade checkpoint. Error: ${
-      error instanceof Error ? error.message : "Unknown error"
-    }`;
-    return formatCheckerResponse({ error: errorMessage });
-  }
+export function formatResponse(success: boolean, message: string) {
+  return { success, message };
 }
 
 /**
  * Compute the score of a checkpoint
  * @param response - response from the auto grading
- * @param checkpointId - checkpoint id
- * @param userId - user id
- * @returns {Promise<Checkpoint>}
+ * @returns {Promise<{totalLintsScore: number, totalTestsScore: number, totalScore: number}>}
+ * 
+ * @example
+ * const score = await computeScore(response);
+ * score will be an object with a totalLintsScore property, a totalTestsScore property, and a totalScore property
  */
 export async function computeScore(response: ApiResponse) {
   // Lints
@@ -242,274 +150,33 @@ export async function computeScore(response: ApiResponse) {
 }
 
 /**
- * Get the request URL
- * @param userGithubUsername - user's github username
- * @param checkpointPath - checkpoint path
- * @param checkpointRepo - checkpoint repo
- * @returns {string} - request URL
- */
-export function getRequestUrl({
-  username,
-  path,
-  repo,
-}: {
-  username: string;
-  path: string;
-  repo: string;
-}) {
-  const baseUrl = process.env.CHECKER_URL as string;
-  return `${baseUrl}/${username}?path=${path}&repo=${repo}`;
-}
-
-/**
- * Format the response
- * @param error - error message
- * @param message - message
- * @param lintReulsts - lint results
- * @param testResults - test results
- * @returns {ApiResponse}
- */
-export function formatCheckerResponse({
-  error = null,
-  lintResults = null,
-  testResults = null,
-}: {
-  error?: string | null;
-  lintResults?: LintResult[] | null;
-  testResults?: TestResults | null;
-}) {
-  return { error, lintResults, testResults };
-}
-
-export async function updateModuleStatusAndFindNextModule({
-  moduleId,
-  userId,
-}: {
-  moduleId: string;
-  userId: string;
-}) {
-  try {
-    //Get the module
-    const module = await prisma.module.findUniqueOrThrow({
-      where: { id: moduleId, users: { some: { id: userId } } },
-      select: { id: true, order: true, courseId: true },
-    });
-
-    const user = await prisma.user.findUniqueOrThrow({
-      where: { id: userId },
-      select: { subscribed: true },
-    });
-
-    //Update the module status to COMPLETED
-    await prisma.module.update({
-      where: { id: module.id, users: { some: { id: userId } } },
-      data: { status: STATUS.COMPLETED },
-    });
-    await updateCourse(module.courseId!, userId);
-
-    //Find the next module
-    if (user.subscribed) {
-      await prisma.$transaction(async (prisma) => {
-        const nextModule = await prisma.module.findFirst({
-          where: {
-            order: { equals: module.order + 1 },
-            users: { some: { id: userId } },
-          },
-          select: { id: true },
-        });
-        if (nextModule) {
-          await prisma.module.update({
-            where: { id: nextModule.id, users: { some: { id: userId } } },
-            data: { status: STATUS.IN_PROGRESS },
-          });
-        } else {
-          if (module.courseId) {
-            await updateCourseProject(module.courseId, userId);
-          }
-        }
-      });
-    }
-  } catch (error) {
-    throw error;
-  }
-}
-
-export async function updateSubmoduleStatusAndFindNextSubmodule({
-  subModuleId,
-  userId,
-}: {
-  subModuleId: string;
-  userId: string;
-}) {
-  try {
-    // Fetch the submodule along with its parent module
-    const [subModule, user] = await Promise.all([
-      prisma.subModule.findUniqueOrThrow({
-        where: { id: subModuleId, users: { some: { id: userId } } },
-        include: { module: true },
-      }),
-      prisma.user.findUniqueOrThrow({
-        where: { id: userId },
-        select: { subscribed: true },
-      }),
-    ]);
-
-    await prisma.subModule.update({
-      where: { id: subModule.id, users: { some: { id: userId } } },
-      data: { status: STATUS.COMPLETED },
-    });
-    await updateModule(subModule.moduleId, userId);
-
-    // Find the next submodule in the sequence
-    if (user.subscribed) {
-      await prisma.$transaction(async (prisma) => {
-        const nextSubmodule = await prisma.subModule.findFirst({
-          where: {
-            moduleId: subModule.module.id,
-            order: { equals: subModule.order + 1 },
-            users: { some: { id: userId } },
-          },
-          select: { id: true },
-        });
-        if (nextSubmodule) {
-          // If there's a next submodule, mark it as in progress
-          await prisma.subModule.update({
-            where: { id: nextSubmodule.id, users: { some: { id: userId } } },
-            data: { status: STATUS.IN_PROGRESS },
-          });
-        } else {
-          // If no more submodules, find the corresponding module test and mark it as available
-          const moduleTest = await prisma.test.findFirstOrThrow({
-            where: {
-              moduleId: subModule.module.id,
-              users: { some: { id: userId } },
-            },
-            select: { id: true },
-          });
-          await prisma.test.update({
-            where: { id: moduleTest.id, users: { some: { id: userId } } },
-            data: { status: TEST_STATUS.AVAILABLE },
-          });
-        }
-      });
-    }
-  } catch (error) {
-    throw error;
-  }
-}
-
-async function updateCourse(courseId: string, userId: string) {
-  try {
-    const [moduleScores, totalModules] = await Promise.all([
-      prisma.module.aggregate({
-        _sum: { score: true },
-        where: { courseId },
-      }),
-      prisma.module.count({ where: { courseId } }),
-    ]);
-
-    const totalScore =
-      totalModules > 0
-        ? Math.round((moduleScores._sum.score || 0) / totalModules)
-        : 0;
-
-    await prisma.course.update({
-      where: { id: courseId, users: { some: { id: userId } } },
-      data: { score: totalScore },
-    });
-  } catch (error) {
-    throw error;
-  }
-}
-
-/**
- * Update the submodule score
- * @param subModuleId - Submodule ID
- * @param userId - User ID
- */
-async function updateModule(moduleId: string, userId: string) {
-  try {
-    const [testAggregate, testCount, checkpointAggregate, checkpointCount] =
-      await Promise.all([
-        prisma.test.aggregate({
-          _sum: { score: true },
-          where: { moduleId },
-        }),
-        prisma.test.count({ where: { moduleId } }),
-
-        prisma.checkpoint.aggregate({
-          _sum: { score: true },
-          where: { moduleId },
-        }),
-        prisma.checkpoint.count({ where: { moduleId } }),
-      ]);
-
-    const totalTestsScore = testAggregate._sum.score || 0;
-    const totalCheckpointsScore = checkpointAggregate._sum.score || 0;
-    const totalItems = testCount + checkpointCount;
-
-    // Ensure scores are normalized (assuming scores are out of 100)
-    const normalizedTestScore = totalTestsScore / testCount || 0;
-    const normalizedCheckpointScore =
-      totalCheckpointsScore / checkpointCount || 0;
-
-    const denominator = testCount > 0 && checkpointCount > 0 ? 2 : 1;
-
-    // Calculate the average score and convert it to a percentage
-    const totalScore =
-      totalItems > 0
-        ? Math.round(
-            (normalizedTestScore + normalizedCheckpointScore) / denominator
-          )
-        : 0;
-
-    await prisma.module.update({
-      where: { id: moduleId, users: { some: { id: userId } } },
-      data: { score: totalScore },
-    });
-  } catch (error) {
-    throw error;
-  }
-}
-
-/**
- * Update project status based on the computed scores.
- * @param moduleId -  Module ID
- * @param userId - User ID
- */
-async function updateCourseProject(moduleId: string, userId: string) {
-  try {
-    const course = await prisma.course.findFirstOrThrow({
-      where: {
-        modules: { some: { id: moduleId } },
-        users: { some: { id: userId } },
-      },
-      include: { project: true },
-    });
-
-    if (!course?.project) throw new Error("Project not found.");
-    await prisma.project.update({
-      where: { id: course.project.id, contributors: { some: { id: userId } } },
-      data: { status: STATUS.IN_PROGRESS },
-    });
-  } catch (error) {
-    throw error;
-  }
-}
-
-/**
- * Update user subscription status
- * @param paystackCustomerCode - Paystack customer code
- * @param subscribed - Subscription status
+ * Update user subscription status in the database
+ * @param stripeCustomerId - The Stripe customer ID of the user
+ * @param subscribed - Boolean indicating whether the user is subscribed or not
+ * @returns {Promise<User>} - A promise that resolves to the updated User object
+ * @throws {Error} - If there's an error updating the user subscription
+ * 
+ * @example
+ * await updateUserSubscription(stripeCustomerId, true);
+ * The user subscription status will be updated to true
+ * 
+ * @example
+ * await updateUserSubscription(stripeCustomerId, false);
+ * The user subscription status will be updated to false
+ * and the subscriptionId will be set to null
  */
 export async function updateUserSubscription(
-  paystackCustomerCode: string,
+  stripeCustomerId: string,
   subscribed: boolean
 ) {
   try {
+    const data = subscribed
+      ? { subscribed }
+      : { subscribed, subscriptionId: null };
+
     return await prisma.user.update({
-      where: { paystackCustomerCode },
-      data: { subscribed },
+      where: { stripeCustomerId },
+      data,
     });
   } catch (error) {
     throw error;
@@ -517,13 +184,19 @@ export async function updateUserSubscription(
 }
 
 /**
- * Update user progress based on the subscription status
- * @param paystackCustomerCode - Paystack customer code
+ * Update the progress of a user
+ * @param {string} stripeCustomerId - The Stripe customer ID of the user
+ * @returns {Promise<void>} - A promise that resolves when the user progress is updated
+ * @throws {Error} - If there's an error updating the user progress
+ * 
+ * @example
+ * await updateUserProgress(stripeCustomerId);
+ * The user progress will be updated to the next available submodule, module, or project
  */
-export async function updateUserProgress(paystackCustomerCode: string) {
+export async function updateUserProgress(stripeCustomerId: string) {
   try {
     const { id: userId } = await prisma.user.findUniqueOrThrow({
-      where: { paystackCustomerCode },
+      where: { stripeCustomerId },
       select: { id: true },
     });
 
@@ -572,387 +245,51 @@ export async function updateUserProgress(paystackCustomerCode: string) {
 }
 
 /**
- * Add a module to a user's catalog
- * @param {String} moduleId - The module ID
- * @param {String} userId - The user ID
- * @returns {Promise<void>}
- */
-export async function addModuleToCatalog(moduleId: string, userId: string) {
-  const metaModule = await getMetaModuleById(moduleId);
-
-  try {
-    return await prisma.$transaction(async (txn) => {
-      const module = await txn.module.create({
-        data: {
-          title: metaModule.title,
-          slug: metaModule.slug,
-          users: { connect: { id: userId } },
-          status: STATUS.IN_PROGRESS,
-          order: 1,
-          test: {
-            create: {
-              title: `${metaModule.title} test`,
-              users: { connect: { id: userId } },
-            },
-          },
-          checkpoint: metaModule?.checkpoint
-            ? {
-                create: {
-                  title: `${metaModule.title} checkpoint`,
-                  users: { connect: { id: userId } },
-                },
-              }
-            : undefined,
-        },
-      });
-
-      await createSubModules(txn, metaModule.subModules, module, userId);
-      await createBadges(txn, module, userId);
-      return formatResponse(true, `${module.title} added to catalog`);
-    });
-  } catch (error) {
-    return formatResponse(
-      false,
-      `An error occured while adding course to catalog.`
-    );
-  }
-}
-
-/**
- * Add a course to a user's catalog
- * @param {String} userId - The user ID
- * @param {String} courseId - The course ID
- * @returns {Promise<void>}
- */
-export async function addCourseToCatalog(courseId: string, userId: string) {
-  try {
-    const metaCourse = await getMetaCourseById(courseId);
-    return await prisma.$transaction(async (txn) => {
-      const course = await txn.course.create({
-        data: {
-          title: metaCourse.title,
-          slug: metaCourse.slug,
-          users: { connect: { id: userId } },
-          project: {
-            create: {
-              title: `${metaCourse.title} project`,
-              testEnvironment: metaCourse?.testEnvironment,
-              slug: metaCourse.slug,
-              contributors: { connect: { id: userId } },
-            },
-          },
-        },
-      });
-
-      await createModule(txn, metaCourse.modules, course, userId);
-      return formatResponse(true, `${course.title} added to catalog`);
-    });
-  } catch (error) {
-    return formatResponse(
-      false,
-      `An error occured while adding course to catalog.`
-    );
-  }
-}
-
-/**
- * Create module progresses
- * @param {Prisma.TransactionClient} txn - The transaction client
- * @param {MetaModule[]} metaModules - The modules
- * @param {Course} course - The course progress
- * @param {String} userId - The user ID
- * @returns {Promise<void>}
- */
-async function createModule(
-  txn: Prisma.TransactionClient,
-  metaModules: MetaModule[],
-  course: Course,
-  userId: string
-): Promise<void> {
-  try {
-    for (const [moduleIndex, metaModule] of metaModules.entries()) {
-      const module = await upsertModule(
-        txn,
-        metaModule,
-        moduleIndex,
-        course.id,
-        userId
-      );
-      await createSubModules(txn, metaModule.subModules, module, userId);
-      await createBadges(txn, module, userId);
-    }
-  } catch (error) {
-    throw error;
-  }
-}
-
-/**
- * Upsert module progress
- * @param {Prisma.TransactionClient} txn - The transaction client
- * @param {MetaModule} metaModule - The module
- * @param {number} moduleIndex - The module index
- * @param {string} courseId - The course progress ID
- * @param {string} userId - The user ID
- * @returns {Promise}
- */
-async function upsertModule(
-  txn: Prisma.TransactionClient,
-  metaModule: MetaModule,
-  moduleIndex: number,
-  courseId: string,
-  userId: string
-) {
-  try {
-    const existingModule = await txn.module.findFirst({
-      where: { title: metaModule.title, users: { some: { id: userId } } },
-    });
-
-    if (existingModule) {
-      return txn.module.update({
-        where: { id: existingModule.id },
-        data: {
-          courseId,
-          premium: moduleIndex !== 0,
-          status: existingModule.status,
-          order: moduleIndex + 1,
-        },
-      });
-    } else {
-      return txn.module.create({
-        data: {
-          title: metaModule.title,
-          slug: metaModule.slug,
-          premium: moduleIndex !== 0,
-          order: moduleIndex + 1,
-          users: { connect: { id: userId } },
-          course: { connect: { id: courseId } },
-          test: {
-            create: {
-              title: `${metaModule.title} test`,
-              users: { connect: { id: userId } },
-            },
-          },
-          checkpoint: metaModule?.checkpoint
-            ? {
-                create: {
-                  title: `${metaModule.title} checkpoint`,
-                  users: { connect: { id: userId } },
-                },
-              }
-            : undefined,
-        },
-      });
-    }
-  } catch (error) {
-    throw error;
-  }
-}
-
-/**
- * Create sub module progresses
- * @param {Prisma.TransactionClient} txn - The transaction client
- * @param {MetaModule[]} metaSubModules - The sub modules
- * @param {Module} module - The module progress
- * @param {String} userId - The user ID
- * @returns {Promise<void>}
- */
-async function createSubModules(
-  txn: Prisma.TransactionClient,
-  metaSubModules: MetaSubModule[],
-  module: Module,
-  userId: string
-) {
-  try {
-    const createdSubModules = Array(metaSubModules.length).fill(null);
-    for (const [subModuleIndex, metaSubModule] of metaSubModules.entries()) {
-      const subModule = await upsertSubModule(
-        txn,
-        metaSubModule,
-        subModuleIndex,
-        module.id,
-        userId
-      );
-      await createLessons(txn, metaSubModule.lessons, subModule, userId);
-      createdSubModules.push(subModule);
-    }
-    return createdSubModules;
-  } catch (error) {
-    throw error;
-  }
-}
-
-/**
- * Upsert sub module progress
- * @param {Prisma.TransactionClient} txn - The transaction client
- * @param {MetaSubModule} metaSubModule - The sub module
- * @param {number} subModuleIndex - The sub module index
- * @param {string} moduleId - The module progress ID
- * @param {string} userId - The user ID
- * @returns {Promise<SubModule>}
- */
-async function upsertSubModule(
-  txn: Prisma.TransactionClient,
-  metaSubModule: MetaSubModule,
-  subModuleIndex: number,
-  moduleId: string,
-  userId: string
-) {
-  const existingSubModule = await txn.subModule.findFirst({
-    where: { title: metaSubModule.title, users: { some: { id: userId } } },
-  });
-
-  if (existingSubModule) {
-    return txn.subModule.update({
-      where: { id: existingSubModule.id },
-      data: {
-        moduleId,
-        order: subModuleIndex + 1,
-      },
-    });
-  } else {
-    return txn.subModule.create({
-      data: {
-        title: metaSubModule.title,
-        slug: metaSubModule.slug,
-        order: subModuleIndex + 1,
-        users: { connect: { id: userId } },
-        module: { connect: { id: moduleId } },
-        test: {
-          create: {
-            title: `${metaSubModule.title} test`,
-            users: { connect: { id: userId } },
-          },
-        },
-        checkpoint: metaSubModule?.checkpoint
-          ? {
-              create: {
-                title: `${metaSubModule.title} checkpoint`,
-                users: { connect: { id: userId } },
-              },
-            }
-          : undefined,
-      },
-    });
-  }
-}
-
-/**
- * Create lesson progresses
- * @param {Prisma.TransactionClient} txn - The transaction client
- * @param {MetaLesson[]} metaLessons - The lessons
- * @param {SubModule} subModule - The sub module progress
- * @param {String} userId - The user ID
- * @returns {Promise<void>}
- */
-async function createLessons(
-  txn: Prisma.TransactionClient,
-  metaLessons: MetaLesson[],
-  subModule: SubModule,
-  userId: string
-): Promise<void> {
-  for (const [lessonIndex, metaLesson] of metaLessons.entries()) {
-    const existingLesson = await txn.lesson.findFirst({
-      where: { title: metaLesson.title, users: { some: { id: userId } } },
-    });
-
-    if (existingLesson) {
-      await txn.lesson.update({
-        where: { id: existingLesson.id },
-        data: {
-          subModuleId: subModule.id,
-          order: lessonIndex + 1,
-        },
-      });
-    } else {
-      await txn.lesson.create({
-        data: {
-          title: metaLesson.title,
-          slug: metaLesson.slug,
-          order: lessonIndex + 1,
-          users: { connect: { id: userId } },
-          subModule: { connect: { id: subModule.id } },
-        },
-      });
-    }
-  }
-}
-
-/**
- * Create badges
- * @param {Prisma.TransactionClient} txn - The transaction client
- * @param {Module} module - The module
- * @param {String} userId - The user ID
- * @returns {Promise<void>}
- */
-async function createBadges(
-  txn: Prisma.TransactionClient,
-  module: Module,
-  userId: string
-): Promise<void> {
-  const badges = [
-    {
-      title: "novice",
-      unlocked_description: `Awesome work! You've already conquered 25% of the journey and are well on your way to grasping the fundamentals in ${module.title}. Keep practicing to unlock more achievements as you continue your learning adventure!`,
-      locked_description: `Earn this badge by conquering 25% of the ${module.title} roadmap. That means completing all the essential lessons, tests, and sub-module checkpoints along the way`,
-    },
-    {
-      title: "adept",
-      unlocked_description: `Congratulations! You've grasped the fundamentals of ${module.title} and can tackle most tasks with confidence. Keep exploring to unlock even more achievements!`,
-      locked_description: `Earn this badge by conquering 50% of the ${module.title} roadmap. That means completing all the essential lessons, tests, and sub-module checkpoints along the way`,
-    },
-    {
-      title: "proficient",
-      unlocked_description: `Congratulations! You've leveled up your skills and earned the proficient badge. Now you possess a solid grasp of the concepts and can confidently put them to work in real-world situations. Keep pushing forward to unlock even more achievements and reach mastery!`,
-      locked_description: `Earn this badge by conquering 75% of the ${module.title} roadmap. That means completing all the essential lessons, tests, and sub-module checkpoints along the way`,
-    },
-    {
-      title: "virtuoso",
-      unlocked_description: `Congratulations! You've mastered ${module.title}, conquering even the most intricate challenges. With your newfound skills, you're now an inspiration to others. Now, it's time to claim your expertise with official certification. Keep going to complete the course and become certified!`,
-      locked_description: `Earn this badge by conquering 100% of the ${module.title} roadmap. That means completing all the essential lessons, tests, and sub-module checkpoints along the way`,
-    },
-  ];
-
-  await txn.badge.createMany({
-    data: badges.map((badge) => ({
-      title: badge.title,
-      locked_description: badge.locked_description,
-      unlocked_description: badge.unlocked_description,
-      level: badge.title.toUpperCase(),
-      moduleId: module.id,
-      userId,
-    })),
-  });
-}
-
-/**
- * Format response
- */
-export function formatResponse(success: boolean, message: string) {
-  return { success, message };
-}
-
-/**
- * Check if a user has a course or module in progress
- * @param {String} userId
- * @returns {Promise<Boolean>}
+ * Get the current course or module in progress for a user
+ * @param {string} userId - The ID of the user
+ * @returns {Promise<{ title: string } | null>} - A promise that resolves to the current course or module, or null if not found
+ * @throws {Error} - If there's an error getting the current course or module
+ * 
+ * @example
+ * const course = await getCurrentCourseOrModule(userId);
+ * course will be an object with a title property
+ * 
+ * @example
+ * const module = await getCurrentCourseOrModule(userId);
+ * module will be an object with a title property
  */
 export async function getCurrentCourseOrModule(
   userId: string
 ): Promise<{ title: string } | null> {
   const currentCourse = await prisma.course.findFirst({
     where: { users: { some: { id: userId } }, status: STATUS.IN_PROGRESS },
-    select: { title: true },
+    select: { title: true, id: true },
   });
   if (currentCourse) {
     return currentCourse;
   }
   const currentModule = await prisma.module.findFirst({
     where: { users: { some: { id: userId } }, status: STATUS.IN_PROGRESS },
-    select: { title: true },
+    select: { title: true, id: true },
   });
   return currentModule;
 }
 
+/**
+ * Check if a course or module exists in the database
+ * @param {string} courseTitle - The title of the course (optional)
+ * @param {string} moduleTitle - The title of the module (optional)
+ * @returns {Promise<Course | Module | null>} - A promise that resolves to the existing course or module, or null if not found
+ * @throws {Error} - If there's an error checking the catalog
+ * 
+ * @example
+ * const course = await checkCatalog({ courseTitle: "Data Structures and Algorithms" });
+ * course will be an object with a title property
+ * 
+ * @example
+ * const module = await checkCatalog({ moduleTitle: "CSS" });
+ * module will be an object with a title property
+ */
 export async function checkCatalog({
   courseTitle,
   moduleTitle,
@@ -973,7 +310,7 @@ export async function checkCatalog({
   return existingItem;
 }
 
-type FetchOptions = {
+type ClientOptions = {
   method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
   headers?: Record<string, string>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -981,21 +318,21 @@ type FetchOptions = {
   signal?: AbortSignal;
 };
 
-type FetchResponse<T> = {
-  data: T | null;
-  error: string | null;
-};
-
 /**
- * Custom fetch function
- * @param {string} url - The URL to fetch
- * @param {FetchOptions} options - The fetch options
- * @returns {Promise<FetchResponse>}
+ * Fetch data from a given URL
+ * @param {string} url - The URL to fetch data from
+ * @param {ClientOptions} options - Options for the fetch request
+ * @returns {Promise<T>} - A promise that resolves to the fetched data
+ * @throws {Error} - If there's an error fetching the data
+ * 
+ * @example
+ * const data = await client<{name: string, age: number}>(url, { method: "POST", body: { name: "John", age: 20 } });
+ * data will be an object with a name property and an age property
  */
-export async function customFetch<T>(
+export async function client<T>(
   url: string,
-  options: FetchOptions = {}
-): Promise<FetchResponse<T>> {
+  options: ClientOptions = {}
+): Promise<T> {
   const { method = "GET", headers = {}, body, signal } = options;
 
   try {
@@ -1010,24 +347,35 @@ export async function customFetch<T>(
     });
 
     if (!response.ok) {
-      const errorMessage = `Error: ${response.status} ${response.statusText}`;
-      return {
-        data: null,
-        error: errorMessage,
-      };
+      const errorMessage = `Error fetching resource: ${response.status} ${response.statusText}`;
+      throw new Error(errorMessage);
     }
 
     const data: T = await response.json();
-    return { data, error: null };
+    return data;
   } catch (error) {
-    return {
-      data: null,
-      error:
-        error instanceof Error ? error.message : "An unknown error occurred",
-    };
+    const message =
+      error instanceof Error ? error.message : "An unknown error occurred";
+    throw new Error(message);
   }
 }
 
+/**
+ * Check if a course or module has been reviewed by the user
+ * @param {string} userId - The ID of the user
+ * @param {string} courseId - The ID of the course (optional)
+ * @param {string} moduleId - The ID of the module (optional)
+ * @returns {Promise<boolean>} - A promise that resolves to true if the course or module has been reviewed, false otherwise
+ * @throws {Error} - If there's an error checking the review status
+ * 
+ * @example
+ * const isReviewed = await isCourseOrModuleReviewed(userId, courseId);
+ * isReviewed will be a boolean
+ * 
+ * @example
+ * const isReviewed = await isCourseOrModuleReviewed(userId, moduleId);
+ * isReviewed will be a boolean
+ */
 export async function isCourseOrModuleReviewed({
   userId,
   courseId,
@@ -1097,9 +445,15 @@ export async function isCourseOrModuleReviewed({
 }
 
 /**
- * Add a user's review to a course or module
- * @param request - Request object
- * @returns {Promise<void>}
+ * Add a review to a course or module
+ * @param {FormData} formData - The form data containing review details
+ * @param {string} userId - The ID of the user adding the review
+ * @returns {Promise<{success: boolean, message: string}>} - A promise that resolves to the review status
+ * @throws {Error} - If there's an error adding the review
+ *  
+ * @example
+ * const review = await addReview(formData, userId);
+ * review will be an object with a success property and a message property
  */
 export async function addReview(formData: FormData, userId: string) {
   const itemTitle = formData.get("itemTitle") as string;

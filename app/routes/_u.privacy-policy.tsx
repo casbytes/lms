@@ -11,8 +11,7 @@ export const meta = metaFn;
 
 export async function loader() {
   try {
-    const { content } = matter(await readPage("privacy-policy.mdx"));
-    return json(content);
+    return json(matter(await readPage("privacy-policy.mdx")).content)
   } catch (error) {
     throw error;
   }

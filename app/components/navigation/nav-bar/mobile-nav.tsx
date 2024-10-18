@@ -1,9 +1,9 @@
 import { Link } from "@remix-run/react";
 import { SignOutButton } from "~/components/signout-form";
 import { Button } from "~/components/ui/button";
-import { DialogTrigger } from "~/components/ui/dialog";
 import { Separator } from "~/components/ui/separator";
 import { cn } from "~/libs/shadcn";
+import { useAuthDialog } from "~/contexts/auth-dialog-context";
 
 type MobileNavProps = {
   isOpen: boolean;
@@ -21,6 +21,7 @@ export function MobileNav({
   handleNavToggle,
   ...props
 }: MobileNavProps) {
+  const { openAuthDialog } = useAuthDialog();
   return (
     <nav
       className={cn(
@@ -55,15 +56,16 @@ export function MobileNav({
           {authApp ? (
             <SignOutButton isOpen={isOpen} />
           ) : (
-            <DialogTrigger asChild>
-              <Button
-                onClick={handleNavToggle}
-                variant="ghost"
-                className="self-center text-lg"
-              >
-                Sign In
-              </Button>
-            </DialogTrigger>
+            <Button
+              onClick={() => {
+                openAuthDialog();
+                handleNavToggle();
+              }}
+              variant="ghost"
+              className="self-center text-lg"
+            >
+              Sign In
+            </Button>
           )}
         </li>
       </ul>

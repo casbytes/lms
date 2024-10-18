@@ -1,12 +1,24 @@
-import { afterEach, beforeEach } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, vi } from "vitest";
 import { cleanup } from "@testing-library/react";
-import { PrismaClient } from "@prisma/client";
-import { mockDeep, mockReset } from "vitest-mock-extended";
+import { mockReset } from "vitest-mock-extended";
+import { server } from "../mocks/node";
+import { prisma } from "../mocks/prisma";
 import "@testing-library/jest-dom/vitest";
+
+vi.mock("../mocks/prisma");
+
+beforeAll(() => {
+  server.listen();
+});
 
 beforeEach(() => {
   mockReset(prisma);
 });
-afterEach(() => cleanup());
+afterEach(() => {
+  server.resetHandlers();
+  cleanup();
+});
 
-export const prisma = mockDeep<PrismaClient>();
+afterAll(() => {
+  server.close();
+});

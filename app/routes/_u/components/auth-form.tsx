@@ -20,7 +20,12 @@ export function AuthForm({
   const isLoading = navigation.formData?.get("intent") === `${provider}-signin`;
   const disabled = navigation.formData?.get("disabled") === "signin";
   return (
-    <Form method="POST" action={`/${provider}/redirect`} className="w-full">
+    <Form
+      name="authForm"
+      method="POST"
+      action={`/${provider}/redirect`}
+      className="w-full"
+    >
       <input
         type="hidden"
         name="intent"
@@ -39,7 +44,7 @@ export function AuthForm({
           <Button
             size="lg"
             type="submit"
-            aria-label="Email addredd"
+            aria-label="Email a magic link"
             className="w-full text-lg"
             disabled={disabled}
           >

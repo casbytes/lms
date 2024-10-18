@@ -11,7 +11,7 @@ export function loader() {
 export async function action({ request }: ActionFunctionArgs) {
   const userId = await getUserId(request);
   const formData = await request.formData();
-  const intent = formData.get("intent") as string;
+  const intent = formData.get("intent") as "log" 
   const hours = formData.get("hours") as string;
   const today = startOfToday();
   invariant(intent === "log" && hours, "Invalid intent or hours");

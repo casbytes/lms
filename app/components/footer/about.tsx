@@ -10,7 +10,9 @@ export function About() {
         {items.map((item) => (
           <li key={item.title}>
             <Button variant="link" className="-my-1 capitalize p-0" asChild>
-              <Link to={item.href}>{item.title}</Link>
+              <Link to={item.href} prefetch="intent">
+                {item.title}
+              </Link>
             </Button>
           </li>
         ))}
@@ -20,8 +22,8 @@ export function About() {
 }
 
 const items = [
+  { title: "features", href: "/#features" },
+  { title: "overview", href: "/#overview" },
   { title: "testimonials", href: "/#testimonials" },
   { title: "FAQs", href: "/faqs" },
-  { title: "about", href: "/#overview" },
-  { title: "courses overview", href: "/#courses" },
 ];

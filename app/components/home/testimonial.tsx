@@ -8,6 +8,7 @@ import {
 import { Card, CardContent } from "../ui/card";
 import { Container } from "../container";
 import { FaQuoteLeft } from "react-icons/fa6";
+import { Image } from "../image";
 
 export function Testimonial() {
   return (
@@ -46,9 +47,9 @@ export function Testimonial() {
                       nisi itaque natus illum error nesciunt repellat nostrum
                       odio distinctio, et rerum iusto?
                     </p>
-                    <div className="relative bg-zinc-600 text-white h-36 rounded-md rounded-t-[50%] w-full p-2 mx-auto">
-                      <img
-                        src="https://cdn.casbytes.com/assets/avatar.png"
+                    <div className="relative bg-sky-700 text-white h-36 rounded-md rounded-t-[50%] w-full p-2 mx-auto">
+                      <Image
+                        src="assets/avatar.png"
                         width={100}
                         height={100}
                         alt="avatar"
@@ -60,7 +61,7 @@ export function Testimonial() {
                       <h2 className="text-blue-100 text-center">
                         Software engineer
                       </h2>
-                      <p className="text-bold text-xl text-blue-200 text-center">
+                      <p className="text-bold text-xl text-blue-100/90 text-center">
                         {index < 3 ? " Google" : "Microsoft"}
                       </p>
                     </div>

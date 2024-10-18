@@ -2,16 +2,18 @@ import React from "react";
 import {
   Links,
   Meta,
+  Outlet,
   Scripts,
   ScrollRestoration,
   useLoaderData,
   useRouteError,
 } from "@remix-run/react";
-import { RootLayout } from "./components/layouts";
 import dark from "highlight.js/styles/night-owl.css?url";
-import stylesheet from "./tailwind.css?url";
+import tailwindStylesheetUrl from "./tailwind.css?url";
+import { RootLayout } from "./components/layouts";
 import { RootErrorUI } from "./components/root-error-ui";
 import { getEnv } from "./utils/env.server";
+import { OfflineUI } from "./components/offline-ui";
 
 export const links = () => {
   return [
@@ -30,20 +32,16 @@ export const links = () => {
       rel: "stylesheet",
       href: "https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Mulish&display=swap",
     },
-    { rel: "stylesheet", href: stylesheet },
+    { rel: "stylesheet", href: tailwindStylesheetUrl },
     { rel: "stylesheet", href: dark },
   ].filter(Boolean);
 };
 
 export function loader() {
-  try {
-    return { ENV: getEnv() };
-  } catch (error) {
-    throw error;
-  }
+  return { ENV: getEnv() };
 }
 
-export function Layout({ children }: { children: React.ReactNode }) {
+export function Layout() {
   const data = useLoaderData<typeof loader>();
   return (
     <html lang="en">
@@ -54,12 +52,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        {children}
+        <RootLayout />
         <ScrollRestoration />
         <script
           dangerouslySetInnerHTML={{
-            __html: `window.ENV = ${JSON.stringify(data.ENV)}`,
-          }}
+              __html: `window.ENV = ${JSON.stringify(data.ENV)}`,
+            }}
         />
         <Scripts />
       </body>
@@ -67,8 +65,30 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+
+
 export default function App() {
-  return <RootLayout />;
+  const [isOnline, setIsOnline] = React.useState(true);
+
+  React.useEffect(() => {
+    setIsOnline(window.navigator.onLine);
+    const handleNetworkChange = () => {
+      setIsOnline(window.navigator.onLine);
+    };
+
+    window.addEventListener("online", handleNetworkChange);
+    window.addEventListener("offline", handleNetworkChange);
+
+    return () => {
+      window.removeEventListener("online", handleNetworkChange);
+      window.removeEventListener("offline", handleNetworkChange);
+    };
+  }, []);
+  return isOnline ? (
+    <Outlet />
+  ) : (
+    <OfflineUI />
+  );
 }
 
 export function ErrorBoundary() {

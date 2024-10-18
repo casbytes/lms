@@ -7,6 +7,8 @@ import { Button } from "../ui/button";
 import { CatalogDialog } from "./catalog-dialog";
 import { DialogTrigger } from "../ui/dialog";
 import { cn } from "~/libs/shadcn";
+import { CurrentItem } from "~/utils/helpers.server";
+
 
 export function MetaModules({
   modules,
@@ -15,7 +17,7 @@ export function MetaModules({
 }: {
   modules: Promise<MetaModule[]>;
   user: { subscribed: boolean };
-  currentItem: { title: string } | null;
+  currentItem: CurrentItem;
 }) {
   const [initialModules, setInitialModules] = React.useState(16);
   return (
@@ -31,12 +33,7 @@ export function MetaModules({
         <Await resolve={modules}>
           {(modules) => (
             <>
-              {!modules?.length ? (
-                <p className="text-center col-span-4 w-full text-lg font-mono">
-                  No modules match your search, try again.
-                </p>
-              ) : null}
-              <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 items-end">
+              <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 items-end relative">
                 <Fade cascade damping={0.1} duration={200}>
                   {modules?.length ? (
                     modules.slice(0, initialModules).map((module, index) => (
@@ -65,21 +62,22 @@ export function MetaModules({
                       </div>
                     ))
                   ) : (
-                    <p className="text-center col-span-4 w-full text-lg font-mono">
+                    <div className="text-center w-full mx-auto text-xl font-mono mt-4 absolute">
                       No modules match your search, try again.
-                    </p>
+                    </div>
                   )}
                 </Fade>
               </div>
-              <Button
-                onClick={() => setInitialModules((initM) => initM + 10)}
-                disabled={initialModules >= modules.length}
-                className="disabled:cursor-not-allowed mx-auto block mt-8 shadow-xl"
-              >
-                {initialModules < modules.length
-                  ? "Load more"
-                  : "No more modules"}
-              </Button>
+              {modules?.length ? (
+                <Button
+                  size={"lg"}
+                  onClick={() => setInitialModules((initM) => initM + 10)}
+                  disabled={initialModules >= modules.length}
+                className="disabled:cursor-not-allowed mx-auto block mt-8 shadow-xl uppercase"
+                >
+                  load more
+                </Button>
+              ) : null}
             </>
           )}
         </Await>

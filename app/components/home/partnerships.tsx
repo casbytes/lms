@@ -1,4 +1,5 @@
 import { Container } from "../container";
+import { Image } from "../image";
 
 export function Partnerships() {
   return (
@@ -11,8 +12,8 @@ export function Partnerships() {
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 mx-auto place-items-center">
           {partners.map((partner, index) => (
             <div key={`partner-${index}`}>
-              <img
-                src={`https://cdn.casbytes.com/assets/${partner}`}
+              <Image
+                src={`assets/${partner}`}
                 alt="partner"
                 width={150}
                 className="w-[150px] h-auto"

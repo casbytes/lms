@@ -18,7 +18,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export default function TestIndexRoute() {
   const test = useLoaderData<typeof loader>();
 
-  const moduleTest = Boolean(test?.moduleId);
+  const moduleTest = !!test?.moduleId
   const testTitle = test.title;
   const moduleOrSubModuleTitle = moduleTest
     ? test?.module?.title
@@ -58,11 +58,12 @@ export default function TestIndexRoute() {
           </div>
         </div>
         <Button
-          // disabled={test.status === TEST_STATUS.LOCKED}
+          disabled={test.status === TEST_STATUS.LOCKED}
           className="mt-4 w-full text-lg"
           size="lg"
         >
           <Link
+            prefetch="intent"
             to={`/test/${test.id}?${
               test?.moduleId
                 ? `moduleId=${test.moduleId}`

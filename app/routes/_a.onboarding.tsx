@@ -27,8 +27,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       getUser(request),
       readPage("onboarding.mdx"),
     ]);
-    const mdx = matter(content);
-    return json({ mdx, user });
+    return json({ mdx: matter(content), user });
   } catch (error) {
     throw error;
   }
@@ -36,8 +35,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
-  const intent = formData.get("intent");
   const userId = await getUserId(request);
+  const intent = formData.get("intent") as "markAsCompleted";
   invariant(intent === "markAsCompleted", "Invalid intent.");
 
   try {
@@ -45,7 +44,7 @@ export async function action({ request }: ActionFunctionArgs) {
       where: { id: userId },
       data: { completedOnboarding: true },
     });
-    return redirect("/catalog/modules");
+    return redirect("/modules");
   } catch (error) {
     throw error;
   }

@@ -15,10 +15,13 @@ import { Button } from "~/components/ui/button";
 
 export const meta = metaFn;
 
+const searchKey = "articleSearch";
+const countKey = "articleCount";
+
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
-  const searchTerm = url.searchParams.get("articleSearch") ?? "";
-  const articleCount = Number(url.searchParams.get("articleCount")) ?? 8;
+  const searchTerm = url.searchParams.get(searchKey) ?? "";
+  const articleCount = Number(url.searchParams.get(countKey)) ?? 8;
   const articles = await getArticles(searchTerm, articleCount);
   const tags = await getArticleAllArticleTags();
   return { articles, tags };
@@ -30,15 +33,15 @@ export default function Articles() {
   const [articleCount, setArticleCount] = React.useState(8);
 
   const [searchParams, setSearchParams] = useSearchParams();
-  const currentSearch = searchParams.get("articles");
+  const currentSearch = searchParams.get(searchKey);
 
   React.useEffect(() => {
     setSearchParams(
       (params) => {
         if (searchTerm) {
-          params.set("articleSearch", encodeURIComponent(searchTerm));
+          params.set(searchKey, encodeURIComponent(searchTerm));
         } else {
-          params.delete("articleSearch");
+          params.delete(searchKey);
         }
         return params;
       },
@@ -49,7 +52,7 @@ export default function Articles() {
   React.useEffect(() => {
     setSearchParams(
       (params) => {
-        params.set("articleCount", articleCount.toString());
+        params.set(countKey, articleCount.toString());
         return params;
       },
       { preventScrollReset: true }
@@ -75,18 +78,23 @@ export default function Articles() {
         <h2 className="mb-2">Search articles by tags:</h2>
         <div className="flex flex-wrap">
           {tags?.length &&
-            tags.map((tag) => (
-              <Badge
-                onClick={() => setSearchTerm(tag.trim())}
-                key={tag}
-                className={cn("mr-2 text-lg cursor-pointer rounded-3xl", {
-                  "bg-white border-sky-600 hover:bg-white text-sky-600":
-                    currentSearch && tag.includes(currentSearch),
-                })}
-              >
-                {tag}
-              </Badge>
-            ))}
+            tags.map((tag) => {
+              return (
+                <Badge
+                  onClick={() => setSearchTerm(tag.trim())}
+                  key={tag}
+                  className={cn(
+                    "mr-2 mb-2 text-lg cursor-pointer rounded-3xl",
+                    {
+                      "bg-white border-sky-600 hover:bg-white text-sky-600":
+                        currentSearch && tag.includes(currentSearch),
+                    }
+                  )}
+                >
+                  {tag}
+                </Badge>
+              );
+            })}
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

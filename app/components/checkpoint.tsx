@@ -26,7 +26,7 @@ export function Checkpoint({ checkpoint }: CheckpointProps) {
 
   return (
     <Button
-      // disabled={locked}
+      disabled={LOCKED}
       className="rounded-md text-black bg-stone-200 hover:bg-stone-300 py-4 relative border-b-2 border-zinc-600 w-full"
     >
       <Link

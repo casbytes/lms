@@ -2,11 +2,8 @@ import { type Badge as IBadge, type Module } from "~/utils/db.server";
 import { cn } from "~/libs/shadcn";
 import { Badge } from "../ui/badge";
 import { BADGE_STATUS, capitalizeFirstLetter } from "~/utils/helpers";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "../ui/hover-card";
+import { Image } from "../image";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
 type BadgeWithModule = IBadge & {
   module?: Module;
@@ -27,14 +24,14 @@ export function BadgeGallery({ badges }: BadgeGalleryProps) {
           const LOCKED = badge.status === BADGE_STATUS.LOCKED;
           const UNLOCKED = badge.status === BADGE_STATUS.UNLOCKED;
           return (
-            <HoverCard key={badge.id}>
-              <HoverCardTrigger>
+            <Popover key={badge.id}>
+              <PopoverTrigger>
                 <li
                   key={badge.id}
                   className="flex flex-col items-center text-lg relative"
                 >
-                  <img
-                    src={`https://cdn.casbytes.com/badges/${
+                  <Image
+                    src={`badges/${
                       UNLOCKED
                         ? badge.title + "_unlocked"
                         : badge.title + "_locked"
@@ -45,8 +42,8 @@ export function BadgeGallery({ badges }: BadgeGalleryProps) {
 
                   <span className="uppercase text-sm">{badge.status}</span>
                 </li>
-              </HoverCardTrigger>
-              <HoverCardContent
+              </PopoverTrigger>
+              <PopoverContent
                 className={cn(
                   "px-6 py-4 mx-auto max-w-xl text-sm bg-slate-200 relative",
                   {
@@ -61,8 +58,8 @@ export function BadgeGallery({ badges }: BadgeGalleryProps) {
                 >
                   {badge.title}
                 </Badge>
-                <img
-                  src={`https://cdn.casbytes.com/badges/${
+                <Image
+                  src={`badges/${
                     UNLOCKED
                       ? badge.title + "_unlocked"
                       : badge.title + "_locked"
@@ -82,8 +79,8 @@ export function BadgeGallery({ badges }: BadgeGalleryProps) {
                     ? badge.unlocked_description
                     : badge.locked_description}
                 </p>
-              </HoverCardContent>
-            </HoverCard>
+              </PopoverContent>
+            </Popover>
           );
         })}
       </ul>

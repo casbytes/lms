@@ -36,10 +36,10 @@ export function Module({ module, user }: ModuleItemProps) {
     (!IS_SUBSCRIBED && IS_PREMIUM && !IN_PROGRESS);
 
   return (
-    <li className="w-full">
+    <li className="w-full disabled:cursor-not-allowed">
       <SheetClose asChild>
         <Button
-          // disabled={locked }
+          disabled={LOCKED}
           aria-label={module.title}
           onClick={() => submit({ moduleId: module.id })}
           className={cn(

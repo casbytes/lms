@@ -11,8 +11,8 @@ import {
 import { toast } from "~/components/ui/use-toast";
 import { metaFn } from "~/utils/meta";
 import { ROLE } from "~/utils/helpers";
+import { STRIPE } from "~/services/stripe.server";
 import { getMetaCourses, getMetaModules } from "~/services/sanity/index.server";
-import { listPlans } from "~/services/paystack.server";
 
 export const meta = metaFn;
 
@@ -21,7 +21,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   try {
     const url = new URL(request.url);
     const searchTerm = url.searchParams.get("moduleTitle");
-    const plans = listPlans();
+    const plans = STRIPE.listPlans();
     const courses = getMetaCourses();
     const modules = getMetaModules({ searchTerm });
     const session = await getUserSession(request);

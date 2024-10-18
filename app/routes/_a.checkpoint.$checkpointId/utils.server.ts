@@ -4,19 +4,23 @@ import { Params } from "@remix-run/react";
 import { Checkpoint, MDX, Module, prisma, SubModule } from "~/utils/db.server";
 import { getContentFromGithub } from "~/utils/octokit.server";
 import { getUserId } from "~/utils/session.server";
-import { Cache } from "~/utils/cache.server";
+import {Redis as Cache } from "~/utils/redis.server";
 import { CHECKPOINT_STATUS, STATUS } from "~/utils/helpers";
 import {
-  computeScore,
-  formatCheckerResponse,
-  getRequestUrl,
-  gradeFetch,
   LINT_CUTOFF_SCORE,
   TEST_CUTOFF_SCORE,
   TOTAL_CUTOFF_SCORE,
+} from "~/utils/helpers.server";
+import {
+  CombinedResponse,
+  formatCheckerResponse,
+  subscribeToQueue,
+} from "~/utils/rtr.server";
+import {
   updateModuleStatusAndFindNextModule,
   updateSubmoduleStatusAndFindNextSubmodule,
-} from "~/utils/helpers.server";
+} from "~/utils/module.server";
+import { QStash } from "~/services/qstash.server";
 
 //################
 // Server uitls
@@ -46,9 +50,11 @@ export async function getCheckpoint(request: Request, params: Params<string>) {
       },
     });
 
+    const fileName = "checkpoint.mdx";
+
     const path = checkpoint?.module
-      ? "checkpoint.mdx"
-      : `${checkpoint?.subModule?.slug}/checkpoint.mdx`;
+      ? fileName
+      : `${checkpoint?.subModule?.slug}/${fileName}`;
 
     const repo =
       checkpoint?.module?.slug ??
@@ -94,12 +100,7 @@ export async function gradeCheckpoint(request: Request) {
     await getFormData(request);
   invariant(intent, "Intent is required to update Checkpoint");
   invariant(checkpointId, "Checkpoint ID is required to update Checkpoint");
-  return await autoGradeCheckpoint(
-    userId,
-    checkpointId,
-    moduleOrSubmoduleId,
-    request
-  );
+  return await autoGradeCheckpoint(userId, checkpointId, moduleOrSubmoduleId);
 }
 
 /**
@@ -111,8 +112,7 @@ export async function gradeCheckpoint(request: Request) {
 async function autoGradeCheckpoint(
   userId: string,
   checkpointId: string,
-  moduleOrSubmoduleId: string,
-  request: Request
+  moduleOrSubmoduleId: string
 ) {
   try {
     const [user, checkpoint] = await Promise.all([
@@ -129,15 +129,31 @@ async function autoGradeCheckpoint(
         error: "Please, update your Github username.",
       });
     }
-    const testEnvironment = checkpoint?.testEnvironment;
+    const testEnvironment = checkpoint?.testEnvironment as
+      | "python"
+      | "node"
+      | "browser";
     const repo =
       checkpoint?.module?.slug ??
       (checkpoint?.subModule?.module.slug as string);
 
-    const path = getCheckpointPath(checkpoint as CheckpointWithCourse);
-    const url = getRequestUrl({ username, path, repo });
-    const response = await gradeFetch({ url, testEnvironment, request });
-    const computedScores = await computeScore(response);
+    const checkpointPath = getCheckpointPath(
+      checkpoint as CheckpointWithCourse
+    );
+    const data = { checkpointPath, username, repo, testEnvironment };
+    const qstashRes = await QStash.publish(data);
+
+    const messageId = qstashRes.messageId;
+    const error = "Failed to check your work, please try again.";
+
+    const result = await subscribeToQueue(messageId);
+
+    const { computedScores, response } = result as CombinedResponse;
+
+    if (!computedScores) {
+      return formatCheckerResponse({ error });
+    }
+
     const checkpointStatus = await updateCheckpointStatus({
       userId,
       checkpointId,
@@ -195,7 +211,7 @@ async function updateCheckpointStatus({
         status: completed
           ? CHECKPOINT_STATUS.COMPLETED
           : CHECKPOINT_STATUS.IN_PROGRESS,
-        score: Number(checkpointScore.toFixed(0)),
+        score: Math.round(checkpointScore),
       },
     });
   } catch (error) {
